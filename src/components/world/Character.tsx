@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-
-export type CharacterAction = 'idle' | 'typing' | 'reading' | 'looking';
+import { AvatarActionState, HotspotCoordinates } from '@/types/avatar';
 
 export interface CharacterProps {
-  state?: CharacterAction;
-  cursorPos?: { x: number; y: number }; // normalized coords between -1 and 1
+  actionState?: AvatarActionState;
+  hotspot?: HotspotCoordinates;
+  cursorPos?: { x: number; y: number };
   gazeOverride?: { x: number; y: number } | null;
   bubbleText?: string | null;
+  facingRight?: boolean;
   onAvatarClick?: () => void;
-  onStateChange?: (state: CharacterAction) => void;
   className?: string;
   isLampOn?: boolean;
 }
 
-const DIALOGUES = [
+export const DIALOGUES = [
   "hey... it's 2:14 AM and this code is finally running.",
   "just one more One Piece chapter, then I'll sleep (lies).",
   "bleach bankai scenes never get old.",
@@ -30,12 +30,13 @@ const DIALOGUES = [
 ];
 
 export const Character: React.FC<CharacterProps> = ({
-  state = 'idle',
+  actionState = 'idle',
+  hotspot,
   cursorPos = { x: 0, y: 0 },
   gazeOverride = null,
   bubbleText = null,
+  facingRight = true,
   onAvatarClick,
-  onStateChange,
   className = '',
   isLampOn = true,
 }) => {
@@ -45,53 +46,48 @@ export const Character: React.FC<CharacterProps> = ({
   const [overrideBubble, setOverrideBubble] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [typingTick, setTypingTick] = useState<number>(0);
-  const dialogueTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const bubbleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Blinking loop (every 3.5 to 5.5 seconds)
+  // Blinking loop (every 3.2 to 5.6 seconds)
   useEffect(() => {
     let blinkTimer: NodeJS.Timeout;
     const triggerBlink = () => {
       setBlinking(true);
-      setTimeout(() => {
-        setBlinking(false);
-      }, 140);
-
-      const nextDelay = 3000 + Math.random() * 2500;
+      setTimeout(() => setBlinking(false), 140);
+      const nextDelay = 3200 + Math.random() * 2400;
       blinkTimer = setTimeout(triggerBlink, nextDelay);
     };
-
-    blinkTimer = setTimeout(triggerBlink, 3200);
+    blinkTimer = setTimeout(triggerBlink, 2800);
     return () => clearTimeout(blinkTimer);
   }, []);
 
-  // Typing animation cycle when state is 'typing'
+  // Typing tick animation for rapid keypresses
   useEffect(() => {
-    if (state !== 'typing') return;
+    if (actionState !== 'typing') return;
     const interval = setInterval(() => {
       setTypingTick((prev) => (prev + 1) % 4);
-    }, 150);
+    }, 140);
     return () => clearInterval(interval);
-  }, [state]);
+  }, [actionState]);
 
-  // When bubbleText prop updates from parent (e.g. laptop or monitor clicked), trigger bubble
+  // When bubbleText updates from external events (clicking monitor, laptop, cat, window, etc.)
   useEffect(() => {
     if (bubbleText) {
       setOverrideBubble(bubbleText);
       setShowSpeechBubble(true);
-      if (dialogueTimeoutRef.current) {
-        clearTimeout(dialogueTimeoutRef.current);
-      }
-      dialogueTimeoutRef.current = setTimeout(() => {
+      if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+      bubbleTimerRef.current = setTimeout(() => {
         setShowSpeechBubble(false);
         setOverrideBubble(null);
-      }, 4500);
+      }, 4800);
     } else {
       setOverrideBubble(null);
     }
   }, [bubbleText]);
 
-  const handleCharacterClick = () => {
-    // Dismiss any device quote override and notify parent
+  const handleCharacterClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Dismiss any temporary device override and advance dialogue
     setOverrideBubble(null);
     if (onAvatarClick) {
       onAvatarClick();
@@ -101,363 +97,355 @@ export const Character: React.FC<CharacterProps> = ({
     setDialogueIndex(nextIndex);
     setShowSpeechBubble(true);
 
-    // If onStateChange is provided, cycle through looking/idle/reading
-    if (onStateChange && state !== 'typing') {
-      const nextStates: CharacterAction[] = ['idle', 'looking', 'reading'];
-      const nextIdx = (nextStates.indexOf(state) + 1) % nextStates.length;
-      onStateChange(nextStates[nextIdx]);
-    }
-
-    if (dialogueTimeoutRef.current) {
-      clearTimeout(dialogueTimeoutRef.current);
-    }
-    dialogueTimeoutRef.current = setTimeout(() => {
+    if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+    bubbleTimerRef.current = setTimeout(() => {
       setShowSpeechBubble(false);
     }, 4500);
   };
 
-  // Eye tracking offsets: gazeOverride takes precedence over natural cursor tracking
+  // Pupil calculation: gazeOverride takes precedence over mouse cursor coordinates
   const effectiveX = gazeOverride ? gazeOverride.x : cursorPos.x;
   const effectiveY = gazeOverride ? gazeOverride.y : cursorPos.y;
-
   const eyeOffsetX = Math.max(-1.5, Math.min(1.5, effectiveX * 1.5));
   const eyeOffsetY = Math.max(-1, Math.min(1, effectiveY * 1));
 
-  // Head tilt for looking
-  const headRotation = state === 'looking' ? effectiveX * 3 : 0;
+  // Dynamic bubble positioning based on hotspot anchor
+  const bubbleAnchor = hotspot?.bubbleAnchor ?? 'top-center';
+  const getBubbleAlignmentClasses = () => {
+    switch (bubbleAnchor) {
+      case 'top-left':
+        return 'left-0 sm:-left-6 translate-x-0';
+      case 'top-right':
+        return 'right-0 sm:-right-6 translate-x-0';
+      case 'top-center':
+      default:
+        return 'left-1/2 -translate-x-1/2';
+    }
+  };
+
+  const getArrowClasses = () => {
+    switch (bubbleAnchor) {
+      case 'top-left':
+        return 'left-8';
+      case 'top-right':
+        return 'right-8';
+      case 'top-center':
+      default:
+        return 'left-1/2 -translate-x-1/2';
+    }
+  };
 
   const activeDialogueContent = overrideBubble || DIALOGUES[dialogueIndex];
 
   return (
     <div
-      className={`relative inline-block select-none cursor-pointer transition-transform duration-300 ${className}`}
+      className={`relative inline-block select-none cursor-pointer ${className}`}
       onClick={handleCharacterClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      title="Huzbi"
       role="img"
       aria-label="Pixel art representation of Huzbi"
     >
-      {/* Speech / Thought Bubble - Solid opaque background, elevated z-index, positioned to avoid CRT overlap */}
+      {/* 1. ADAPTIVE SPEECH BUBBLE (Mounted OUTSIDE the flipped sprite container so text is NEVER mirrored) */}
       {(showSpeechBubble || isHovered) && (
         <div
-          className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 sm:left-auto sm:right-[-40px] sm:translate-x-0 z-50 pointer-events-none transition-all duration-200"
-          style={{ width: 'max-content', maxWidth: '290px' }}
+          className={`absolute bottom-full mb-3 z-50 pointer-events-none transition-all duration-200 ${getBubbleAlignmentClasses()}`}
+          style={{ width: 'max-content', maxWidth: '300px' }}
         >
           <div
-            className="relative border-2 border-accent text-fg font-mono text-[11px] px-3.5 py-2 rounded-xl shadow-2xl leading-relaxed"
+            className="relative border-2 border-accent text-fg font-mono text-[11px] px-3.5 py-2 rounded-xl shadow-2xl leading-relaxed bg-bg-deep"
             style={{
-              backgroundColor: 'var(--color-bg-deep)',
               borderColor: 'var(--color-accent)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.95), 0 0 12px var(--color-glow)'
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.95), 0 0 12px var(--color-glow)',
             }}
           >
             <span className="text-accent font-bold mr-1.5">&gt;</span>
             {activeDialogueContent}
-            {/* Bubble arrow pointing towards Huzbi */}
+            {/* Triangular Tail */}
             <div
-              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 sm:left-10 w-2.5 h-2.5 border-r-2 border-b-2 rotate-45"
-              style={{
-                backgroundColor: 'var(--color-bg-deep)',
-                borderColor: 'var(--color-accent)'
-              }}
+              className={`absolute -bottom-1.5 w-2.5 h-2.5 border-r-2 border-b-2 rotate-45 bg-bg-deep ${getArrowClasses()}`}
+              style={{ borderColor: 'var(--color-accent)' }}
             />
           </div>
         </div>
       )}
 
-      {/* SVG Pixel-Art Huzbi Character */}
-      <svg
-        viewBox="0 0 80 90"
-        className="w-32 h-36 sm:w-36 sm:h-40 md:w-40 md:h-44 pixelated drop-shadow-md overflow-visible"
-        shapeRendering="crispEdges"
+      {/* 2. INNER SPRITE CONTAINER (Flipped horizontally with scaleX based on walking direction) */}
+      <div
+        className={`transition-transform duration-200 ${
+          actionState === 'walking' ? 'avatar-walk-bob' : ''
+        }`}
+        style={{
+          transform: facingRight ? 'scaleX(1)' : 'scaleX(-1)',
+          transformOrigin: '50% 85%',
+        }}
       >
-        <defs>
-          {/* Subtle glow filter for headphones LED */}
-          <filter id="ledGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="1" floodColor="var(--color-accent)" floodOpacity="0.8" />
-          </filter>
-        </defs>
-
-        {/* --- CHAIR BACKREST (Ergonomic Swivel Chair) --- */}
-        <g id="chair">
-          {/* Chair Headrest */}
-          <rect x="26" y="10" width="28" height="12" fill="#141820" rx="1" />
-          <rect x="28" y="12" width="24" height="8" fill="#1E232E" />
-          <rect x="30" y="14" width="20" height="4" fill="#29303F" />
-
-          {/* Chair Main Back */}
-          <rect x="22" y="24" width="36" height="34" fill="#141820" />
-          <rect x="25" y="26" width="30" height="30" fill="#1A1F2B" />
-          <rect x="28" y="28" width="24" height="26" fill="#232A39" />
-          {/* Stitching / Cushion Lines */}
-          <rect x="28" y="38" width="24" height="1" fill="#141820" />
-          <rect x="39" y="28" width="2" height="26" fill="#141820" />
-
-          {/* Chair Armrests */}
-          <rect x="16" y="44" width="6" height="16" fill="#12161E" />
-          <rect x="14" y="42" width="10" height="3" fill="#252D3C" />
-          <rect x="58" y="44" width="6" height="16" fill="#12161E" />
-          <rect x="56" y="42" width="10" height="3" fill="#252D3C" />
-
-          {/* Chair Base Stem */}
-          <rect x="37" y="74" width="6" height="12" fill="#11141B" />
-          <rect x="24" y="84" width="32" height="4" fill="#161B24" />
-          {/* Casters */}
-          <rect x="22" y="87" width="4" height="3" fill="#0D0F15" />
-          <rect x="54" y="87" width="4" height="3" fill="#0D0F15" />
-          <rect x="38" y="87" width="4" height="3" fill="#0D0F15" />
-        </g>
-
-        {/* --- HUZBI BODY & CHEST (Gentle Breathing Animation via CSS) --- */}
-        <g
-          id="huzbi-body"
-          className="transition-transform duration-500 ease-out"
-          style={{
-            transform: state === 'idle' ? 'translateY(0px)' : 'none',
-          }}
+        <svg
+          viewBox="0 0 80 95"
+          className="w-28 h-33 sm:w-32 sm:h-38 md:w-36 md:h-42 pixelated drop-shadow-md overflow-visible"
+          shapeRendering="crispEdges"
         >
-          {/* Cozy Dark Hoodie Torso */}
-          <rect x="27" y="45" width="26" height="26" fill="#222834" />
-          <rect x="29" y="47" width="22" height="22" fill="#2C3443" />
-          {/* Hoodie Pocket Kangaroo Style */}
-          <rect x="31" y="58" width="18" height="9" fill="#1E232E" />
-          <rect x="33" y="60" width="14" height="5" fill="#252C39" />
-          {/* Hoodie Drawstrings */}
-          <rect x="36" y="48" width="1" height="6" fill="#A8D672" opacity="0.8" />
-          <rect x="43" y="48" width="1" height="7" fill="#A8D672" opacity="0.8" />
+          <defs>
+            <filter id="ledGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="0" stdDeviation="1" floodColor="var(--color-accent)" floodOpacity="0.8" />
+            </filter>
+          </defs>
 
-          {/* Legs / Jeans */}
-          <rect x="30" y="71" width="9" height="12" fill="#1A202A" />
-          <rect x="41" y="71" width="9" height="12" fill="#171C26" />
-          {/* Shoes */}
-          <rect x="28" y="82" width="11" height="4" fill="#E8E6DD" />
-          <rect x="28" y="84" width="12" height="2" fill="#A8D672" />
-          <rect x="41" y="82" width="11" height="4" fill="#E8E6DD" />
-          <rect x="40" y="84" width="12" height="2" fill="#A8D672" />
-        </g>
-
-        {/* --- HEAD & NECK (Subtle Tilt towards cursor) --- */}
-        <g
-          id="huzbi-head"
-          style={{
-            transformOrigin: '40px 38px',
-            transform: `rotate(${headRotation}deg)`,
-            transition: 'transform 180ms ease-out',
-          }}
-        >
-          {/* Neck */}
-          <rect x="37" y="41" width="6" height="5" fill="#DEB887" />
-          <rect x="38" y="43" width="4" height="3" fill="#C59B67" />
-
-          {/* Face Base */}
-          <rect x="31" y="24" width="18" height="18" fill="#F3D5B5" />
-          {/* Face Shadow / Chin */}
-          <rect x="34" y="40" width="12" height="2" fill="#DEB887" />
-          <rect x="32" y="38" width="16" height="2" fill="#E5C39E" />
-
-          {/* Cute subtle blush */}
-          <rect x="32" y="34" width="3" height="1" fill="#E69575" opacity="0.6" />
-          <rect x="45" y="34" width="3" height="1" fill="#E69575" opacity="0.6" />
-
-          {/* Nose (tiny pixel) */}
-          <rect x="39" y="33" width="2" height="2" fill="#D9A979" />
-
-          {/* Mouth */}
-          {state === 'reading' ? (
-            // Focused slight open mouth
-            <rect x="38" y="37" width="4" height="2" fill="#5A3D28" />
-          ) : state === 'typing' ? (
-            // Small smirk
-            <g>
-              <rect x="38" y="37" width="4" height="1" fill="#5A3D28" />
-              <rect x="42" y="36" width="1" height="1" fill="#5A3D28" />
-            </g>
-          ) : (
-            // Chill neutral line
-            <rect x="38" y="37" width="4" height="1" fill="#6E4A35" />
-          )}
-
-          {/* Eyes & Eyebrows */}
-          {blinking ? (
-            // Blink closed eyes
-            <g id="eyes-closed">
-              <rect x="33" y="31" width="4" height="1" fill="#2E1C12" />
-              <rect x="43" y="31" width="4" height="1" fill="#2E1C12" />
-            </g>
-          ) : (
-            // Open Eyes with tracking pupils
-            <g id="eyes-open">
-              {/* Eyebrows */}
-              <rect x="33" y="28" width="4" height="1" fill="#1C1512" />
-              <rect x="43" y="28" width="4" height="1" fill="#1C1512" />
-
-              {/* Eye Whites */}
-              <rect x="33" y="30" width="4" height="3" fill="#FFFFFF" />
-              <rect x="43" y="30" width="4" height="3" fill="#FFFFFF" />
-
-              {/* Pupils with cursor tracking */}
-              <rect
-                x={34 + eyeOffsetX}
-                y={30.5 + eyeOffsetY}
-                width="2"
-                height="2"
-                fill="#1C1512"
-              />
-              <rect
-                x={44 + eyeOffsetX}
-                y={30.5 + eyeOffsetY}
-                width="2"
-                height="2"
-                fill="#1C1512"
-              />
-
-              {/* Eye Catchlight (shiny pixel) */}
-              <rect
-                x={34.5 + eyeOffsetX * 0.4}
-                y={30.5}
-                width="1"
-                height="1"
-                fill="#FFFFFF"
-              />
-              <rect
-                x={44.5 + eyeOffsetX * 0.4}
-                y={30.5}
-                width="1"
-                height="1"
-                fill="#FFFFFF"
-              />
+          {/* --- A. RED SWIVEL STOOL (Rendered beneath Huzbi when seated at desk in 'watching' or 'idle' mode) --- */}
+          {(actionState === 'watching' || (actionState === 'idle' && hotspot?.id === 'desk-monitor')) && (
+            <g id="red-swivel-stool">
+              {/* Red Round Stool Cushion (Matching reference image) */}
+              <ellipse cx="40" cy="74" rx="16" ry="4.5" fill="#7D1E1E" />
+              <ellipse cx="40" cy="72" rx="15" ry="4" fill="#B02A2A" />
+              <ellipse cx="40" cy="70" rx="13" ry="3" fill="#D94343" />
+              {/* Chrome Center Stem */}
+              <rect x="38" y="74" width="4" height="12" fill="#5F6B72" />
+              <rect x="39" y="74" width="2" height="12" fill="#95A5A6" />
+              {/* Chrome Circular Footring */}
+              <ellipse cx="40" cy="81" rx="10" ry="2" fill="none" stroke="#7F8C8D" strokeWidth="1.5" />
+              {/* 5-Star Caster Base */}
+              <polygon points="40,84 25,88 27,90 40,86 53,90 55,88" fill="#2C3440" />
+              <rect x="24" y="88" width="3" height="3" fill="#151A22" rx="0.5" />
+              <rect x="53" y="88" width="3" height="3" fill="#151A22" rx="0.5" />
             </g>
           )}
 
-          {/* Messy Anime-Inspired Dark Hair */}
-          <g id="hair">
-            {/* Hair Base */}
-            <rect x="30" y="19" width="20" height="7" fill="#181415" />
-            <rect x="29" y="21" width="22" height="4" fill="#251F21" />
+          {/* --- B. HUZBI LEGS / CROUCH / WALK --- */}
+          {actionState === 'petting' ? (
+            // CROUCHING POSE on rug
+            <g id="legs-crouch">
+              {/* Left bent knee on rug */}
+              <rect x="23" y="66" width="16" height="11" fill="#1A202A" rx="2" />
+              <rect x="21" y="74" width="12" height="7" fill="#171C26" />
+              <rect x="19" y="78" width="11" height="5" fill="#E8E6DD" />
+              {/* Right knee support */}
+              <rect x="42" y="64" width="13" height="15" fill="#171C26" rx="2" />
+              <rect x="43" y="77" width="11" height="4" fill="#E8E6DD" />
+              <rect x="43" y="79" width="11" height="2" fill="#A8D672" />
+            </g>
+          ) : actionState === 'walking' ? (
+            // WALKING STRIDE
+            <g id="legs-walking">
+              <rect className="avatar-leg-left" x="30" y="71" width="9" height="13" fill="#1A202A" />
+              <rect className="avatar-leg-left" x="28" y="82" width="11" height="4" fill="#E8E6DD" />
+              <rect className="avatar-leg-right" x="41" y="71" width="9" height="13" fill="#171C26" />
+              <rect className="avatar-leg-right" x="43" y="82" width="11" height="4" fill="#E8E6DD" />
+            </g>
+          ) : (
+            // UPRIGHT / SEATED JEANS
+            <g id="legs-upright">
+              <rect x="30" y="71" width="9" height="13" fill="#1A202A" />
+              <rect x="41" y="71" width="9" height="13" fill="#171C26" />
+              <rect x="28" y="82" width="11" height="4" fill="#E8E6DD" />
+              <rect x="28" y="84" width="12" height="2" fill="#A8D672" />
+              <rect x="41" y="82" width="11" height="4" fill="#E8E6DD" />
+              <rect x="40" y="84" width="12" height="2" fill="#A8D672" />
+            </g>
+          )}
 
-            {/* Messy Hair Bangs */}
-            <rect x="30" y="24" width="4" height="4" fill="#181415" />
-            <rect x="33" y="24" width="3" height="3" fill="#2C2426" />
-            <rect x="36" y="24" width="3" height="2" fill="#181415" />
-            <rect x="40" y="24" width="4" height="3" fill="#251F21" />
-            <rect x="44" y="24" width="5" height="4" fill="#181415" />
-
-            {/* Hair Strands / Cowlicks Top */}
-            <rect x="32" y="17" width="3" height="3" fill="#181415" />
-            <rect x="37" y="16" width="4" height="4" fill="#2C2426" />
-            <rect x="43" y="17" width="4" height="3" fill="#181415" />
-            <rect x="47" y="19" width="3" height="3" fill="#251F21" />
-
-            {/* Hair Highlights */}
-            <rect x="34" y="20" width="4" height="1" fill="#3D3438" />
-            <rect x="41" y="20" width="5" height="1" fill="#3D3438" />
+          {/* --- C. TORSO & HOODIE --- */}
+          <g
+            id="huzbi-torso"
+            className={actionState === 'idle' ? 'avatar-breathing' : ''}
+            style={{
+              transform: actionState === 'petting' ? 'translateY(12px)' : 'none',
+            }}
+          >
+            {/* Dark Cozy Hoodie */}
+            <rect x="27" y="45" width="26" height="26" fill="#222834" rx="1.5" />
+            <rect x="29" y="47" width="22" height="22" fill="#2C3443" />
+            {/* Kangaroo Pocket */}
+            <rect x="31" y="58" width="18" height="9" fill="#1E232E" />
+            <rect x="33" y="60" width="14" height="5" fill="#252C39" />
+            {/* Drawstrings */}
+            <rect x="36" y="48" width="1" height="6" fill="#A8D672" opacity="0.85" />
+            <rect x="43" y="48" width="1" height="7" fill="#A8D672" opacity="0.85" />
           </g>
 
-          {/* Retro Over-Ear Headphones */}
-          <g id="headphones">
-            {/* Headband */}
-            <rect x="28" y="18" width="2" height="7" fill="#3A404D" />
-            <rect x="30" y="16" width="20" height="2" fill="#2A303D" />
-            <rect x="50" y="18" width="2" height="7" fill="#3A404D" />
+          {/* --- D. HEAD, FACE & HEADPHONES --- */}
+          <g
+            id="huzbi-head"
+            style={{
+              transformOrigin: '40px 38px',
+              transform:
+                actionState === 'petting'
+                  ? 'translateY(12px) rotate(6deg)'
+                  : actionState === 'watching'
+                  ? 'rotate(-8deg)'
+                  : actionState === 'gazing'
+                  ? 'rotate(-5deg)'
+                  : 'none',
+              transition: 'transform 200ms ease-out',
+            }}
+          >
+            {/* Neck */}
+            <rect x="37" y="41" width="6" height="5" fill="#DEB887" />
+            {/* Face */}
+            <rect x="31" y="24" width="18" height="18" fill="#F3D5B5" />
+            <rect x="34" y="40" width="12" height="2" fill="#DEB887" />
+            <rect x="32" y="38" width="16" height="2" fill="#E5C39E" />
+            {/* Cheek Blush */}
+            <rect x="32" y="34" width="3" height="1" fill="#E69575" opacity="0.6" />
+            <rect x="45" y="34" width="3" height="1" fill="#E69575" opacity="0.6" />
+            {/* Nose */}
+            <rect x="39" y="33" width="2" height="2" fill="#D9A979" />
 
-            {/* Left Earcup */}
-            <rect x="27" y="25" width="4" height="10" fill="#1B202A" rx="1" />
-            <rect x="28" y="27" width="2" height="6" fill="#31394B" />
-            {/* Glow LED Dot (changes with theme or lamp) */}
-            <rect
-              x="28"
-              y="29"
-              width="2"
-              height="2"
-              fill={isLampOn ? 'var(--color-accent)' : '#445533'}
-              filter="url(#ledGlow)"
-            />
+            {/* Contextual Mouth */}
+            {actionState === 'reading' ? (
+              <rect x="38" y="37" width="4" height="2" fill="#5A3D28" />
+            ) : actionState === 'typing' || actionState === 'petting' ? (
+              <g>
+                <rect x="38" y="37" width="4" height="1" fill="#5A3D28" />
+                <rect x="42" y="36" width="1" height="1" fill="#5A3D28" />
+              </g>
+            ) : (
+              <rect x="38" y="37" width="4" height="1" fill="#6E4A35" />
+            )}
 
-            {/* Right Earcup */}
-            <rect x="49" y="25" width="4" height="10" fill="#1B202A" rx="1" />
-            <rect x="50" y="27" width="2" height="6" fill="#31394B" />
-            <rect
-              x="50"
-              y="29"
-              width="2"
-              height="2"
-              fill={isLampOn ? 'var(--color-accent)' : '#445533'}
-              filter="url(#ledGlow)"
-            />
+            {/* Contextual Eyes */}
+            {blinking || actionState === 'petting' ? (
+              // Happy / Sleepy closed curved eyes
+              <g id="eyes-closed">
+                <path d="M33,31 Q35,29 37,31" stroke="#2E1C12" strokeWidth="1.2" fill="none" />
+                <path d="M43,31 Q45,29 47,31" stroke="#2E1C12" strokeWidth="1.2" fill="none" />
+              </g>
+            ) : (
+              // Open tracking eyes
+              <g id="eyes-open">
+                <rect x="33" y="28" width="4" height="1" fill="#1C1512" />
+                <rect x="43" y="28" width="4" height="1" fill="#1C1512" />
+                <rect x="33" y="30" width="4" height="3" fill="#FFFFFF" />
+                <rect x="43" y="30" width="4" height="3" fill="#FFFFFF" />
+                <rect
+                  x={34 + (actionState === 'watching' ? 0.8 : eyeOffsetX)}
+                  y={30.5 + (actionState === 'watching' ? -0.8 : eyeOffsetY)}
+                  width="2"
+                  height="2"
+                  fill="#1C1512"
+                />
+                <rect
+                  x={44 + (actionState === 'watching' ? 0.8 : eyeOffsetX)}
+                  y={30.5 + (actionState === 'watching' ? -0.8 : eyeOffsetY)}
+                  width="2"
+                  height="2"
+                  fill="#1C1512"
+                />
+              </g>
+            )}
+
+            {/* Messy Anime Dark Hair */}
+            <g id="hair">
+              <rect x="30" y="19" width="20" height="7" fill="#181415" />
+              <rect x="29" y="21" width="22" height="4" fill="#251F21" />
+              <rect x="30" y="24" width="4" height="4" fill="#181415" />
+              <rect x="33" y="24" width="3" height="3" fill="#2C2426" />
+              <rect x="36" y="24" width="3" height="2" fill="#181415" />
+              <rect x="40" y="24" width="4" height="3" fill="#251F21" />
+              <rect x="44" y="24" width="5" height="4" fill="#181415" />
+              <rect x="32" y="17" width="3" height="3" fill="#181415" />
+              <rect x="37" y="16" width="4" height="4" fill="#2C2426" />
+              <rect x="43" y="17" width="4" height="3" fill="#181415" />
+            </g>
+
+            {/* Retro Over-Ear Headphones */}
+            <g id="headphones">
+              <rect x="28" y="18" width="2" height="7" fill="#3A404D" />
+              <rect x="30" y="16" width="20" height="2" fill="#2A303D" />
+              <rect x="50" y="18" width="2" height="7" fill="#3A404D" />
+              <rect x="27" y="25" width="4" height="10" fill="#1B202A" rx="1" />
+              <rect
+                x="28"
+                y="29"
+                width="2"
+                height="2"
+                fill={isLampOn ? 'var(--color-accent)' : '#445533'}
+                filter="url(#ledGlow)"
+              />
+              <rect x="49" y="25" width="4" height="10" fill="#1B202A" rx="1" />
+              <rect
+                x="50"
+                y="29"
+                width="2"
+                height="2"
+                fill={isLampOn ? 'var(--color-accent)' : '#445533'}
+                filter="url(#ledGlow)"
+              />
+            </g>
           </g>
-        </g>
 
-        {/* --- ARMS / HANDS BASED ON ACTION STATE --- */}
-        {state === 'typing' ? (
-          // Typing: Hands actively tapping alternating keys
-          <g id="arms-typing">
-            {/* Left Arm & Sleeve */}
-            <rect x="20" y="48" width="8" height="12" fill="#222834" />
-            <rect x="24" y="56" width="8" height="6" fill="#2C3443" />
-            {/* Left Hand tapping */}
-            <rect
-              x="30"
-              y={58 + (typingTick % 2 === 0 ? 2 : 0)}
-              width="6"
-              height="4"
-              fill="#F3D5B5"
-            />
-
-            {/* Right Arm & Sleeve */}
-            <rect x="52" y="48" width="8" height="12" fill="#222834" />
-            <rect x="48" y="56" width="8" height="6" fill="#2C3443" />
-            {/* Right Hand tapping */}
-            <rect
-              x="44"
-              y={58 + (typingTick % 2 === 1 ? 2 : 0)}
-              width="6"
-              height="4"
-              fill="#F3D5B5"
-            />
-          </g>
-        ) : state === 'reading' ? (
-          // Reading: Holding a pixel manga book!
-          <g id="arms-reading">
-            {/* Left & Right arms angling inwards */}
-            <rect x="22" y="48" width="8" height="12" fill="#222834" />
-            <rect x="26" y="54" width="7" height="8" fill="#2C3443" />
-            <rect x="50" y="48" width="8" height="12" fill="#222834" />
-            <rect x="47" y="54" width="7" height="8" fill="#2C3443" />
-
-            {/* Manga Book Cover & Pages */}
-            <g id="manga-volume">
-              {/* Spine & Back */}
+          {/* --- E. ARMS & PROPS ACCORDING TO ACTION STATE --- */}
+          {actionState === 'typing' ? (
+            // TYPING RAPIDLY AT LAPTOP
+            <g id="arms-typing">
+              <rect x="20" y="48" width="8" height="12" fill="#222834" />
+              <rect x="24" y="56" width="8" height="6" fill="#2C3443" />
+              <rect
+                x="30"
+                y={58 + (typingTick % 2 === 0 ? 2 : 0)}
+                width="6"
+                height="4"
+                fill="#F3D5B5"
+              />
+              <rect x="52" y="48" width="8" height="12" fill="#222834" />
+              <rect x="48" y="56" width="8" height="6" fill="#2C3443" />
+              <rect
+                x="44"
+                y={58 + (typingTick % 2 === 1 ? 2 : 0)}
+                width="6"
+                height="4"
+                fill="#F3D5B5"
+              />
+            </g>
+          ) : actionState === 'reading' ? (
+            // HOLDING OPEN MANGA BOOK
+            <g id="arms-reading">
+              <rect x="22" y="48" width="8" height="12" fill="#222834" />
+              <rect x="26" y="54" width="7" height="8" fill="#2C3443" />
+              <rect x="50" y="48" width="8" height="12" fill="#222834" />
+              <rect x="47" y="54" width="7" height="8" fill="#2C3443" />
               <rect x="31" y="52" width="18" height="15" fill="#992222" />
-              {/* Pages */}
               <rect x="33" y="53" width="14" height="13" fill="#FDFBF7" />
               <rect x="39" y="53" width="2" height="13" fill="#D3CEBF" />
-              {/* Manga illustration lines */}
               <rect x="34" y="55" width="4" height="3" fill="#1C1C1C" />
-              <rect x="34" y="60" width="3" height="4" fill="#3D3D3D" />
               <rect x="42" y="55" width="4" height="5" fill="#1C1C1C" />
-              <rect x="42" y="62" width="3" height="2" fill="#7C7C7C" />
+              <rect x="30" y="60" width="3" height="4" fill="#F3D5B5" />
+              <rect x="47" y="60" width="3" height="4" fill="#F3D5B5" />
             </g>
-
-            {/* Thumbs holding book edges */}
-            <rect x="30" y="60" width="3" height="4" fill="#F3D5B5" />
-            <rect x="47" y="60" width="3" height="4" fill="#F3D5B5" />
-          </g>
-        ) : (
-          // Idle / Looking: Relaxed hands on desk or armrests
-          <g id="arms-idle">
-            {/* Left Arm */}
-            <rect x="20" y="48" width="8" height="14" fill="#222834" />
-            <rect x="21" y="58" width="7" height="6" fill="#2C3443" />
-            <rect x="22" y="62" width="5" height="4" fill="#F3D5B5" />
-
-            {/* Right Arm */}
-            <rect x="52" y="48" width="8" height="14" fill="#222834" />
-            <rect x="52" y="58" width="7" height="6" fill="#2C3443" />
-            <rect x="53" y="62" width="5" height="4" fill="#F3D5B5" />
-          </g>
-        )}
-      </svg>
+          ) : actionState === 'petting' ? (
+            // GENTLE PETTING MOTION ON RUG
+            <g id="arms-petting" transform="translate(0, 12)">
+              {/* Left hand braced on knee */}
+              <rect x="22" y="48" width="8" height="14" fill="#222834" />
+              <rect x="22" y="60" width="6" height="5" fill="#F3D5B5" />
+              {/* Right arm extending towards cat with petting stroke */}
+              <g className="avatar-petting-arm">
+                <rect x="50" y="48" width="8" height="12" fill="#222834" />
+                <rect x="54" y="56" width="10" height="6" fill="#2C3443" />
+                <rect x="62" y="59" width="7" height="4" fill="#F3D5B5" rx="1" />
+              </g>
+            </g>
+          ) : actionState === 'gazing' ? (
+            // HAND IN POCKET & CHILL AT WINDOW
+            <g id="arms-gazing">
+              <rect x="20" y="48" width="8" height="14" fill="#222834" />
+              <rect x="21" y="58" width="7" height="6" fill="#2C3443" />
+              <rect x="24" y="62" width="4" height="3" fill="#F3D5B5" />
+              <rect x="52" y="48" width="8" height="12" fill="#222834" />
+              <rect x="46" y="58" width="8" height="5" fill="#2C3443" />
+            </g>
+          ) : (
+            // IDLE / WATCHING RELAXED ARMS
+            <g id="arms-idle">
+              <rect x="20" y="48" width="8" height="14" fill="#222834" />
+              <rect x="21" y="58" width="7" height="6" fill="#2C3443" />
+              <rect x="22" y="62" width="5" height="4" fill="#F3D5B5" />
+              <rect x="52" y="48" width="8" height="14" fill="#222834" />
+              <rect x="52" y="58" width="7" height="6" fill="#2C3443" />
+              <rect x="53" y="62" width="5" height="4" fill="#F3D5B5" />
+            </g>
+          )}
+        </svg>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import './avatar-motion.css';
 
 :root {
   /* Default Font Tokens */

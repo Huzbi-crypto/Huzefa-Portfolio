@@ -1,0 +1,128 @@
+/* Procedural Stride Bobbing */
+@keyframes walkBob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Leg Swing Cycle */
+@keyframes legStrideLeft {
+  0%, 100% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes legStrideRight {
+  0%, 100% {
+    transform: rotate(14deg);
+  }
+  50% {
+    transform: rotate(-14deg);
+  }
+}
+
+/* Arm Pendulum Cycle */
+@keyframes armSwingLeft {
+  0%, 100% {
+    transform: rotate(16deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes armSwingRight {
+  0%, 100% {
+    transform: rotate(-16deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+/* Arrival Squash & Stretch */
+@keyframes landSettle {
+  0% {
+    transform: scale(1.05, 0.95);
+  }
+  50% {
+    transform: scale(0.98, 1.02);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* Petting Hand Stroke Loop */
+@keyframes petStroke {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(3px) rotate(5deg);
+  }
+}
+
+/* Rapid Typing Flutter */
+@keyframes typingFingers {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Gentle Chest Breathing */
+@keyframes breathingIdle {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scaleY(1.02);
+  }
+}
+
+/* Class Bindings */
+.avatar-walk-bob {
+  animation: walkBob 0.32s infinite ease-in-out;
+}
+
+.avatar-leg-left {
+  transform-origin: 34px 71px;
+  animation: legStrideLeft 0.32s infinite ease-in-out;
+}
+
+.avatar-leg-right {
+  transform-origin: 45px 71px;
+  animation: legStrideRight 0.32s infinite ease-in-out;
+}
+
+.avatar-arm-left {
+  transform-origin: 24px 48px;
+  animation: armSwingLeft 0.32s infinite ease-in-out;
+}
+
+.avatar-arm-right {
+  transform-origin: 54px 48px;
+  animation: armSwingRight 0.32s infinite ease-in-out;
+}
+
+.avatar-land-settle {
+  animation: landSettle 0.28s ease-out;
+}
+
+.avatar-breathing {
+  animation: breathingIdle 3.6s infinite ease-in-out;
+}
+
+.avatar-petting-arm {
+  transform-origin: 54px 56px;
+  animation: petStroke 1.1s infinite ease-in-out;
+}
