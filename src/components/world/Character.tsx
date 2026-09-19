@@ -7,6 +7,8 @@ export type CharacterAction = 'idle' | 'typing' | 'reading' | 'looking';
 export interface CharacterProps {
   state?: CharacterAction;
   cursorPos?: { x: number; y: number }; // normalized coords between -1 and 1
+  gazeOverride?: { x: number; y: number } | null;
+  bubbleText?: string | null;
   onStateChange?: (state: CharacterAction) => void;
   className?: string;
   isLampOn?: boolean;
@@ -29,6 +31,8 @@ const DIALOGUES = [
 export const Character: React.FC<CharacterProps> = ({
   state = 'idle',
   cursorPos = { x: 0, y: 0 },
+  gazeOverride = null,
+  bubbleText = null,
   onStateChange,
   className = '',
   isLampOn = true,
@@ -66,6 +70,19 @@ export const Character: React.FC<CharacterProps> = ({
     return () => clearInterval(interval);
   }, [state]);
 
+  // When bubbleText prop updates from parent (e.g. laptop or monitor clicked), trigger bubble
+  useEffect(() => {
+    if (bubbleText) {
+      setShowSpeechBubble(true);
+      if (dialogueTimeoutRef.current) {
+        clearTimeout(dialogueTimeoutRef.current);
+      }
+      dialogueTimeoutRef.current = setTimeout(() => {
+        setShowSpeechBubble(false);
+      }, 5000);
+    }
+  }, [bubbleText]);
+
   const handleCharacterClick = () => {
     const nextIndex = (dialogueIndex + 1) % DIALOGUES.length;
     setDialogueIndex(nextIndex);
@@ -86,12 +103,17 @@ export const Character: React.FC<CharacterProps> = ({
     }, 4500);
   };
 
-  // Eye tracking offsets based on cursorPos (-1 to 1)
-  const eyeOffsetX = Math.max(-1.5, Math.min(1.5, cursorPos.x * 1.5));
-  const eyeOffsetY = Math.max(-1, Math.min(1, cursorPos.y * 1));
+  // Eye tracking offsets: gazeOverride takes precedence over natural cursor tracking
+  const effectiveX = gazeOverride ? gazeOverride.x : cursorPos.x;
+  const effectiveY = gazeOverride ? gazeOverride.y : cursorPos.y;
+
+  const eyeOffsetX = Math.max(-1.5, Math.min(1.5, effectiveX * 1.5));
+  const eyeOffsetY = Math.max(-1, Math.min(1, effectiveY * 1));
 
   // Head tilt for looking
-  const headRotation = state === 'looking' ? cursorPos.x * 3 : 0;
+  const headRotation = state === 'looking' ? effectiveX * 3 : 0;
+
+  const activeDialogueContent = bubbleText || DIALOGUES[dialogueIndex];
 
   return (
     <div
@@ -107,10 +129,10 @@ export const Character: React.FC<CharacterProps> = ({
       {(showSpeechBubble || isHovered) && (
         <div
           className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 sm:left-auto sm:right-[-40px] sm:translate-x-0 z-50 pointer-events-none transition-all duration-200"
-          style={{ width: 'max-content', maxWidth: '240px' }}
+          style={{ width: 'max-content', maxWidth: '290px' }}
         >
           <div
-            className="relative border-2 border-accent text-fg font-mono text-[11px] px-3.5 py-2 rounded-xl shadow-2xl leading-snug"
+            className="relative border-2 border-accent text-fg font-mono text-[11px] px-3.5 py-2 rounded-xl shadow-2xl leading-relaxed"
             style={{
               backgroundColor: 'var(--color-bg-deep)',
               borderColor: 'var(--color-accent)',
@@ -118,7 +140,7 @@ export const Character: React.FC<CharacterProps> = ({
             }}
           >
             <span className="text-accent font-bold mr-1.5">&gt;</span>
-            {DIALOGUES[dialogueIndex]}
+            {activeDialogueContent}
             {/* Bubble arrow pointing towards Huzbi */}
             <div
               className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 sm:left-10 w-2.5 h-2.5 border-r-2 border-b-2 rotate-45"

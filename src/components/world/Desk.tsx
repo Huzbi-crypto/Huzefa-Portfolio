@@ -1,29 +1,51 @@
 'use client';
 
 import React, { useState } from 'react';
+import { MangaSeries } from '@/data/dialogues';
 
 export interface DeskProps {
   lampOn: boolean;
   onToggleLamp: () => void;
+  onLaptopClick?: () => void;
+  onMonitorClick?: () => void;
+  onKeyboardClick?: () => void;
   onKeyboardActivity?: () => void;
+  activeManga?: MangaSeries;
+  isTyping?: boolean;
   className?: string;
 }
 
 export const Desk: React.FC<DeskProps> = ({
   lampOn,
   onToggleLamp,
+  onLaptopClick,
+  onMonitorClick,
+  onKeyboardClick,
   onKeyboardActivity,
+  activeManga = 'one-piece',
+  isTyping = false,
   className = '',
 }) => {
-  const [activeKey, setActiveKey] = useState<number | null>(null);
   const [mugHovered, setMugHovered] = useState<boolean>(false);
   const [stickyHovered, setStickyHovered] = useState<boolean>(false);
+  const [activeKeyPulse, setActiveKeyPulse] = useState<number | null>(null);
 
-  // Key tap simulator on keyboard
-  const handleKeyTap = (idx: number) => {
-    setActiveKey(idx);
-    onKeyboardActivity?.();
-    setTimeout(() => setActiveKey(null), 200);
+  const handleKeyboardTap = (idx: number) => {
+    setActiveKeyPulse(idx);
+    if (onKeyboardClick) {
+      onKeyboardClick();
+    } else if (onKeyboardActivity) {
+      onKeyboardActivity();
+    }
+    setTimeout(() => setActiveKeyPulse(null), 250);
+  };
+
+  const handleLaptopTap = () => {
+    if (onLaptopClick) {
+      onLaptopClick();
+    } else if (onKeyboardActivity) {
+      onKeyboardActivity();
+    }
   };
 
   return (
@@ -78,7 +100,7 @@ export const Desk: React.FC<DeskProps> = ({
               {/* Lamp Circular Base */}
               <div className="w-10 h-3 bg-[#2D2521] border border-[#44362E] rounded-full mx-auto shadow-md" />
 
-              {/* Little Switch Pill Indicator */}
+              {/* Switch Pill Indicator */}
               <div className="mt-1 flex items-center justify-center">
                 <span
                   className={`text-[9px] font-mono px-1.5 py-0.2 rounded border transition-colors ${
@@ -93,72 +115,301 @@ export const Desk: React.FC<DeskProps> = ({
             </div>
           </div>
 
-          {/* 2. CENTER DESK MAT WITH KEYBOARD & MOUSE */}
-          <div className="flex-1 max-w-xl mx-auto flex flex-col items-center">
-            {/* Desk Mat (Stitched gaming/mechanical keyboard mat) */}
-            <div className="w-full bg-[#13161C] rounded-lg p-2.5 sm:p-3 border border-[#222A38] shadow-inner flex flex-col sm:flex-row items-center justify-between gap-3">
+          {/* 2. CENTER DESK MAT WITH RETRO BATTLESTATION SETUP */}
+          <div className="flex-1 max-w-2xl mx-auto flex flex-col items-center">
+            {/* Desk Mat (Stitched precision battlestation mat) */}
+            <div className="w-full bg-[#12151D] rounded-xl p-2.5 sm:p-3.5 border border-[#232B3A] shadow-inner flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 sm:gap-4">
               
-              {/* MECHANICAL KEYBOARD */}
+              {/* --- RETRO LAPTOP (Left Side of Mat) --- */}
               <div
-                className="bg-[#1A202C] p-2 rounded border border-[#2B3547] shadow-md cursor-pointer select-none"
-                onClick={() => handleKeyTap(Math.floor(Math.random() * 12))}
-                title="Mechanical 65% Keyboard"
+                className="group flex flex-col items-center cursor-pointer select-none transition-transform hover:-translate-y-0.5"
+                onClick={handleLaptopTap}
+                title="Retro Clamshell Workstation"
               >
-                {/* Keyboard Switch Plate */}
-                <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-6 h-5 sm:w-7 sm:h-6 rounded text-[8px] font-mono flex items-center justify-center border transition-all ${
-                        activeKey === i
-                          ? 'bg-accent text-bg font-bold border-accent translate-y-0.5 shadow-crt'
-                          : 'bg-[#252E3E] text-fg-muted border-[#344158] hover:bg-[#2F3B50]'
-                      }`}
-                    >
-                      {['ESC', 'Q', 'W', 'E', 'R', 'T', 'TAB', 'A', 'S', 'D', 'F', 'SPC'][i]}
+                {/* Laptop Screen Lid (Angled Perspective) */}
+                <div className="relative w-28 sm:w-32 h-18 sm:h-20 bg-[#161C24] rounded-t-md border-2 border-[#2A3547] p-1 shadow-lg group-hover:border-accent/70 transition-colors">
+                  {/* Top Bezel Webcam Dot & Model */}
+                  <div className="flex items-center justify-between px-1 mb-0.5">
+                    <span className="text-[6.5px] font-mono text-fg-subtle tracking-tighter">[ H-PAD ]</span>
+                    <div className="w-1 h-1 rounded-full bg-[#3B475B]" />
+                  </div>
+
+                  {/* Laptop Display Screen */}
+                  <div className="relative w-full h-[52px] sm:h-[58px] bg-[#0A0E14] rounded-sm p-1 border border-[#1E2635] overflow-hidden flex flex-col justify-between">
+                    {/* Scanlines effect on laptop screen */}
+                    <div className="absolute inset-0 opacity-15 bg-[repeating-linear-gradient(0deg,#000,#000_1px,transparent_1px,transparent_3px)] pointer-events-none" />
+
+                    {/* Terminal Header */}
+                    <div className="flex items-center justify-between text-[6.5px] font-mono text-[#73B7FF] border-b border-[#1A2332] pb-0.5">
+                      <span>tty2: bash</span>
+                      <span className={`w-1 h-1 rounded-full ${isTyping ? 'bg-accent animate-ping' : 'bg-accent'}`} />
                     </div>
-                  ))}
+
+                    {/* Simulated Code Lines */}
+                    <div className="space-y-0.5 text-[6.5px] sm:text-[7px] font-mono leading-none">
+                      <div className="text-accent truncate">
+                        $ ./route_sim
+                      </div>
+                      <div className="text-[#E6A15C] truncate">
+                        &gt; 128 pkts [OK]
+                      </div>
+                      <div className="text-fg-subtle truncate flex items-center gap-0.5">
+                        <span>spf_cost: 0.12ms</span>
+                        <span className="inline-block w-1 h-2 bg-accent animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Spacebar Row */}
-                <div className="mt-1 flex items-center gap-1">
-                  <span className="w-6 h-4 rounded bg-[#202735] text-[7px] text-fg-subtle flex items-center justify-center border border-[#2B3547]">
-                    CTRL
-                  </span>
-                  <div
-                    className={`flex-1 h-4 rounded text-[7px] font-mono flex items-center justify-center border transition-all ${
-                      activeKey === 99
-                        ? 'bg-accent text-bg border-accent translate-y-0.5'
-                        : 'bg-[#2B3547] text-fg-muted border-[#3B4961] hover:bg-[#344158]'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleKeyTap(99);
-                    }}
-                  >
-                    SPACEBAR
+                {/* Laptop Hinge */}
+                <div className="w-24 sm:w-28 h-1 bg-[#222B3A] border-x border-[#334158]" />
+
+                {/* Laptop Keyboard Deck (Base) */}
+                <div className="relative w-30 sm:w-34 h-10 sm:h-11 bg-[#1A202C] rounded-b-md border-2 border-t-0 border-[#2A3547] p-1 shadow-md flex flex-col justify-between group-hover:border-accent/70 transition-colors">
+                  {/* Miniature Key Matrix */}
+                  <div className="grid grid-cols-8 gap-0.5 px-0.5">
+                    {Array.from({ length: 16 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 rounded-[1px] transition-colors ${
+                          isTyping && i % 3 === 0
+                            ? 'bg-accent'
+                            : 'bg-[#252E3E] border border-[#313E53]'
+                        }`}
+                      />
+                    ))}
                   </div>
-                  <span className="w-6 h-4 rounded bg-[#202735] text-[7px] text-fg-subtle flex items-center justify-center border border-[#2B3547]">
-                    RET
-                  </span>
+
+                  {/* Red TrackPoint Nub in Center */}
+                  <div className="absolute top-[8px] sm:top-[9px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#E53935] shadow-[0_0_2px_#E53935]" />
+
+                  {/* Palmrest, Trackpad & Status LEDs */}
+                  <div className="flex items-center justify-between px-1 pt-0.5">
+                    {/* Status LEDs */}
+                    <div className="flex items-center gap-1">
+                      <span className={`w-1 h-1 rounded-full ${isTyping ? 'bg-accent animate-pulse' : 'bg-accent/60'}`} />
+                      <span className="w-1 h-1 rounded-full bg-[#E6A15C]" />
+                    </div>
+
+                    {/* Miniature Trackpad */}
+                    <div className="w-6 h-2.5 bg-[#141923] rounded-[1px] border border-[#2B3547] flex flex-col justify-end">
+                      <div className="w-full h-0.5 bg-[#252E3E] border-t border-[#1C2330]" />
+                    </div>
+
+                    {/* Think Badge */}
+                    <span className="text-[5.5px] font-mono text-fg-subtle">PRO</span>
+                  </div>
                 </div>
               </div>
 
-              {/* MOUSE WITH GLOWING SCROLL WHEEL */}
-              <div className="flex flex-col items-center">
+              {/* --- CENTER / RIGHT: EXTERNAL MONITOR + MINI KEYBOARD & MOUSE --- */}
+              <div className="flex flex-col items-center gap-1.5 sm:gap-2">
+                
+                {/* 1. EXTERNAL RETRO MONITOR ON STAND */}
                 <div
-                  className="relative w-8 h-12 bg-[#1A202C] rounded-t-xl rounded-b-lg border border-[#2F3B50] shadow-md flex flex-col items-center pt-1.5 group cursor-pointer hover:border-accent transition-colors"
-                  onClick={() => onKeyboardActivity?.()}
-                  title="Optical Mouse"
+                  className="group flex flex-col items-center cursor-pointer select-none transition-transform hover:-translate-y-0.5"
+                  onClick={onMonitorClick}
+                  title="External Manga & Anime Monitor"
                 >
-                  {/* Mouse Clicker Split */}
-                  <div className="w-0.5 h-3 bg-[#0E131A] absolute top-0" />
-                  {/* Scroll Wheel */}
-                  <div className="w-1.5 h-3 bg-accent rounded-full animate-pulse shadow-crt" />
-                  {/* Mouse RGB Logo */}
-                  <div className="w-2 h-2 rounded-full bg-accent/40 mt-3" />
+                  {/* Monitor Display Housing */}
+                  <div className="relative w-40 sm:w-48 h-26 sm:h-30 bg-[#151A24] rounded-lg border-2 border-[#2C384C] p-1.5 shadow-xl group-hover:border-accent/70 transition-colors">
+                    {/* Inner Screen Bezel */}
+                    <div className="relative w-full h-[76px] sm:h-[90px] rounded bg-[#090C12] border border-[#202938] overflow-hidden flex flex-col justify-between p-1.5">
+                      {/* Scanlines Effect */}
+                      <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(0deg,#000,#000_1px,transparent_1px,transparent_3px)] pointer-events-none" />
+
+                      {/* --- DYNAMIC MANGA ARTWORK DISPLAY --- */}
+                      {activeManga === 'one-piece' && (
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+                          {/* Straw Hat Pixel Icon */}
+                          <div className="flex flex-col items-center">
+                            {/* Crown of Hat */}
+                            <div className="w-7 h-2.5 bg-[#E6B445] rounded-t-md border-t border-[#F5D07A]" />
+                            {/* Red Ribbon */}
+                            <div className="w-7 h-1 bg-[#DC2626]" />
+                            {/* Hat Brim */}
+                            <div className="w-11 h-1 bg-[#E6B445] rounded-full" />
+                          </div>
+                          <div className="text-[8px] font-mono font-bold text-[#FBBF24] mt-1 tracking-wider">
+                            ONE PIECE
+                          </div>
+                          <div className="text-[6.5px] font-mono text-[#F4DDB8] opacity-80">
+                            GEAR 5 // SUN GOD NIKA
+                          </div>
+                        </div>
+                      )}
+
+                      {activeManga === 'naruto' && (
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+                          {/* Konoha Headband Plate */}
+                          <div className="w-12 h-4 bg-[#6B7280] rounded-[2px] border border-[#9CA3AF] flex items-center justify-center shadow-inner">
+                            {/* Engraved Leaf Spiral */}
+                            <div className="w-2.5 h-2.5 rounded-full border-2 border-[#1F2937] border-t-transparent -rotate-45" />
+                          </div>
+                          <div className="text-[8px] font-mono font-bold text-[#FB923C] mt-1 tracking-wider">
+                            NARUTO
+                          </div>
+                          <div className="text-[6.5px] font-mono text-[#FED7AA] opacity-80">
+                            WILL OF FIRE // SAGE
+                          </div>
+                        </div>
+                      )}
+
+                      {activeManga === 'bleach' && (
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+                          {/* Tensa Zangetsu Blade Silhouette */}
+                          <div className="flex items-center gap-1">
+                            <div className="w-10 h-1.5 bg-[#0F172A] border border-[#38BDF8] rounded-l-sm" />
+                            <span className="text-[9px] font-bold text-[#60A5FA]">卍解</span>
+                          </div>
+                          <div className="text-[8px] font-mono font-bold text-[#60A5FA] mt-1 tracking-wider">
+                            BLEACH
+                          </div>
+                          <div className="text-[6.5px] font-mono text-[#BAE6FD] opacity-80">
+                            TENSA ZANGETSU // MUKEN
+                          </div>
+                        </div>
+                      )}
+
+                      {activeManga === 'black-clover' && (
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+                          {/* 5-Leaf Clover Grimoire Symbol */}
+                          <div className="relative flex items-center justify-center">
+                            <div className="w-4 h-4 bg-[#7F1D1D] rounded-full border border-[#EF4444] flex items-center justify-center">
+                              <span className="text-[7px] text-[#FCA5A5] font-bold">♣5</span>
+                            </div>
+                          </div>
+                          <div className="text-[8px] font-mono font-bold text-[#F87171] mt-1 tracking-wider">
+                            BLACK CLOVER
+                          </div>
+                          <div className="text-[6.5px] font-mono text-[#FECACA] opacity-80">
+                            ANTI-MAGIC // ASTA
+                          </div>
+                        </div>
+                      )}
+
+                      {activeManga === 'one-punch-man' && (
+                        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+                          {/* Saitama Iconic Minimalist Deadpan Face */}
+                          <div className="w-6 h-6 rounded-full bg-[#FEF08A] border border-[#CA8A04] flex flex-col items-center justify-center pt-0.5">
+                            {/* Eyes */}
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 rounded-full bg-[#1C1917]" />
+                              <div className="w-1 h-1 rounded-full bg-[#1C1917]" />
+                            </div>
+                            {/* Neutral mouth */}
+                            <div className="w-2 h-0.5 bg-[#1C1917] mt-0.5" />
+                          </div>
+                          <div className="text-[8px] font-mono font-bold text-[#FACC15] mt-1 tracking-wider">
+                            ONE PUNCH MAN
+                          </div>
+                          <div className="text-[6.5px] font-mono text-[#FEF08A] opacity-80">
+                            SERIOUS PUNCH // SAITAMA
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Screen Footer Status */}
+                      <div className="relative z-10 flex items-center justify-between text-[6px] font-mono text-fg-subtle pt-0.5 border-t border-[#1C2433]">
+                        <span>HDMI-1</span>
+                        <span className="text-accent">ONLINE</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom Bezel Badge & Power LED */}
+                    <div className="flex items-center justify-between px-1 pt-1">
+                      <span className="text-[6px] font-mono text-fg-subtle">[ H-SYNC PRO ]</span>
+                      <div className="flex items-center gap-1">
+                        <span className="w-1 h-1 rounded-full bg-accent shadow-crt" />
+                        <span className="w-1.5 h-1 bg-[#252E3E] rounded-[1px]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Monitor Stand Neck */}
+                  <div className="w-3.5 h-3.5 bg-[#1B222E] border-x border-[#2D394C]" />
+                  {/* Monitor Stand Base */}
+                  <div className="w-16 h-1.5 bg-[#252E3E] rounded-full border border-[#374459] shadow-md" />
                 </div>
-                <span className="text-[8px] font-mono text-fg-subtle mt-1">1000 DPI</span>
+
+                {/* 2. MINI MECHANICAL KEYBOARD & PRECISION MOUSE */}
+                <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                  
+                  {/* COMPACT 60% MECHANICAL KEYBOARD */}
+                  <div
+                    className="bg-[#181F2B] p-1.5 rounded-md border border-[#2B3648] shadow-md cursor-pointer select-none group hover:border-accent/70 transition-colors"
+                    onClick={() => handleKeyboardTap(Math.floor(Math.random() * 8))}
+                    title="Compact 60% Mechanical Keyboard"
+                  >
+                    {/* Key Matrix Rows */}
+                    <div className="space-y-0.5">
+                      {/* Row 1: Function / Numbers */}
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-3.5 sm:w-4 h-2.5 rounded-[1px] text-[5.5px] font-mono flex items-center justify-center transition-all ${
+                              activeKeyPulse === i || (isTyping && i % 2 === 0)
+                                ? 'bg-accent text-bg font-bold shadow-crt translate-y-0.2'
+                                : 'bg-[#252E3E] text-fg-subtle border border-[#313E53]'
+                            }`}
+                          >
+                            {['ESC', '1', '2', '3', '4', '5', '6', 'DEL'][i]}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Row 2: Alphas */}
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-3.5 sm:w-4 h-2.5 rounded-[1px] text-[5.5px] font-mono flex items-center justify-center transition-all ${
+                              activeKeyPulse === i + 10 || (isTyping && i % 2 === 1)
+                                ? 'bg-accent text-bg font-bold shadow-crt translate-y-0.2'
+                                : 'bg-[#222A38] text-fg-muted border border-[#2E3A4E]'
+                            }`}
+                          >
+                            {['TAB', 'Q', 'W', 'E', 'R', 'T', 'Y', 'RET'][i]}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Row 3: Spacebar & Modifiers */}
+                      <div className="flex items-center gap-0.5">
+                        <span className="w-4 h-2.5 rounded-[1px] bg-[#1C2330] text-[5px] text-fg-subtle flex items-center justify-center border border-[#2B3547]">
+                          CTRL
+                        </span>
+                        <div
+                          className={`flex-1 h-2.5 rounded-[1px] text-[5.5px] font-mono flex items-center justify-center transition-all ${
+                            activeKeyPulse === 99 || isTyping
+                              ? 'bg-accent text-bg font-bold'
+                              : 'bg-[#283344] text-fg-muted border border-[#36445B]'
+                          }`}
+                        >
+                          SPACEBAR
+                        </div>
+                        <span className="w-4 h-2.5 rounded-[1px] bg-[#1C2330] text-[5px] text-fg-subtle flex items-center justify-center border border-[#2B3547]">
+                          FN
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* PRECISION PIXEL MOUSE */}
+                  <div
+                    className="relative w-6 h-9 sm:w-7 sm:h-10 bg-[#1A212E] rounded-t-lg rounded-b-md border border-[#2D384B] shadow-md flex flex-col items-center pt-1 group cursor-pointer hover:border-accent transition-colors"
+                    onClick={() => handleKeyboardTap(99)}
+                    title="Precision Optical Mouse"
+                  >
+                    {/* Mouse Split Line */}
+                    <div className="w-0.5 h-2.5 bg-[#0F141C] absolute top-0" />
+                    {/* Glowing Scroll Wheel */}
+                    <div className="w-1.5 h-2.5 bg-accent rounded-full animate-pulse shadow-crt" />
+                    {/* RGB Logo Dot */}
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent/50 mt-2" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -228,7 +479,7 @@ export const Desk: React.FC<DeskProps> = ({
             <span className="w-2 h-2 rounded bg-[#332A22]" />
             <span>SOLID WALNUT SURFACE</span>
           </div>
-          <span>CABLE MANAGEMENT: &ldquo;IT WORKS&rdquo;</span>
+          <span>BATTLESTATION: ACTIVE</span>
         </div>
       </div>
     </div>

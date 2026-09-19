@@ -8,6 +8,7 @@ import { Bookshelf } from './Bookshelf';
 import { StarWindow } from './StarWindow';
 import { useApp } from '@/context/AppContext';
 import { ReadingItem } from '@/types/portfolio';
+import { MANGA_SERIES_LIST, MANGA_DIALOGUES, CODING_DIALOGUES, MangaSeries } from '@/data/dialogues';
 import { Clock, Moon, Sun, BookOpen } from 'lucide-react';
 
 export interface RoomProps {
@@ -23,6 +24,20 @@ export const Room: React.FC<RoomProps> = ({
   const [characterState, setCharacterState] = useState<CharacterAction>('idle');
   const [lampOn, setLampOn] = useState<boolean>(true);
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [gazeOverride, setGazeOverride] = useState<{ x: number; y: number } | null>(null);
+  const [bubbleText, setBubbleText] = useState<string | null>(null);
+  const [activeMangaIndex, setActiveMangaIndex] = useState<number>(0);
+  const [mangaQuoteIndices, setMangaQuoteIndices] = useState<Record<MangaSeries, number>>({
+    'one-piece': 0,
+    'naruto': 0,
+    'bleach': 0,
+    'black-clover': 0,
+    'one-punch-man': 0,
+  });
+  const [codingThoughtIndex, setCodingThoughtIndex] = useState<number>(0);
+  const [isDeskTyping, setIsDeskTyping] = useState<boolean>(false);
+  const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const gazeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [activeBook, setActiveBook] = useState<ReadingItem | null>(null);
   const [mobileTab, setMobileTab] = useState<'crt' | 'bookshelf' | 'window'>('crt');
   const roomRef = useRef<HTMLDivElement | null>(null);
@@ -53,6 +68,55 @@ export const Room: React.FC<RoomProps> = ({
   const handleActivity = (action: 'typing' | 'idle') => {
     setCharacterState(action);
   };
+
+  // When user clicks Laptop or Keyboard: typing animation starts, eyes look at laptop, coding thought appears
+  const handleLaptopOrKeyboardClick = useCallback(() => {
+    setCharacterState('typing');
+    setIsDeskTyping(true);
+    setGazeOverride({ x: -0.7, y: 0.85 });
+
+    const quote = CODING_DIALOGUES[codingThoughtIndex % CODING_DIALOGUES.length];
+    setBubbleText(quote);
+    setCodingThoughtIndex((prev) => (prev + 1) % CODING_DIALOGUES.length);
+
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => {
+      setCharacterState('idle');
+      setIsDeskTyping(false);
+    }, 2800);
+
+    if (gazeTimerRef.current) clearTimeout(gazeTimerRef.current);
+    gazeTimerRef.current = setTimeout(() => {
+      setGazeOverride(null);
+    }, 3200);
+  }, [codingThoughtIndex]);
+
+  // When user clicks Monitor: eyes look at monitor, screen cycles manga, manga quote appears (cycling versions)
+  const handleMonitorClick = useCallback(() => {
+    const currentMangaMeta = MANGA_SERIES_LIST[activeMangaIndex % MANGA_SERIES_LIST.length];
+    const seriesId = currentMangaMeta.id;
+    const quotes = MANGA_DIALOGUES[seriesId];
+    const quoteIdx = mangaQuoteIndices[seriesId] % quotes.length;
+    const selectedQuote = quotes[quoteIdx];
+
+    setMangaQuoteIndices((prev) => ({
+      ...prev,
+      [seriesId]: (prev[seriesId] + 1) % quotes.length,
+    }));
+
+    setActiveMangaIndex((prev) => (prev + 1) % MANGA_SERIES_LIST.length);
+    setCharacterState('looking');
+    setGazeOverride({ x: 0.45, y: 0.35 });
+    setBubbleText(selectedQuote);
+
+    if (gazeTimerRef.current) clearTimeout(gazeTimerRef.current);
+    gazeTimerRef.current = setTimeout(() => {
+      setGazeOverride(null);
+      setCharacterState('idle');
+    }, 3200);
+  }, [activeMangaIndex, mangaQuoteIndices]);
+
+  const activeMangaId = MANGA_SERIES_LIST[activeMangaIndex % MANGA_SERIES_LIST.length].id;
 
   return (
     <div
@@ -196,20 +260,23 @@ export const Room: React.FC<RoomProps> = ({
               <Character
                 state={characterState}
                 cursorPos={cursorPos}
+                gazeOverride={gazeOverride}
+                bubbleText={bubbleText}
                 onStateChange={setCharacterState}
                 isLampOn={lampOn}
               />
             </div>
 
-            {/* Desk Surface with Keyboard, Steaming Mug, and Lamp */}
+            {/* Desk Surface with Battlestation (Laptop, Monitor, Keyboard, Mouse), Steaming Mug, and Lamp */}
             <div className="w-full relative z-0">
               <Desk
                 lampOn={lampOn}
                 onToggleLamp={() => setLampOn(!lampOn)}
-                onKeyboardActivity={() => {
-                  setCharacterState('typing');
-                  setTimeout(() => setCharacterState('idle'), 1500);
-                }}
+                onLaptopClick={handleLaptopOrKeyboardClick}
+                onKeyboardClick={handleLaptopOrKeyboardClick}
+                onMonitorClick={handleMonitorClick}
+                activeManga={activeMangaId}
+                isTyping={isDeskTyping}
               />
             </div>
           </div>
@@ -254,16 +321,19 @@ export const Room: React.FC<RoomProps> = ({
               <Character
                 state={characterState}
                 cursorPos={cursorPos}
+                gazeOverride={gazeOverride}
+                bubbleText={bubbleText}
                 onStateChange={setCharacterState}
                 isLampOn={lampOn}
               />
               <Desk
                 lampOn={lampOn}
                 onToggleLamp={() => setLampOn(!lampOn)}
-                onKeyboardActivity={() => {
-                  setCharacterState('typing');
-                  setTimeout(() => setCharacterState('idle'), 1200);
-                }}
+                onLaptopClick={handleLaptopOrKeyboardClick}
+                onKeyboardClick={handleLaptopOrKeyboardClick}
+                onMonitorClick={handleMonitorClick}
+                activeManga={activeMangaId}
+                isTyping={isDeskTyping}
               />
             </div>
           )}
@@ -271,8 +341,8 @@ export const Room: React.FC<RoomProps> = ({
           {mobileTab === 'bookshelf' && (
             <div className="w-full flex flex-col items-center space-y-4">
               <Bookshelf onSelectBook={handleSelectBook} className="w-full" />
-              <div className="p-3 rounded-lg bg-bg-surface border border-border text-xs font-mono text-fg-muted text-center">
-                Tap on any book spine above to inspect Huzbi&apos;s commentary and notes!
+              <div className="p-2.5 rounded-lg bg-bg-surface border border-border text-xs font-mono text-fg-muted text-center">
+                Huzbi&apos;s Reading Stack &bull; 2:00 AM Shelf
               </div>
             </div>
           )}
