@@ -38,11 +38,34 @@ export const StarWindow: React.FC<StarWindowProps> = ({
 }) => {
   return (
     <div className={`relative select-none flex flex-col items-center ${className}`}>
-      {/* WINDOW WOODEN OUTER FRAME */}
-      <div className="relative w-56 h-64 sm:w-64 sm:h-72 bg-[#1C1613] p-2.5 rounded-t-xl border-4 border-[#3A2D24] shadow-2xl overflow-hidden flex flex-col">
-        
-        {/* SKY CANVAS / NIGHT SKY BACKDROP */}
-        <div className="relative flex-1 rounded-lg overflow-hidden bg-gradient-to-b from-[#060911] via-[#0D131F] to-[#141C2B]">
+      {/* CURTAIN ROD WITH BRASS FINIALS */}
+      <div className="relative w-64 sm:w-74 flex items-center justify-between -mb-2 z-20 pointer-events-none">
+        {/* Left Brass Finial */}
+        <div className="w-2.5 h-2.5 rounded-full bg-[#D6AE62] border border-[#8C6D2D] shadow-sm -mr-1" />
+        {/* Dark Walnut Curtain Rod */}
+        <div className="flex-1 h-1.5 bg-[#3B2C21] border-y border-[#261C14] shadow-sm" />
+        {/* Right Brass Finial */}
+        <div className="w-2.5 h-2.5 rounded-full bg-[#D6AE62] border border-[#8C6D2D] shadow-sm -ml-1" />
+      </div>
+
+      {/* WINDOW CONTAINER WITH SIDE CURTAINS */}
+      <div className="relative flex items-stretch">
+        {/* LEFT DRAPED CURTAIN */}
+        <div className="relative z-10 w-4 sm:w-5 bg-[#1B2636] border-y-2 border-l-2 border-[#121A26] rounded-l-md shadow-lg flex flex-col justify-between overflow-hidden pointer-events-none -mr-1">
+          {/* Vertical Pleat Shadows */}
+          <div className="w-full h-full flex justify-between opacity-30">
+            <div className="w-1 h-full bg-[#0A0F17]" />
+            <div className="w-1 h-full bg-[#0A0F17]" />
+          </div>
+          {/* Golden Tie-Back Cord */}
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-[#D6AE62] border-y border-[#8C6D2D]" />
+        </div>
+
+        {/* WINDOW WOODEN OUTER FRAME */}
+        <div className="relative w-56 h-64 sm:w-64 sm:h-72 bg-[#1C1613] p-2.5 rounded-t-xl border-4 border-[#3A2D24] shadow-2xl overflow-hidden flex flex-col z-0">
+          
+          {/* SKY CANVAS / NIGHT SKY BACKDROP */}
+          <div className="relative flex-1 rounded-lg overflow-hidden bg-gradient-to-b from-[#060911] via-[#0D131F] to-[#141C2B]">
           
           {/* THEME AMBIENT COLOR OVERLAY */}
           <div
@@ -137,6 +160,18 @@ export const StarWindow: React.FC<StarWindowProps> = ({
           <span>CLEAR SKY</span>
         </div>
       </div>
+
+      {/* RIGHT DRAPED CURTAIN */}
+      <div className="relative z-10 w-4 sm:w-5 bg-[#1B2636] border-y-2 border-r-2 border-[#121A26] rounded-r-md shadow-lg flex flex-col justify-between overflow-hidden pointer-events-none -ml-1">
+        {/* Vertical Pleat Shadows */}
+        <div className="w-full h-full flex justify-between opacity-30">
+          <div className="w-1 h-full bg-[#0A0F17]" />
+          <div className="w-1 h-full bg-[#0A0F17]" />
+        </div>
+        {/* Golden Tie-Back Cord */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-[#D6AE62] border-y border-[#8C6D2D]" />
+      </div>
     </div>
-  );
+  </div>
+);
 };

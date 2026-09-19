@@ -315,6 +315,32 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
       {/* BOOKSHELF MAIN PHYSICAL FRAME */}
       <div className="relative w-full max-w-[380px] bg-[#221B16] rounded-t-lg border-t-4 border-x-4 border-[#3D3025] shadow-xl p-3 pb-1">
         
+        {/* TRAILING POTHOS PLANT ON TOP OF SHELF */}
+        <div className="absolute -top-7 right-4 z-20 pointer-events-none select-none flex flex-col items-center">
+          {/* Plant Leaves Cluster */}
+          <div className="relative">
+            <div className="w-6 h-4 bg-[#3E5C35] rounded-t-full flex items-center justify-center">
+              <div className="w-4 h-2.5 bg-[#5A824E] rounded-t-full" />
+            </div>
+            {/* Trailing Vine draping down the shelf edge */}
+            <svg
+              viewBox="0 0 16 38"
+              className="absolute -right-2 top-2 w-4 h-9 overflow-visible"
+              fill="none"
+            >
+              <path d="M4,0 Q1,12 5,22 Q9,30 6,36" stroke="#3E5C35" strokeWidth="1.5" />
+              {/* Little ivy leaves along the vine */}
+              <circle cx="2" cy="7" r="2" fill="#5A824E" />
+              <circle cx="6" cy="14" r="2.5" fill="#4B6E40" />
+              <circle cx="3" cy="22" r="2" fill="#5A824E" />
+              <circle cx="8" cy="29" r="2" fill="#4B6E40" />
+              <circle cx="5" cy="35" r="1.5" fill="#5A824E" />
+            </svg>
+          </div>
+          {/* Ceramic Pot */}
+          <div className="w-7 h-3.5 bg-[#E0D8C3] rounded-b-sm border border-[#A69D88]" />
+        </div>
+
         {/* Top Shelf Molding Header */}
         <div className="flex items-center justify-between px-1 mb-3 pb-1 border-b border-[#35291F] text-[10px] font-mono text-[#8C7B6B]">
           <div className="flex items-center gap-1.5">
@@ -404,6 +430,10 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
           <span>OAK SHELF</span>
           <span>FAVORITE VOLUMES</span>
         </div>
+
+        {/* WOODEN WALL MOUNTING BRACKETS (Underneath the shelf) */}
+        <div className="absolute -bottom-3 left-6 w-3 h-3 bg-[#2A1D15] border-l-2 border-b-2 border-[#422F22] rounded-bl-sm pointer-events-none" />
+        <div className="absolute -bottom-3 right-6 w-3 h-3 bg-[#2A1D15] border-r-2 border-b-2 border-[#422F22] rounded-br-sm pointer-events-none" />
       </div>
     </div>
   );

@@ -6,6 +6,15 @@ import { CRTMonitor } from './CRTMonitor';
 import { Desk } from './Desk';
 import { Bookshelf } from './Bookshelf';
 import { StarWindow } from './StarWindow';
+import {
+  FairyLights,
+  SleepingCat,
+  RoomRug,
+  FloorMonstera,
+  FloorPCTower,
+  WallCorkboard,
+  FloorMangaStack,
+} from './CozyDecor';
 import { useApp } from '@/context/AppContext';
 import { ReadingItem } from '@/types/portfolio';
 import { MANGA_SERIES_LIST, MANGA_DIALOGUES, CODING_DIALOGUES, MangaSeries } from '@/data/dialogues';
@@ -167,6 +176,17 @@ export const Room: React.FC<RoomProps> = ({
         }}
       />
 
+      {/* ROOM WALL TEXTURE: Subtle vertical acoustic wood slats behind battlestation */}
+      <div className="absolute inset-0 pointer-events-none opacity-40 bg-[repeating-linear-gradient(90deg,transparent,transparent_28px,rgba(255,255,255,0.015)_28px,rgba(255,255,255,0.015)_30px)]" />
+
+      {/* ROOM WOODEN FLOORING PLANE (Bottom section of room) */}
+      <div className="absolute bottom-0 inset-x-0 h-44 sm:h-48 bg-gradient-to-b from-[#181310] via-[#140F0D] to-[#0D0A08] border-t-2 border-[#332419] pointer-events-none opacity-95">
+        {/* Wood Plank Grooves */}
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_22px,rgba(0,0,0,0.4)_22px,rgba(0,0,0,0.4)_24px)] opacity-60" />
+        {/* Subtle vertical plank joint offsets */}
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_160px,rgba(255,255,255,0.012)_160px,rgba(255,255,255,0.012)_162px)] opacity-30" />
+      </div>
+
       {/* TOP ROOM STATUS STRIP */}
       <div className="relative z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-bg/90 backdrop-blur-md border-b border-border/70 text-xs font-mono">
         <div className="flex items-center gap-2 text-accent">
@@ -216,6 +236,11 @@ export const Room: React.FC<RoomProps> = ({
         </div>
       </div>
 
+      {/* FAIRY STRING LIGHTS GARLAND ACROSS CEILING */}
+      <div className="relative z-20 px-2 sm:px-6 -mb-4 sm:-mb-6 pointer-events-none">
+        <FairyLights />
+      </div>
+
       {/* MOBILE TAB CONTROLS (< md) */}
       <div className="flex md:hidden items-center justify-around bg-bg-surface/80 border-b border-border/60 p-1.5 text-xs font-mono relative z-20">
         <button
@@ -234,7 +259,7 @@ export const Room: React.FC<RoomProps> = ({
             mobileTab === 'bookshelf' ? 'bg-accent text-bg font-bold' : 'text-fg-muted'
           }`}
         >
-          Bookshelf
+          Bookshelf &amp; Cat
         </button>
         <button
           type="button"
@@ -250,34 +275,30 @@ export const Room: React.FC<RoomProps> = ({
       {/* ROOM MAIN INTERIOR */}
       <div className="relative z-20 p-4 sm:p-6 lg:p-8">
         
-        {/* DESKTOP SPATIAL ROOM COMPOSITION (hidden on mobile when not selected) */}
-        <div className="hidden md:grid grid-cols-12 gap-6 items-end">
+        {/* DESKTOP SPATIAL ROOM COMPOSITION */}
+        <div className="hidden md:grid grid-cols-12 gap-4 lg:gap-6 items-end">
           
-          {/* LEFT ZONE: NIGHT STAR WINDOW & RETRO POSTER */}
-          <div className="col-span-3 flex flex-col items-center justify-between h-full space-y-6">
+          {/* LEFT ZONE: NIGHT WINDOW, WALL CORKBOARD, CLOCK & FLOOR MONSTERA */}
+          <div className="col-span-3 flex flex-col items-center justify-between h-full space-y-4">
             {/* Retro Wall Clock */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-bg-surface border border-border text-[11px] font-mono text-fg-muted">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-bg-surface border border-border text-[11px] font-mono text-fg-muted shadow-sm">
               <Clock className="w-3.5 h-3.5 text-accent animate-pulse" />
               <span>02:14 AM // KARACHI, PK</span>
             </div>
 
-            {/* Star Window Component */}
+            {/* Star Window Component (Curtains & Brass Rod) */}
             <StarWindow theme={theme} className="w-full max-w-[280px]" />
 
-            {/* Wall Poster (Anime / Systems Aesthetic) */}
-            <div className="w-48 bg-[#181D26] p-2 rounded border border-[#263040] shadow-md rotate-[-2deg] select-none text-center">
-              <div className="border border-dashed border-accent/40 p-2 rounded">
-                <span className="text-[10px] font-mono text-accent font-bold tracking-widest block">
-                  FAST-NUCES CS
-                </span>
-                <span className="text-[8px] font-mono text-fg-muted block mt-0.5">
-                  SYSTEMS &bull; PACKETS &bull; AI
-                </span>
-              </div>
+            {/* Wall Corkboard (Pinned Notes, Polaroid, Arch Notes) */}
+            <WallCorkboard className="w-full max-w-[240px]" />
+
+            {/* Floor Monstera Plant sitting on wooden floorboards */}
+            <div className="w-full flex items-end justify-center pt-2">
+              <FloorMonstera />
             </div>
           </div>
 
-          {/* CENTER ZONE: CRT MONITOR, DESK, AND HUZBI CHARACTER */}
+          {/* CENTER ZONE: CRT MONITOR, DESK, HUZBI, WOVEN RUG & FLOOR PC TOWER */}
           <div className="col-span-6 flex flex-col items-center relative">
             {/* CRT Monitor positioned atop desk riser */}
             <div className="w-full max-w-lg relative z-10 -mb-8">
@@ -300,7 +321,7 @@ export const Room: React.FC<RoomProps> = ({
               />
             </div>
 
-            {/* Desk Surface with Battlestation (Laptop, Monitor, Keyboard, Mouse), Steaming Mug, and Lamp */}
+            {/* Desk Surface with Battlestation (Laptop, Monitor, Keyboard, Mouse, Lamp, Chai) */}
             <div className="w-full relative z-30">
               <Desk
                 lampOn={lampOn}
@@ -312,13 +333,29 @@ export const Room: React.FC<RoomProps> = ({
                 isTyping={isDeskTyping}
               />
             </div>
+
+            {/* Floor Under Desk: Artisanal Woven Rug & Floor PC Workstation */}
+            <div className="w-full relative z-20 mt-1 flex items-center justify-between px-2 sm:px-4">
+              {/* Floor PC Workstation Tower to the left of chair */}
+              <div className="relative z-30 -mt-2">
+                <FloorPCTower />
+              </div>
+
+              {/* Bohemian Woven Area Rug Centered Under Desk & Chair */}
+              <div className="flex-1 -mx-6 relative z-10">
+                <RoomRug />
+              </div>
+
+              {/* Right floor spacer for balance */}
+              <div className="w-14 sm:w-16" />
+            </div>
           </div>
 
-          {/* RIGHT ZONE: WALL BOOKSHELF & MANGA STACK */}
-          <div className="col-span-3 flex flex-col items-center justify-between h-full space-y-6">
+          {/* RIGHT ZONE: WALL BOOKSHELF WITH TRAILING IVY, SLEEPING CAT & MANGA STACK */}
+          <div className="col-span-3 flex flex-col items-center justify-between h-full space-y-4">
             {/* Currently Reading Badge if active */}
             {activeBook ? (
-              <div className="w-full p-2.5 rounded-lg bg-bg-surface border border-accent/70 text-xs font-mono">
+              <div className="w-full p-2.5 rounded-lg bg-bg-surface border border-accent/70 text-xs font-mono shadow-md">
                 <div className="text-[10px] text-accent font-bold flex items-center gap-1">
                   <BookOpen className="w-3 h-3" />
                   <span>HUZBI IS READING:</span>
@@ -331,13 +368,16 @@ export const Room: React.FC<RoomProps> = ({
               </div>
             )}
 
-            {/* Bookshelf Component */}
+            {/* Bookshelf Component (13 Volumes, Trailing Pothos Ivy, Wall Brackets) */}
             <Bookshelf onSelectBook={handleSelectBook} className="w-full" />
 
-            {/* Small floor decoration: Cable spool or headphone stand */}
-            <div className="flex items-center gap-2 text-[10px] font-mono text-fg-subtle">
-              <span className="w-2 h-2 rounded-full bg-accent/30" />
-              <span>TERMINAL READY (TTY1)</span>
+            {/* Floor Zone: Sleeping Pixel Cat & Manga Volume Stack with Steaming Chai */}
+            <div className="w-full flex items-end justify-around pt-3">
+              {/* Floor Manga Stack with steaming cup of chai */}
+              <FloorMangaStack />
+
+              {/* Sleeping Ginger/Calico Cat on tufted cushion */}
+              <SleepingCat />
             </div>
           </div>
         </div>
@@ -373,14 +413,19 @@ export const Room: React.FC<RoomProps> = ({
                   isTyping={isDeskTyping}
                 />
               </div>
+              <div className="w-full flex items-center justify-around pt-2">
+                <FloorPCTower />
+                <SleepingCat />
+              </div>
             </div>
           )}
 
           {mobileTab === 'bookshelf' && (
             <div className="w-full flex flex-col items-center space-y-4">
               <Bookshelf onSelectBook={handleSelectBook} className="w-full" />
-              <div className="p-2.5 rounded-lg bg-bg-surface border border-border text-xs font-mono text-fg-muted text-center">
-                Huzbi&apos;s Reading Stack &bull; 2:00 AM Shelf
+              <div className="flex items-center justify-around w-full pt-2">
+                <FloorMangaStack />
+                <SleepingCat />
               </div>
             </div>
           )}
@@ -388,21 +433,20 @@ export const Room: React.FC<RoomProps> = ({
           {mobileTab === 'window' && (
             <div className="w-full flex flex-col items-center space-y-4">
               <StarWindow theme={theme} />
-              <div className="text-xs font-mono text-fg-muted text-center">
-                2:00 AM Night Window &bull; Karachi, Pakistan
-              </div>
+              <WallCorkboard />
+              <FloorMonstera />
             </div>
           )}
         </div>
 
         {/* ROOM BOTTOM WOODEN FLOOR BASEBOARD */}
-        <div className="mt-8 pt-3 border-t-2 border-[#251D18] flex flex-wrap items-center justify-between text-[11px] font-mono text-fg-subtle gap-2">
+        <div className="mt-6 pt-3 border-t-2 border-[#2D1F16] flex flex-wrap items-center justify-between text-[11px] font-mono text-fg-subtle gap-2 relative z-30">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#3D3025]" />
+            <span className="w-2 h-2 rounded-full bg-[#4A382A]" />
             <span>ROOM AUDIO: LO-FI RAIN &bull; 2 AM AMBIENCE</span>
           </div>
           <div className="flex items-center gap-3">
-            <span>MOUSE INTERACTION ACTIVE</span>
+            <span>COMPANION: SLEEPING CAT [PURRING]</span>
             <span className="text-accent font-bold">[ONLINE]</span>
           </div>
         </div>
