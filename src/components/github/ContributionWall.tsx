@@ -3,35 +3,66 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { GitHubRepo, GitHubContributionDay, GitHubContributionsResponse } from '@/types/github';
 import initialContributions from '@/data/github-contributions.json';
-import { Sparkles, ExternalLink, Flame, Calendar, Award } from 'lucide-react';
+import { Sparkles, Info } from 'lucide-react';
 
 interface ContributionWallProps {
   repositories?: GitHubRepo[];
 }
 
-interface WallDay extends GitHubContributionDay {
+interface ContributionDay extends GitHubContributionDay {
   dayOfWeek: number; // 0 = Sun, 6 = Sat
   month: string;
+  flavor: string;
   formattedDate: string;
 }
 
-const GITHUB_LEVEL_COLORS: Record<number, string> = {
-  0: '#161b22', // Empty dark cell
-  1: '#0e4429', // Level 1 green
-  2: '#006d32', // Level 2 green
-  3: '#26a641', // Level 3 green
-  4: '#39d353', // Level 4 green
-};
+const FLAVOR_TEXTS = [
+  'Deep terminal focus session',
+  'Tinkering with routing algorithms',
+  'Refactoring compiler AST nodes',
+  'Fine-tuning diffusion prompts',
+  'Manga reading break & tea',
+  'Writing clean documentation',
+  'Solving graph traversal edge cases',
+  'Styling retro CRT scanlines',
+  'Async worker debugging',
+  'Quiet 2 AM coding sprint',
+];
+
+// Deterministic pseudo-random number generator from string seed
+function seedRandom(seedStr: string): number {
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs((Math.sin(hash) * 10000) % 1);
+}
+
+function getCellColor(level: 0 | 1 | 2 | 3 | 4): string {
+  switch (level) {
+    case 0:
+      return '#141B24';
+    case 1:
+      return '#1F3F2A';
+    case 2:
+      return '#2E693D';
+    case 3:
+      return '#47A259';
+    case 4:
+      return '#64D97B';
+  }
+}
 
 export function ContributionWall({ repositories: _repositories = [] }: ContributionWallProps) {
   const [data, setData] = useState<GitHubContributionsResponse>(
     initialContributions as unknown as GitHubContributionsResponse
   );
-  const [hoveredDay, setHoveredDay] = useState<WallDay | null>(null);
-  const [selectedDay, setSelectedDay] = useState<WallDay | null>(null);
+  const [hoveredDay, setHoveredDay] = useState<ContributionDay | null>(null);
+  const [selectedDay, setSelectedDay] = useState<ContributionDay | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Client-side background revalidation (optional fresh live fetch)
+  // Background live update if online
   useEffect(() => {
     let isMounted = true;
     async function fetchLiveContributions() {
@@ -63,9 +94,8 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
     let currentStreak = 0;
     let tempStreak = 0;
 
-    const days: WallDay[] = rawList.map((item) => {
+    const days: ContributionDay[] = rawList.map((item) => {
       const d = new Date(item.date);
-      // Use UTC to prevent timezone skew on date strings
       const dayOfWeek = d.getUTCDay();
       const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
       const formattedDate = d.toLocaleDateString('en-US', {
@@ -85,27 +115,29 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
         tempStreak = 0;
       }
 
+      const flavorIndex = Math.floor(seedRandom(item.date + '_flavor') * FLAVOR_TEXTS.length);
+
       return {
         ...item,
         dayOfWeek,
         month,
         formattedDate,
+        flavor: item.count > 0 ? FLAVOR_TEXTS[flavorIndex] : 'Resting and reading manga',
       };
     });
 
-    // Calculate current active streak from the most recent day backwards
     for (let i = days.length - 1; i >= 0; i--) {
       if (days[i].count > 0) currentStreak++;
       else break;
     }
 
     // Organize into columns (weeks) of 7 days
-    const weeksList: WallDay[][] = [];
+    const weeksList: ContributionDay[][] = [];
     for (let i = 0; i < days.length; i += 7) {
       weeksList.push(days.slice(i, i + 7));
     }
 
-    // Determine month label positions matching GitHub column indexes
+    // Determine month label positions aligned with the 16px column width
     const labels: { month: string; colIndex: number }[] = [];
     let prevMonth = '';
     weeksList.forEach((week, colIdx) => {
@@ -128,7 +160,7 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
     };
   }, [data]);
 
-  const handleMouseEnter = (day: WallDay, e: React.MouseEvent) => {
+  const handleMouseEnter = (day: ContributionDay, e: React.MouseEvent) => {
     setHoveredDay(day);
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setTooltipPos({
@@ -143,79 +175,56 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
   };
 
   return (
-    <section
-      aria-label="GitHub Activity Contribution Wall"
-      className="rounded-2xl bg-bg-surface border border-border p-5 sm:p-7 shadow-subtle relative overflow-hidden"
-    >
+    <div className="rounded-xl bg-bg-surface border border-border p-5 sm:p-6 shadow-subtle">
       {/* Wall Header & Summary Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 mb-6 border-b border-border/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-5 border-b border-border/70">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-wider mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-accent" />
-            <span>AUTHENTIC GITHUB ACTIVITY // COMMITS &amp; EXPERIMENTS</span>
+          <div className="flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-wider mb-1">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>PIXEL ACTIVITY // ILLUMINATED HABITAT</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-fg tracking-tight">
-            {stats.totalContributions.toLocaleString()} contributions in the last year
+          <h3 className="text-lg font-bold text-fg">
+            Contribution Wall &amp; Workspace Glow
           </h3>
-          <p className="text-xs sm:text-sm text-fg-muted font-sans mt-1">
-            Real commit frequency and open-source contributions pulled directly from{' '}
-            <a
-              href="https://github.com/Huzbi-crypto"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent hover:underline inline-flex items-center gap-1 font-mono text-xs"
-            >
-              @Huzbi-crypto
-              <ExternalLink className="w-3 h-3" />
-            </a>
+          <p className="text-xs text-fg-muted font-sans mt-0.5">
+            Illuminated pixel windows representing commits, experiments, and code activity across the past year.
           </p>
         </div>
 
-        {/* Highlight Stats Badges */}
-        <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
-          <div className="px-3.5 py-2 rounded-lg bg-bg-deep border border-border flex items-center gap-2.5">
-            <Calendar className="w-4 h-4 text-accent" />
-            <div>
-              <span className="text-fg-subtle block text-[10px] uppercase">Total in Year</span>
-              <span className="text-accent font-bold text-sm leading-tight">
-                {stats.totalContributions.toLocaleString()}
-              </span>
-            </div>
+        {/* Mini stats cards */}
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <div className="px-3 py-1.5 rounded-lg bg-bg-deep border border-border">
+            <span className="text-fg-subtle block text-[10px]">TOTAL IN YEAR</span>
+            <span className="text-accent font-bold text-sm">
+              {stats.totalContributions.toLocaleString()}
+            </span>
           </div>
-
-          <div className="px-3.5 py-2 rounded-lg bg-bg-deep border border-border flex items-center gap-2.5">
-            <Flame className="w-4 h-4 text-accent-secondary" />
-            <div>
-              <span className="text-fg-subtle block text-[10px] uppercase">Longest Streak</span>
-              <span className="text-accent-secondary font-bold text-sm leading-tight">
-                {stats.longestStreak} days
-              </span>
-            </div>
+          <div className="px-3 py-1.5 rounded-lg bg-bg-deep border border-border">
+            <span className="text-fg-subtle block text-[10px]">LONGEST STREAK</span>
+            <span className="text-accent-secondary font-bold text-sm">
+              {stats.longestStreak} days
+            </span>
           </div>
-
-          <div className="px-3.5 py-2 rounded-lg bg-bg-deep border border-border flex items-center gap-2.5">
-            <Award className="w-4 h-4 text-accent-tertiary" />
-            <div>
-              <span className="text-fg-subtle block text-[10px] uppercase">Active Days</span>
-              <span className="text-accent-tertiary font-bold text-sm leading-tight">
-                {stats.activeDays} / 371
-              </span>
-            </div>
+          <div className="px-3 py-1.5 rounded-lg bg-bg-deep border border-border">
+            <span className="text-fg-subtle block text-[10px]">ACTIVE DAYS</span>
+            <span className="text-accent-tertiary font-bold text-sm">
+              {stats.activeDays}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Contribution Grid Container with Horizontal Scroll */}
-      <div className="relative overflow-x-auto pb-3 scrollbar-thin">
-        <div className="inline-block min-w-[780px] p-2 rounded-xl bg-bg-deep/60 border border-border/60">
-          {/* Month Labels Bar */}
-          <div className="relative h-5 mb-1.5 pl-8 text-[11px] font-mono text-fg-subtle select-none">
+      <div className="relative overflow-x-auto pb-2 scrollbar-thin">
+        <div className="inline-block min-w-[760px]">
+          {/* Month Labels */}
+          <div className="relative h-5 mb-1.5 ml-7 text-[10px] font-mono text-fg-subtle select-none">
             {monthLabels.map((lbl, idx) => (
               <span
                 key={idx}
                 className="absolute"
                 style={{
-                  left: `${lbl.colIndex * 14 + 32}px`,
+                  left: `${lbl.colIndex * 16}px`,
                 }}
               >
                 {lbl.month}
@@ -223,55 +232,44 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
             ))}
           </div>
 
-          {/* Grid Layout: Row labels (Mon, Wed, Fri) + 53 Weeks */}
-          <div className="flex items-start gap-2">
-            {/* Day of week row labels matching GitHub standard */}
-            <div className="flex flex-col justify-between text-[10px] font-mono text-fg-subtle h-[98px] pr-1.5 select-none text-right w-6">
-              <span className="h-3" /> {/* Sun */}
-              <span className="h-3 leading-none">Mon</span>
-              <span className="h-3" /> {/* Tue */}
-              <span className="h-3 leading-none">Wed</span>
-              <span className="h-3" /> {/* Thu */}
-              <span className="h-3 leading-none">Fri</span>
-              <span className="h-3" /> {/* Sat */}
+          {/* Grid with Day of Week Indicators */}
+          <div className="flex items-start gap-1">
+            {/* Day of week labels */}
+            <div className="flex flex-col justify-between text-[9px] font-mono text-fg-subtle h-[105px] pr-1 py-0.5 select-none w-6 text-right">
+              <span>Sun</span>
+              <span>Tue</span>
+              <span>Thu</span>
+              <span>Sat</span>
             </div>
 
-            {/* 53 Columns (Weeks) */}
-            <div className="flex gap-[3px]">
+            {/* 53 Columns */}
+            <div className="flex gap-1">
               {weeks.map((week, colIdx) => (
-                <div key={colIdx} className="flex flex-col gap-[3px]">
-                  {week.map((day) => {
-                    const cellColor = GITHUB_LEVEL_COLORS[day.level] || GITHUB_LEVEL_COLORS[0];
-                    const isSelected = selectedDay?.date === day.date;
-                    const isHighLevel = day.level >= 3;
-
-                    return (
-                      <button
-                        key={day.date}
-                        type="button"
-                        onClick={() => setSelectedDay(day)}
-                        onMouseEnter={(e) => handleMouseEnter(day, e)}
-                        onMouseLeave={handleMouseLeave}
-                        aria-label={`${day.count} contributions on ${day.formattedDate}`}
-                        className={`w-[11px] h-[11px] rounded-[2px] transition-transform duration-100 hover:scale-125 hover:z-30 outline-none ${
-                          isSelected ? 'ring-2 ring-accent z-20 scale-125' : ''
-                        }`}
-                        style={{
-                          backgroundColor: cellColor,
-                          boxShadow: isHighLevel
-                            ? '0 0 4px rgba(57, 211, 83, 0.45)'
+                <div key={colIdx} className="flex flex-col gap-1">
+                  {week.map((day) => (
+                    <button
+                      key={day.date}
+                      type="button"
+                      onClick={() => setSelectedDay(day)}
+                      onMouseEnter={(e) => handleMouseEnter(day, e)}
+                      onMouseLeave={handleMouseLeave}
+                      aria-label={`${day.count} contributions on ${day.formattedDate}`}
+                      className="w-3 h-3 rounded-[2px] transition-all duration-150 hover:scale-125 hover:z-20 outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                      style={{
+                        backgroundColor: getCellColor(day.level),
+                        boxShadow:
+                          day.level >= 3
+                            ? '0 0 5px rgba(168, 214, 114, 0.4)'
                             : day.level > 0
-                            ? '0 0 2px rgba(38, 166, 65, 0.25)'
+                            ? '0 0 2px rgba(168, 214, 114, 0.2)'
                             : 'none',
-                          border: isSelected
-                            ? '1px solid #A8D672'
-                            : day.level === 0
-                            ? '1px solid rgba(255, 255, 255, 0.05)'
-                            : 'none',
-                        }}
-                      />
-                    );
-                  })}
+                        border:
+                          selectedDay?.date === day.date
+                            ? '1px solid var(--color-accent)'
+                            : '1px solid rgba(255, 255, 255, 0.04)',
+                      }}
+                    />
+                  ))}
                 </div>
               ))}
             </div>
@@ -279,21 +277,19 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
         </div>
       </div>
 
-      {/* Floating Hover Tooltip */}
+      {/* Floating Hover Tooltip (Portal / Fixed) */}
       {hoveredDay && tooltipPos && (
         <div
-          className="fixed z-50 pointer-events-none -translate-x-1/2 -translate-y-full px-3 py-2 rounded-lg bg-bg-deep border border-border shadow-crt text-xs font-mono text-left whitespace-nowrap backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-50 pointer-events-none -translate-x-1/2 -translate-y-full px-3 py-2 rounded-lg bg-bg-deep/95 border border-border shadow-xl text-xs font-mono text-left whitespace-nowrap backdrop-blur-sm"
           style={{
             left: `${tooltipPos.x}px`,
             top: `${tooltipPos.y}px`,
           }}
         >
-          <div className="font-bold text-fg flex items-center gap-2">
+          <div className="font-bold text-fg flex items-center gap-1.5">
             <span
-              className="w-2.5 h-2.5 rounded-[2px]"
-              style={{
-                backgroundColor: GITHUB_LEVEL_COLORS[hoveredDay.level],
-              }}
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: getCellColor(hoveredDay.level) }}
             />
             <span>
               {hoveredDay.count === 0
@@ -303,42 +299,55 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
                   }`}
             </span>
           </div>
-          <div className="text-[11px] text-fg-muted mt-0.5">
-            {hoveredDay.formattedDate}
+          <div className="text-[11px] text-fg-muted mt-0.5">{hoveredDay.formattedDate}</div>
+          <div className="text-[10px] text-accent-secondary italic mt-1 border-t border-border/50 pt-1">
+            &ldquo;{hoveredDay.flavor}&rdquo;
           </div>
         </div>
       )}
 
-      {/* Footer: Selected Day Inspector & Legend */}
-      <div className="mt-4 pt-4 border-t border-border/70 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-        <div className="text-fg-muted">
+      {/* Footer: Legend & Selected Day Inspector */}
+      <div className="mt-4 pt-3 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="flex items-center gap-2 text-fg-muted">
           {selectedDay ? (
             <span>
-              Selected:{' '}
-              <strong className="text-accent">{selectedDay.formattedDate}</strong> —{' '}
-              <span className="text-fg font-bold">{selectedDay.count} commits</span>
+              Selected: <strong className="text-accent">{selectedDay.formattedDate}</strong> —{' '}
+              {selectedDay.count} commits ({selectedDay.flavor})
             </span>
           ) : (
-            <span className="text-fg-subtle">
-              Hover over or click any square to inspect contribution metrics.
+            <span className="text-fg-subtle flex items-center gap-1">
+              <Info className="w-3.5 h-3.5" />
+              <span>Hover over any pixel window to inspect day activity</span>
             </span>
           )}
         </div>
 
-        {/* GitHub Official 5-Level Legend */}
-        <div className="flex items-center gap-1.5 text-[11px] text-fg-subtle select-none">
+        {/* Legend */}
+        <div className="flex items-center gap-1.5 text-[11px] text-fg-subtle">
           <span>Less</span>
-          {[0, 1, 2, 3, 4].map((level) => (
-            <span
-              key={level}
-              className="w-[11px] h-[11px] rounded-[2px]"
-              style={{ backgroundColor: GITHUB_LEVEL_COLORS[level] }}
-              title={`Level ${level}`}
-            />
-          ))}
+          <span
+            className="w-2.5 h-2.5 rounded-[2px]"
+            style={{ backgroundColor: getCellColor(0) }}
+          />
+          <span
+            className="w-2.5 h-2.5 rounded-[2px]"
+            style={{ backgroundColor: getCellColor(1) }}
+          />
+          <span
+            className="w-2.5 h-2.5 rounded-[2px]"
+            style={{ backgroundColor: getCellColor(2) }}
+          />
+          <span
+            className="w-2.5 h-2.5 rounded-[2px]"
+            style={{ backgroundColor: getCellColor(3) }}
+          />
+          <span
+            className="w-2.5 h-2.5 rounded-[2px]"
+            style={{ backgroundColor: getCellColor(4) }}
+          />
           <span>More</span>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
