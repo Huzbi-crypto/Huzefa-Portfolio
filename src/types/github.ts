@@ -69,3 +69,18 @@ export interface GitHubSnapshot {
   stats: GitHubStats;
   repositories: GitHubRepo[];
 }
+
+export interface GitHubContributionDay {
+  date: string;
+  count: number;
+  level: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface GitHubContributionsResponse {
+  total: {
+    [year: string]: number;
+    lastYear: number;
+  };
+  contributions: GitHubContributionDay[];
+}
+
