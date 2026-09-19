@@ -147,7 +147,7 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bg-deep/60 p-2.5 rounded-xl border border-border/60">
           <div className="flex items-center gap-2 text-xs font-mono text-fg-muted">
             <Compass className="w-3.5 h-3.5 text-accent" />
-            <span>Interactive Room &bull; Click character, lamp, CRT, and bookshelf</span>
+            <span>Digital Workspace // 02:00 AM Session</span>
           </div>
           <ThemeSelector />
         </div>

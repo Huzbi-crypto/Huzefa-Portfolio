@@ -58,7 +58,7 @@ export const Desk: React.FC<DeskProps> = ({
                     ? 'bg-[#E6A15C] border-[#F4DDB8] shadow-[0_0_24px_rgba(230,161,92,0.9)]'
                     : 'bg-[#29221F] border-[#3E332F]'
                 }`}
-                title="Click lamp to toggle room lighting"
+                title="Desk Lamp"
               >
                 <div
                   className={`w-4 h-4 rounded-full transition-all ${
@@ -102,7 +102,7 @@ export const Desk: React.FC<DeskProps> = ({
               <div
                 className="bg-[#1A202C] p-2 rounded border border-[#2B3547] shadow-md cursor-pointer select-none"
                 onClick={() => handleKeyTap(Math.floor(Math.random() * 12))}
-                title="Mechanical 65% Keyboard (Click to tap)"
+                title="Mechanical 65% Keyboard"
               >
                 {/* Keyboard Switch Plate */}
                 <div className="grid grid-cols-6 gap-1 sm:gap-1.5">

@@ -35,7 +35,7 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
   const [terminalHistory, setTerminalHistory] = useState<CommandHistoryItem[]>([
     {
       command: 'motd',
-      output: "HuzbiOS v2.4 (tty1) - 2:00 AM workspace session.\nType 'help' for available commands, or switch mode on bezel.",
+      output: "HuzbiOS v2.4 (tty1) - 2:00 AM workspace session.\nType 'help' for available commands.",
     },
   ]);
   const terminalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -232,7 +232,7 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
                     <div className="bg-bg-surface/80 p-2 rounded border border-border/60 text-[11px] space-y-1">
                       <div className="text-accent font-semibold flex items-center gap-1">
                         <Terminal className="w-3.5 h-3.5" />
-                        <span>Interactive Modes (Click bezel buttons):</span>
+                        <span>System Channels:</span>
                       </div>
                       <div className="grid grid-cols-2 gap-1 text-[10px] text-fg-muted">
                         <span>• [GITHUB]: stats &amp; repos</span>

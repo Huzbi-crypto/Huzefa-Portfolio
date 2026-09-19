@@ -213,7 +213,7 @@ export function StarCluster({ repositories }: StarClusterProps) {
             Repository Constellation &amp; Radiant Stars
           </h3>
           <p className="text-xs text-fg-muted font-sans mt-0.5">
-            Interactive starfield where star magnitude corresponds to GitHub stargazers. Click or hover any star.
+            Celestial map where star magnitude corresponds to repository stargazers.
           </p>
         </div>
 
@@ -446,7 +446,7 @@ export function StarCluster({ repositories }: StarClusterProps) {
                   type="button"
                   onClick={() => setSelectedNode(null)}
                   className="p-1 rounded hover:bg-bg-hover text-fg-muted hover:text-fg transition-colors"
-                  title="Close inspection (click again, press Esc, or click outside)"
+                  title="Close"
                   aria-label="Close star details"
                 >
                   <X className="w-3.5 h-3.5 text-accent" />
@@ -506,7 +506,7 @@ export function StarCluster({ repositories }: StarClusterProps) {
           {activeNode ? (
             <span>Stellar coordinates locked: [{activeNode.x}, {activeNode.y}]</span>
           ) : (
-            <span>Click or hover stars to inspect repo metrics</span>
+            <span>Active repository nodes</span>
           )}
         </div>
       </div>

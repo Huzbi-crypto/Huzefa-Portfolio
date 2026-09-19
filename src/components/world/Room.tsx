@@ -227,7 +227,7 @@ export const Room: React.FC<RoomProps> = ({
               </div>
             ) : (
               <div className="text-[11px] font-mono text-fg-muted text-center italic">
-                &ldquo;click any book on the shelf to inspect&rdquo;
+                &ldquo;quiet hours, favorite stories&rdquo;
               </div>
             )}
 

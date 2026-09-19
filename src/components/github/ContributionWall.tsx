@@ -317,7 +317,7 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
           ) : (
             <span className="text-fg-subtle flex items-center gap-1">
               <Info className="w-3.5 h-3.5" />
-              <span>Hover over any pixel window to inspect day activity</span>
+              <span>Full year activity record</span>
             </span>
           )}
         </div>

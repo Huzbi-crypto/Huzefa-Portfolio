@@ -196,7 +196,7 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
                 type="button"
                 onClick={handleDeselect}
                 className="absolute top-2 right-2 p-1 rounded hover:bg-bg-hover text-fg-muted hover:text-fg transition-colors"
-                title="Deselect book (or click book again)"
+                title="Close"
                 aria-label="Close book inspection"
               >
                 <X className="w-3.5 h-3.5 text-accent" />
@@ -216,11 +216,6 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
             {activeInspect.item.note && (
               <div className="mt-1.5 pt-1.5 border-t border-border/60 text-[11px] text-accent-cream italic leading-snug">
                 &ldquo;{activeInspect.item.note}&rdquo;
-              </div>
-            )}
-            {selectedBook && (
-              <div className="mt-1 text-[9px] text-fg-subtle text-right">
-                (click again or press Esc to close)
               </div>
             )}
           </div>
@@ -279,7 +274,7 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
                       ? '-translate-y-2 shadow-crt ring-1 ring-accent'
                       : 'hover:-translate-y-1'
                   }`}
-                  title={`${book.item.title} (${book.item.author}) - Click to inspect/read, click again to close`}
+                  title={`${book.item.title} — ${book.item.author}`}
                 >
                   {/* Top Gold Trim / Emboss line */}
                   {book.goldTrim && (
@@ -317,7 +312,7 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
         {/* HEAVY WOODEN SHELF BOARD (Bottom shelf slab) */}
         <div className="w-full h-4 bg-[#33251B] border-t-2 border-[#4A3627] rounded-b shadow-md flex items-center justify-between px-2 text-[8px] font-mono text-[#7A6452]">
           <span>OAK SHELF</span>
-          <span>CLICK ANY BOOK TO READ &bull; ESC TO CLOSE</span>
+          <span>FAVORITE VOLUMES</span>
         </div>
       </div>
     </div>

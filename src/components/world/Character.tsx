@@ -22,7 +22,7 @@ const DIALOGUES = [
   "dijkstra's shortest path never disappoints.",
   "tea is still warm. good sign.",
   "38 repos on GitHub and still dreaming up more.",
-  "click the CRT monitor to test my mini terminal!",
+  "nothing beats late night coding with good music.",
   "welcome to my room. make yourself at home.",
 ];
 
@@ -99,7 +99,7 @@ export const Character: React.FC<CharacterProps> = ({
       onClick={handleCharacterClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      title="Huzbi (Click to talk!)"
+      title="Huzbi"
       role="img"
       aria-label="Pixel art representation of Huzbi"
     >
