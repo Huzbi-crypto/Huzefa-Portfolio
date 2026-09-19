@@ -412,9 +412,9 @@ export const Character: React.FC<CharacterProps> = ({
               {/* Right arm extending long towards the right over the cat */}
               <g className="avatar-petting-arm">
                 <rect x="48" y="48" width="9" height="11" fill="#222834" />
-                <rect x="55" y="52" width="16" height="7" fill="#2C3443" />
-                {/* Hand touching cat */}
-                <rect x="70" y="55" width="10" height="5" fill="#F3D5B5" rx="1.5" />
+                <rect x="55" y="51" width="22" height="7" fill="#2C3443" />
+                {/* Hand directly resting on and stroking cat */}
+                <rect x="75" y="54" width="14" height="6" fill="#F3D5B5" rx="2" />
               </g>
             </g>
           ) : actionState === 'gazing' ? (
