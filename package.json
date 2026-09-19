@@ -8,9 +8,7 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
+  "packageManager": "pnpm@9.15.5",
   "onlyBuiltDependencies": [
     "sharp",
     "esbuild"
