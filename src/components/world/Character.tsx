@@ -139,7 +139,7 @@ export const Character: React.FC<CharacterProps> = ({
 
   return (
     <div
-      className={`relative inline-block select-none cursor-pointer ${className}`}
+      className={`relative w-full h-full select-none cursor-pointer ${className}`}
       onClick={handleCharacterClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -150,10 +150,10 @@ export const Character: React.FC<CharacterProps> = ({
       {(showSpeechBubble || isHovered) && (
         <div
           className={`absolute bottom-full mb-3 z-50 pointer-events-none transition-all duration-200 ${getBubbleAlignmentClasses()}`}
-          style={{ width: 'max-content', maxWidth: '300px' }}
+          style={{ width: 'max-content', maxWidth: '320px' }}
         >
           <div
-            className="relative border-2 border-accent text-fg font-mono text-[11px] px-3.5 py-2 rounded-xl shadow-2xl leading-relaxed bg-bg-deep"
+            className="relative border-2 border-accent text-fg font-mono text-[11px] sm:text-xs px-3 py-1.5 rounded-xl shadow-2xl leading-relaxed bg-bg-deep"
             style={{
               borderColor: 'var(--color-accent)',
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.95), 0 0 12px var(--color-glow)',
@@ -172,7 +172,7 @@ export const Character: React.FC<CharacterProps> = ({
 
       {/* 2. INNER SPRITE CONTAINER (Flipped horizontally with scaleX based on walking direction) */}
       <div
-        className={`transition-transform duration-200 ${
+        className={`w-full h-full transition-transform duration-200 ${
           actionState === 'walking' ? 'avatar-walk-bob' : ''
         }`}
         style={{
@@ -182,7 +182,7 @@ export const Character: React.FC<CharacterProps> = ({
       >
         <svg
           viewBox="0 0 80 95"
-          className="w-28 h-33 sm:w-32 sm:h-38 md:w-36 md:h-42 pixelated drop-shadow-md overflow-visible"
+          className="w-full h-full pixelated drop-shadow-md overflow-visible"
           shapeRendering="crispEdges"
         >
           <defs>
@@ -191,37 +191,29 @@ export const Character: React.FC<CharacterProps> = ({
             </filter>
           </defs>
 
-          {/* --- A. RED SWIVEL STOOL (Rendered beneath Huzbi when seated at desk in 'watching' or 'idle' mode) --- */}
-          {(actionState === 'watching' || (actionState === 'idle' && hotspot?.id === 'desk-monitor')) && (
-            <g id="red-swivel-stool">
-              {/* Red Round Stool Cushion (Matching reference image) */}
-              <ellipse cx="40" cy="74" rx="16" ry="4.5" fill="#7D1E1E" />
-              <ellipse cx="40" cy="72" rx="15" ry="4" fill="#B02A2A" />
-              <ellipse cx="40" cy="70" rx="13" ry="3" fill="#D94343" />
-              {/* Chrome Center Stem */}
-              <rect x="38" y="74" width="4" height="12" fill="#5F6B72" />
-              <rect x="39" y="74" width="2" height="12" fill="#95A5A6" />
-              {/* Chrome Circular Footring */}
-              <ellipse cx="40" cy="81" rx="10" ry="2" fill="none" stroke="#7F8C8D" strokeWidth="1.5" />
-              {/* 5-Star Caster Base */}
-              <polygon points="40,84 25,88 27,90 40,86 53,90 55,88" fill="#2C3440" />
-              <rect x="24" y="88" width="3" height="3" fill="#151A22" rx="0.5" />
-              <rect x="53" y="88" width="3" height="3" fill="#151A22" rx="0.5" />
-            </g>
-          )}
-
-          {/* --- B. HUZBI LEGS / CROUCH / WALK --- */}
+          {/* --- B. HUZBI LEGS / CROUCH / WALK / SEATED --- */}
           {actionState === 'petting' ? (
-            // CROUCHING POSE on rug
+            // CROUCHING POSE on rug next to armchair
             <g id="legs-crouch">
-              {/* Left bent knee on rug */}
-              <rect x="23" y="66" width="16" height="11" fill="#1A202A" rx="2" />
-              <rect x="21" y="74" width="12" height="7" fill="#171C26" />
-              <rect x="19" y="78" width="11" height="5" fill="#E8E6DD" />
-              {/* Right knee support */}
-              <rect x="42" y="64" width="13" height="15" fill="#171C26" rx="2" />
-              <rect x="43" y="77" width="11" height="4" fill="#E8E6DD" />
-              <rect x="43" y="79" width="11" height="2" fill="#A8D672" />
+              {/* Left leg folded under */}
+              <rect x="20" y="66" width="18" height="11" fill="#1A202A" rx="2" />
+              <rect x="18" y="74" width="15" height="7" fill="#171C26" />
+              <rect x="16" y="79" width="14" height="6" fill="#E8E6DD" />
+              {/* Right forward bent knee */}
+              <rect x="42" y="62" width="16" height="16" fill="#171C26" rx="2" />
+              <rect x="44" y="76" width="13" height="5" fill="#E8E6DD" />
+              <rect x="44" y="79" width="13" height="3" fill="#A8D672" />
+            </g>
+          ) : actionState === 'watching' || (actionState === 'idle' && hotspot?.id === 'desk-monitor') ? (
+            // SEATED AT STOOL (legs bent forward, feet dangling towards footring)
+            <g id="legs-seated">
+              <rect x="29" y="66" width="10" height="15" fill="#1A202A" rx="1" />
+              <rect x="41" y="66" width="10" height="15" fill="#171C26" rx="1" />
+              {/* Shoes resting on stool footring */}
+              <rect x="27" y="79" width="12" height="5" fill="#E8E6DD" />
+              <rect x="27" y="82" width="13" height="3" fill="#A8D672" />
+              <rect x="41" y="79" width="12" height="5" fill="#E8E6DD" />
+              <rect x="40" y="82" width="13" height="3" fill="#A8D672" />
             </g>
           ) : actionState === 'walking' ? (
             // WALKING STRIDE
@@ -232,7 +224,7 @@ export const Character: React.FC<CharacterProps> = ({
               <rect className="avatar-leg-right" x="43" y="82" width="11" height="4" fill="#E8E6DD" />
             </g>
           ) : (
-            // UPRIGHT / SEATED JEANS
+            // UPRIGHT / STANDING JEANS
             <g id="legs-upright">
               <rect x="30" y="71" width="9" height="13" fill="#1A202A" />
               <rect x="41" y="71" width="9" height="13" fill="#171C26" />
@@ -248,7 +240,7 @@ export const Character: React.FC<CharacterProps> = ({
             id="huzbi-torso"
             className={actionState === 'idle' ? 'avatar-breathing' : ''}
             style={{
-              transform: actionState === 'petting' ? 'translateY(12px)' : 'none',
+              transform: actionState === 'petting' ? 'translateY(8px)' : 'none',
             }}
           >
             {/* Dark Cozy Hoodie */}
@@ -269,11 +261,11 @@ export const Character: React.FC<CharacterProps> = ({
               transformOrigin: '40px 38px',
               transform:
                 actionState === 'petting'
-                  ? 'translateY(12px) rotate(6deg)'
+                  ? 'translateY(8px) rotate(6deg)'
                   : actionState === 'watching'
-                  ? 'rotate(-8deg)'
+                  ? 'rotate(-6deg)'
                   : actionState === 'gazing'
-                  ? 'rotate(-5deg)'
+                  ? 'rotate(-6deg)'
                   : 'none',
               transition: 'transform 200ms ease-out',
             }}
@@ -304,10 +296,10 @@ export const Character: React.FC<CharacterProps> = ({
 
             {/* Contextual Eyes */}
             {blinking || actionState === 'petting' ? (
-              // Happy / Sleepy closed curved eyes
+              // Happy / Affectionate closed curved eyes
               <g id="eyes-closed">
-                <path d="M33,31 Q35,29 37,31" stroke="#2E1C12" strokeWidth="1.2" fill="none" />
-                <path d="M43,31 Q45,29 47,31" stroke="#2E1C12" strokeWidth="1.2" fill="none" />
+                <path d="M33,31 Q35,28 37,31" stroke="#2E1C12" strokeWidth="1.4" fill="none" />
+                <path d="M43,31 Q45,28 47,31" stroke="#2E1C12" strokeWidth="1.4" fill="none" />
               </g>
             ) : (
               // Open tracking eyes
@@ -412,16 +404,17 @@ export const Character: React.FC<CharacterProps> = ({
               <rect x="47" y="60" width="3" height="4" fill="#F3D5B5" />
             </g>
           ) : actionState === 'petting' ? (
-            // GENTLE PETTING MOTION ON RUG
-            <g id="arms-petting" transform="translate(0, 12)">
+            // GENTLE PETTING MOTION - ARM REACHES FORWARD ONTO CAT
+            <g id="arms-petting" transform="translate(0, 8)">
               {/* Left hand braced on knee */}
-              <rect x="22" y="48" width="8" height="14" fill="#222834" />
-              <rect x="22" y="60" width="6" height="5" fill="#F3D5B5" />
-              {/* Right arm extending towards cat with petting stroke */}
+              <rect x="18" y="48" width="8" height="14" fill="#222834" />
+              <rect x="18" y="60" width="6" height="5" fill="#F3D5B5" />
+              {/* Right arm extending long towards the right over the cat */}
               <g className="avatar-petting-arm">
-                <rect x="50" y="48" width="8" height="12" fill="#222834" />
-                <rect x="54" y="56" width="10" height="6" fill="#2C3443" />
-                <rect x="62" y="59" width="7" height="4" fill="#F3D5B5" rx="1" />
+                <rect x="48" y="48" width="9" height="11" fill="#222834" />
+                <rect x="55" y="52" width="16" height="7" fill="#2C3443" />
+                {/* Hand touching cat */}
+                <rect x="70" y="55" width="10" height="5" fill="#F3D5B5" rx="1.5" />
               </g>
             </g>
           ) : actionState === 'gazing' ? (

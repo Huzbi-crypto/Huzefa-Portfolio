@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import githubSnapshot from '@/data/github-snapshot.json';
 import { projects } from '@/data/projects';
 import { personalInfo } from '@/data/personal';
-import { ExternalLink, Terminal, Star, Power, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ExternalLink, Star, ChevronRight, ChevronLeft, Maximize2, X } from 'lucide-react';
 import { GithubIcon } from '@/components/icons';
 
 export type ScreenMode = 'IDLE' | 'GITHUB' | 'PROJECTS' | 'TERMINAL';
@@ -14,6 +14,7 @@ export interface CRTMonitorProps {
   onActivity?: (action: 'typing' | 'idle') => void;
   className?: string;
   onSelectProject?: (projectId: string) => void;
+  onMonitorClick?: () => void;
 }
 
 interface CommandHistoryItem {
@@ -26,12 +27,14 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
   onActivity,
   className = '',
   onSelectProject,
+  onMonitorClick,
 }) => {
   const [mode, setMode] = useState<ScreenMode>(initialMode);
   const [isPoweredOn, setIsPoweredOn] = useState<boolean>(true);
   const [activeProjectIdx, setActiveProjectIdx] = useState<number>(0);
   const [uptimeSeconds, setUptimeSeconds] = useState<number>(7200);
   const [terminalInput, setTerminalInput] = useState<string>('');
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [terminalHistory, setTerminalHistory] = useState<CommandHistoryItem[]>([
     {
       command: 'motd',
@@ -39,7 +42,8 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
     },
   ]);
   const terminalContainerRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const modalTerminalContainerRef = useRef<HTMLDivElement | null>(null);
+  const modalInputRef = useRef<HTMLInputElement | null>(null);
 
   // Uptime tick
   useEffect(() => {
@@ -57,12 +61,17 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
     return `${hrs}h ${mins}m ${s}s`;
   };
 
-  // Scroll terminal container to bottom without scrolling the parent page window
+  // Scroll terminal container to bottom
   useEffect(() => {
-    if (mode === 'TERMINAL' && terminalContainerRef.current) {
-      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+    if (mode === 'TERMINAL') {
+      if (terminalContainerRef.current) {
+        terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+      }
+      if (modalTerminalContainerRef.current) {
+        modalTerminalContainerRef.current.scrollTop = modalTerminalContainerRef.current.scrollHeight;
+      }
     }
-  }, [terminalHistory, mode]);
+  }, [terminalHistory, mode, isExpanded]);
 
   // Handle terminal command execution
   const handleCommandSubmit = (e: React.FormEvent) => {
@@ -78,15 +87,15 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
     switch (cmd) {
       case 'help':
         outputNode = (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <p className="text-accent font-bold">Available Commands:</p>
-            <p><span className="text-accent-secondary">github</span>     - View repository statistics and live snapshot</p>
-            <p><span className="text-accent-secondary">projects</span>   - List featured hardware cartridges & lab systems</p>
-            <p><span className="text-accent-secondary">whoami</span>     - Display developer identity and credentials</p>
-            <p><span className="text-accent-secondary">manga</span>      - Peek at Huzbi&apos;s current reading stack</p>
-            <p><span className="text-accent-secondary">contact</span>    - Show email & social links</p>
-            <p><span className="text-accent-secondary">uptime</span>     - Show session uptime and system load</p>
-            <p><span className="text-accent-secondary">clear</span>      - Clear terminal console screen</p>
+            <p><span className="text-accent-secondary">github</span>     - View repository statistics</p>
+            <p><span className="text-accent-secondary">projects</span>   - List featured hardware cartridges</p>
+            <p><span className="text-accent-secondary">whoami</span>     - Developer identity</p>
+            <p><span className="text-accent-secondary">manga</span>      - Favorite manga stack</p>
+            <p><span className="text-accent-secondary">contact</span>    - Show email &amp; social links</p>
+            <p><span className="text-accent-secondary">uptime</span>     - Session uptime</p>
+            <p><span className="text-accent-secondary">clear</span>      - Clear terminal screen</p>
           </div>
         );
         break;
@@ -95,42 +104,38 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
         outputNode = (
           <div>
             <p className="text-accent font-bold">GitHub: {githubSnapshot.user.login} ({githubSnapshot.user.name})</p>
-            <p>• Repositories: {githubSnapshot.stats.totalRepos}</p>
-            <p>• Profile Stars: {githubSnapshot.stats.totalStarsGiven}</p>
-            <p>• Followers: {githubSnapshot.stats.totalFollowers}</p>
-            <p>• Top languages: Python, JavaScript, C++, HTML, CSS</p>
+            <p>• Repos: {githubSnapshot.stats.totalRepos} | Stars: {githubSnapshot.stats.totalStarsGiven} | Followers: {githubSnapshot.stats.totalFollowers}</p>
           </div>
         );
         break;
 
       case 'projects':
         outputNode = (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <p className="text-accent font-bold">Featured Projects:</p>
             {projects.slice(0, 4).map((p, i) => (
               <p key={p.id}>
-                [{i + 1}] <span className="text-fg font-semibold">{p.title}</span> ({p.visual.asciiBadge}) - {p.tagline.slice(0, 45)}...
+                [{i + 1}] <span className="text-fg font-semibold">{p.title}</span> - {p.tagline.slice(0, 36)}...
               </p>
             ))}
-            <p className="text-xs text-accent-cream mt-1">&gt; Tip: Use PROJECTS tab on monitor to inspect interactively.</p>
           </div>
         );
         break;
 
       case 'whoami':
-        outputNode = `${personalInfo.name} (${personalInfo.legalName}) // ${personalInfo.title}\n"${personalInfo.bio}"\nLocation: ${personalInfo.location}`;
+        outputNode = `${personalInfo.name} (${personalInfo.legalName}) // ${personalInfo.title}\n"${personalInfo.bio}"`;
         break;
 
       case 'manga':
-        outputNode = "Manga Favorites: One Piece, Naruto, Bleach, Black Clover, One Punch Man. Tech: SICP, Computer Networking.";
+        outputNode = "Manga: One Piece, Naruto, Bleach, Black Clover, One Punch Man.";
         break;
 
       case 'contact':
-        outputNode = `Email: ${personalInfo.email}\nGitHub: ${personalInfo.socials.github}\nTwitter: ${personalInfo.socials.twitter}`;
+        outputNode = `Email: ${personalInfo.email} | GitHub: ${personalInfo.socials.github}`;
         break;
 
       case 'uptime':
-        outputNode = `Uptime: ${formatUptime(uptimeSeconds)} | Load Avg: 0.14, 0.08, 0.02 | 2 AM Quiet State`;
+        outputNode = `Uptime: ${formatUptime(uptimeSeconds)} | 2 AM Quiet State`;
         break;
 
       case 'clear':
@@ -138,13 +143,8 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
         setTerminalInput('');
         return;
 
-      case 'sudo':
-      case 'sudo rm -rf /':
-        outputNode = "Permission denied: chill out, this is a cozy room.";
-        break;
-
       default:
-        outputNode = `bash: command not found: '${cmd}'. Type 'help' for available commands.`;
+        outputNode = `Unknown: '${cmd}'. Type 'help'.`;
     }
 
     setTerminalHistory((prev) => [...prev, { command: terminalInput, output: outputNode }]);
@@ -154,356 +154,425 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
   const featuredProjects = projects.filter((p) => p.featured);
   const currentProject = featuredProjects[activeProjectIdx] || projects[0];
 
-  const handleNextProject = () => {
+  const handleNextProject = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setActiveProjectIdx((prev) => (prev + 1) % featuredProjects.length);
   };
 
-  const handlePrevProject = () => {
+  const handlePrevProject = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setActiveProjectIdx((prev) => (prev - 1 + featuredProjects.length) % featuredProjects.length);
   };
 
   return (
-    <div className={`relative flex flex-col items-center ${className}`}>
-      {/* CRT MONITOR PHYSICAL CHASSIS / BEZEL */}
-      <div className="relative w-full max-w-[460px] bg-[#1E2430] p-4 sm:p-5 rounded-2xl border-4 border-[#121620] shadow-[0_12px_32px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.1)] transition-all">
-        
-        {/* Top Vent Slots on Bezel */}
-        <div className="flex justify-center gap-1.5 mb-2.5 opacity-40">
-          <span className="w-10 h-1 bg-[#0A0D13] rounded-full" />
-          <span className="w-10 h-1 bg-[#0A0D13] rounded-full" />
-          <span className="w-10 h-1 bg-[#0A0D13] rounded-full" />
-          <span className="w-10 h-1 bg-[#0A0D13] rounded-full" />
-        </div>
-
-        {/* INNER SCREEN RECESS */}
-        <div className="relative bg-[#070A0F] rounded-xl p-2 sm:p-3 border-2 border-[#151A24] overflow-hidden shadow-[inset_0_4px_16px_rgba(0,0,0,0.95)]">
+    <>
+      {/* DESK-MOUNTED COMPACT RETRO CRT (Matching Reference Image) */}
+      <div
+        className={`relative flex flex-col items-center justify-between select-none ${className}`}
+        onClick={() => {
+          if (onMonitorClick) onMonitorClick();
+        }}
+      >
+        {/* RETRO BEIGE / GREY HOUSING (90s Style) */}
+        <div className="relative w-full h-[90%] bg-[#B8B0A2] rounded-md border-2 border-[#6D6559] shadow-md p-1 flex flex-col justify-between overflow-hidden">
           
-          {/* CRT Screen Curved Glow & Phosphor Container */}
-          <div className="relative w-full aspect-[4/3] bg-bg-deep rounded-lg overflow-hidden border border-border/40 font-mono text-xs select-none">
-            
-            {/* Ambient CRT Scanlines & Vignette Layer */}
-            <div className="absolute inset-0 crt-scanlines pointer-events-none z-20 opacity-60" />
+          {/* Subtle Top Bezel Ventilation Slots */}
+          <div className="flex justify-center gap-1 my-0.5 opacity-60">
+            <span className="w-4 h-0.5 bg-[#4A4339] rounded-full" />
+            <span className="w-4 h-0.5 bg-[#4A4339] rounded-full" />
+            <span className="w-4 h-0.5 bg-[#4A4339] rounded-full" />
+          </div>
+
+          {/* INNER CRT TUBE SCREEN (Curved Dark Bezel) */}
+          <div className="relative flex-1 bg-[#0A0E14] rounded border border-[#3E3830] overflow-hidden p-1 flex flex-col justify-between shadow-[inset_0_2px_8px_rgba(0,0,0,0.9)]">
+            {/* Scanlines & CRT curvature effect */}
+            <div className="absolute inset-0 crt-scanlines pointer-events-none z-20 opacity-40" />
             <div className="absolute inset-0 crt-vignette pointer-events-none z-20" />
 
-            {/* If Monitor is OFF */}
             {!isPoweredOn ? (
-              <div className="w-full h-full flex flex-col items-center justify-center text-fg-subtle bg-black">
-                <div className="w-2 h-2 rounded-full bg-fg-subtle/30 animate-pulse mb-2" />
-                <span className="text-[11px] tracking-wider">[CRT STANDBY]</span>
-                <span className="text-[10px] text-fg-subtle/60 mt-1">Press PWR on bezel to wake</span>
+              <div className="flex-1 flex flex-col items-center justify-center text-fg-subtle">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 mb-1 animate-pulse" />
+                <span className="text-[7px] font-mono">[STANDBY]</span>
               </div>
             ) : (
-              /* SCREEN MODES */
-              <div className="relative w-full h-full flex flex-col p-3 text-fg overflow-y-auto crt-glow">
-                
-                {/* Top Status Bar on CRT */}
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/50 text-[10px] text-accent/80">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                    <span className="font-bold tracking-wider">HUZBI.SYS // {mode}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-fg-muted">
-                    <span>2:00 AM</span>
-                    <span className="hidden sm:inline">UP: {formatUptime(uptimeSeconds).slice(0, 8)}</span>
-                  </div>
+              <div className="flex-1 flex flex-col justify-between font-mono text-[7px] text-accent leading-tight overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-accent/30 pb-0.5">
+                  <span className="font-bold truncate">HUZBI.SYS // {mode}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(true);
+                    }}
+                    className="text-fg-muted hover:text-accent p-0.5"
+                    title="Expand Full Terminal Screen"
+                  >
+                    <Maximize2 className="w-2.5 h-2.5" />
+                  </button>
                 </div>
 
-                {/* MODE 1: IDLE SCREEN */}
+                {/* Content by mode */}
                 {mode === 'IDLE' && (
-                  <div className="flex-1 flex flex-col justify-between text-xs space-y-2">
-                    <div className="space-y-1.5 leading-relaxed">
-                      <p className="text-accent font-bold">
-                        huzbi@room ~ $ status --all
-                      </p>
-                      <p className="text-fg-muted text-[11px]">
-                        [SYSTEM] Environment: Karachi, PK (2 AM quiet mode)
-                      </p>
-                      <p className="text-fg-muted text-[11px]">
-                        [KERNEL] FAST-NUCES CS graduate // Systems &amp; AI
-                      </p>
-                      <p className="text-fg-muted text-[11px]">
-                        [FOCUS] LangGraph multi-agent &amp; network simulators
-                      </p>
-                      <p className="text-accent-secondary text-[11px] pt-1">
-                        &gt; 38 public repos // 349 stars // reading One Piece
-                      </p>
-                    </div>
-
-                    <div className="bg-bg-surface/80 p-2 rounded border border-border/60 text-[11px] space-y-1">
-                      <div className="text-accent font-semibold flex items-center gap-1">
-                        <Terminal className="w-3.5 h-3.5" />
-                        <span>System Channels:</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1 text-[10px] text-fg-muted">
-                        <span>• [GITHUB]: stats &amp; repos</span>
-                        <span>• [PROJECTS]: quick viewer</span>
-                        <span>• [TERMINAL]: bash prompt</span>
-                        <span>• [PWR]: standby toggle</span>
-                      </div>
-                    </div>
-
-                    <div className="text-[11px] text-accent flex items-center gap-1 pt-1">
-                      <span>huzbi@room ~ $</span>
-                      <span className="w-2 h-3.5 bg-accent animate-pulse inline-block" />
-                    </div>
+                  <div className="py-0.5 space-y-0.5">
+                    <p className="text-[#F5E8C7] font-semibold">&gt; 02:14 AM SESSION</p>
+                    <p className="text-fg-muted">Huzbi // Fullstack &amp; Systems</p>
+                    <p className="text-accent-secondary truncate">38 Repos &bull; 349 Stars</p>
+                    <p className="text-accent font-bold animate-pulse">&gt; SYS_OK _</p>
                   </div>
                 )}
 
-                {/* MODE 2: GITHUB STATS */}
                 {mode === 'GITHUB' && (
-                  <div className="flex-1 flex flex-col justify-between text-xs space-y-2">
-                    <div>
-                      <div className="flex items-center justify-between text-accent font-bold mb-1">
-                        <span className="flex items-center gap-1.5">
-                          <GithubIcon className="w-3.5 h-3.5" />
-                          github.com/{githubSnapshot.user.login}
-                        </span>
-                        <a
-                          href={personalInfo.socials.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:underline flex items-center gap-0.5 text-[10px] text-accent-tertiary"
-                        >
-                          open <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <p className="text-[10px] text-fg-muted italic line-clamp-1">
-                        &ldquo;{githubSnapshot.user.bio}&rdquo;
-                      </p>
+                  <div className="py-0.5 space-y-0.5">
+                    <p className="text-[#F5E8C7] font-semibold truncate">@{githubSnapshot.user.login}</p>
+                    <div className="flex justify-between text-fg-muted">
+                      <span>Repos: {githubSnapshot.stats.totalRepos}</span>
+                      <span>Stars: {githubSnapshot.stats.totalStarsGiven}</span>
                     </div>
-
-                    {/* Stats Matrix */}
-                    <div className="grid grid-cols-3 gap-1.5 text-center">
-                      <div className="p-1.5 rounded bg-bg-surface border border-border/60">
-                        <div className="text-accent font-bold text-sm">{githubSnapshot.stats.totalRepos}</div>
-                        <div className="text-[9px] text-fg-muted">Repositories</div>
-                      </div>
-                      <div className="p-1.5 rounded bg-bg-surface border border-border/60">
-                        <div className="text-accent-secondary font-bold text-sm">{githubSnapshot.stats.totalStarsGiven}</div>
-                        <div className="text-[9px] text-fg-muted">Stars Given</div>
-                      </div>
-                      <div className="p-1.5 rounded bg-bg-surface border border-border/60">
-                        <div className="text-accent-tertiary font-bold text-sm">{githubSnapshot.stats.totalFollowers}</div>
-                        <div className="text-[9px] text-fg-muted">Followers</div>
-                      </div>
-                    </div>
-
-                    {/* Language Breakdown */}
-                    <div className="bg-bg-surface/70 p-1.5 rounded border border-border/50 text-[10px]">
-                      <div className="text-fg-muted mb-1 flex items-center justify-between">
-                        <span>Top Languages:</span>
-                        <span className="text-accent-cream">Python (25.7%) / JS (22.9%)</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-bg-deep flex overflow-hidden">
-                        <div className="bg-accent h-full" style={{ width: '26%' }} />
-                        <div className="bg-accent-secondary h-full" style={{ width: '23%' }} />
-                        <div className="bg-accent-tertiary h-full" style={{ width: '12%' }} />
-                        <div className="bg-accent-cream h-full" style={{ width: '39%' }} />
-                      </div>
-                    </div>
-
-                    <div className="text-[10px] text-fg-muted flex items-center justify-between">
-                      <span>Recent: Computer-Networks-Sim</span>
-                      <span className="text-accent font-mono">[ACTIVE]</span>
-                    </div>
+                    <p className="text-accent-secondary truncate">Python, JS, C++</p>
                   </div>
                 )}
 
-                {/* MODE 3: PROJECT ROTATING CAROUSEL */}
                 {mode === 'PROJECTS' && (
-                  <div className="flex-1 flex flex-col justify-between text-xs">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-bg-surface text-accent border border-border">
-                          {currentProject.visual.asciiBadge} {activeProjectIdx + 1}/{featuredProjects.length}
-                        </span>
-                        <div className="flex items-center gap-1 text-[10px] text-accent-secondary">
-                          <Star className="w-3 h-3 fill-accent-secondary" />
-                          <span>{currentProject.stars}</span>
-                        </div>
-                      </div>
-
-                      <h4 className="font-bold text-fg text-sm line-clamp-1">
-                        {currentProject.title}
-                      </h4>
-                      <p className="text-[10px] text-fg-muted line-clamp-2 mt-0.5">
-                        {currentProject.tagline}
-                      </p>
+                  <div className="py-0.5">
+                    <div className="flex items-center justify-between text-[#F5E8C7]">
+                      <span className="truncate font-bold">{currentProject.title}</span>
+                      <span className="text-[6px] text-accent-secondary">★ {currentProject.stars}</span>
                     </div>
-
-                    {/* Stack Badges */}
-                    <div className="flex flex-wrap gap-1 my-1">
-                      {currentProject.techStack.slice(0, 3).map((tech) => (
-                        <span
-                          key={tech}
-                          className="text-[9px] px-1.5 py-0.2 rounded bg-bg-surface text-fg-muted border border-border/50"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Controls & Links */}
-                    <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[10px]">
-                      <div className="flex items-center gap-1">
+                    <p className="text-fg-muted line-clamp-1">{currentProject.tagline}</p>
+                    <div className="flex items-center justify-between pt-0.5">
+                      <div className="flex gap-1">
                         <button
                           type="button"
                           onClick={handlePrevProject}
-                          className="p-1 rounded bg-bg-surface hover:bg-bg-hover text-accent border border-border"
-                          title="Previous project"
+                          className="px-1 bg-black/40 text-accent rounded text-[6px]"
                         >
-                          <ChevronLeft className="w-3 h-3" />
+                          &lt;
                         </button>
                         <button
                           type="button"
                           onClick={handleNextProject}
-                          className="p-1 rounded bg-bg-surface hover:bg-bg-hover text-accent border border-border"
-                          title="Next project"
+                          className="px-1 bg-black/40 text-accent rounded text-[6px]"
                         >
-                          <ChevronRight className="w-3 h-3" />
+                          &gt;
                         </button>
                       </div>
+                      {onSelectProject && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectProject(currentProject.id);
+                          }}
+                          className="text-accent underline text-[6px]"
+                        >
+                          Details
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
 
+                {mode === 'TERMINAL' && (
+                  <div className="py-0.5 flex flex-col justify-between h-full">
+                    <div className="text-[6.5px] text-fg-muted line-clamp-2">
+                      {terminalHistory.length > 0 ? (
+                        <>
+                          <span className="text-accent">$ {terminalHistory[terminalHistory.length - 1].command}</span>
+                          <br />
+                          {typeof terminalHistory[terminalHistory.length - 1].output === 'string'
+                            ? terminalHistory[terminalHistory.length - 1].output
+                            : 'Executed.'}
+                        </>
+                      ) : (
+                        'Ready. Click [⤢] to type.'
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(true);
+                      }}
+                      className="mt-0.5 text-center text-accent underline text-[6.5px]"
+                    >
+                      [Open Interactive CLI ⤢]
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* LOWER BEZEL BUTTONS (Authentic Retro Monitor Front) */}
+          <div className="mt-0.5 flex items-center justify-between px-0.5 text-[6.5px] font-mono select-none">
+            <span className="font-bold text-[#5A5043] tracking-wider">HUZBI-84</span>
+
+            {/* Mode Mini-Tabs */}
+            <div className="flex gap-0.5">
+              {(['IDLE', 'GITHUB', 'PROJECTS', 'TERMINAL'] as ScreenMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMode(m);
+                    if (!isPoweredOn) setIsPoweredOn(true);
+                  }}
+                  className={`px-1 rounded-[1px] ${
+                    mode === m && isPoweredOn
+                      ? 'bg-accent text-bg font-bold'
+                      : 'bg-[#9C9281] text-[#2E281F] hover:bg-[#857B6C]'
+                  }`}
+                >
+                  {m === 'TERMINAL' ? 'CLI' : m === 'PROJECTS' ? 'PRJ' : m === 'GITHUB' ? 'GIT' : 'SYS'}
+                </button>
+              ))}
+            </div>
+
+            {/* Power LED & Toggle */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPoweredOn(!isPoweredOn);
+              }}
+              className="flex items-center gap-0.5 text-[#5A5043]"
+              title="Power Toggle"
+            >
+              <div
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isPoweredOn ? 'bg-[#33FF66] shadow-[0_0_4px_#33FF66]' : 'bg-[#E53935]'
+                }`}
+              />
+              <span className="text-[5.5px]">PWR</span>
+            </button>
+          </div>
+        </div>
+
+        {/* PEDESTAL MONITOR STAND (Resting on Desk Surface) */}
+        <div className="w-12 h-1.5 bg-[#8C8375] border-x border-[#5A5043]" />
+        <div className="w-20 h-1.5 bg-[#6D6559] rounded-b-[2px] shadow-sm border border-[#4A4339]" />
+      </div>
+
+      {/* FULLSCREEN / MODAL EXPANDED VIEW WHEN CLICKED */}
+      {isExpanded && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setIsExpanded(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl bg-[#1E2430] p-5 sm:p-6 rounded-2xl border-4 border-[#121620] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/50">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-crt" />
+                <span className="font-mono text-sm font-bold text-accent">HUZBI-84 // CRT WORKSTATION</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(false)}
+                  className="p-1.5 rounded-lg bg-bg-surface text-fg-muted hover:text-fg border border-border transition-colors"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Inner Monitor Bezel */}
+            <div className="relative bg-[#070A0F] rounded-xl p-4 border-2 border-[#151A24] overflow-hidden shadow-[inset_0_4px_16px_rgba(0,0,0,0.95)] min-h-[360px] max-h-[70vh] flex flex-col">
+              <div className="absolute inset-0 crt-scanlines pointer-events-none z-20 opacity-50" />
+              <div className="absolute inset-0 crt-vignette pointer-events-none z-20" />
+
+              {/* Mode Bar */}
+              <div className="flex items-center justify-between pb-2 mb-3 border-b border-border/50 font-mono text-xs text-accent">
+                <span>MODE: {mode}</span>
+                <span>UPTIME: {formatUptime(uptimeSeconds)}</span>
+              </div>
+
+              {/* Mode Content */}
+              <div className="flex-1 overflow-y-auto font-mono z-10">
+                {mode === 'IDLE' && (
+                  <div className="space-y-3 text-sm">
+                    <p className="text-accent font-bold">&gt; system.status</p>
+                    <p className="text-fg-muted">Huzbi // 2 AM Creative Lab</p>
+                    <p className="text-fg-muted">Location: Karachi, PK</p>
+                    <p className="text-fg-muted">Degree: BS Computer Science, FAST-NUCES</p>
+                    <p className="text-accent-secondary">38 Public Repositories &bull; 349 Stars</p>
+                    <div className="p-3 bg-bg-surface/80 rounded border border-border mt-4 text-xs text-fg-muted">
+                      Switch to <strong className="text-accent">TERMINAL</strong> to type commands, or <strong className="text-accent">PROJECTS</strong> to inspect featured builds.
+                    </div>
+                  </div>
+                )}
+
+                {mode === 'GITHUB' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
+                        <GithubIcon className="w-5 h-5 text-accent" />
+                        <span className="text-base font-bold text-fg">{githubSnapshot.user.login}</span>
+                      </div>
+                      <a
+                        href={personalInfo.socials.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 bg-accent text-bg font-bold rounded flex items-center gap-1.5 text-xs hover:opacity-90"
+                      >
+                        Visit Profile <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="p-3 bg-bg-surface rounded border border-border">
+                        <div className="text-2xl font-bold text-accent">{githubSnapshot.stats.totalRepos}</div>
+                        <div className="text-xs text-fg-muted">Repositories</div>
+                      </div>
+                      <div className="p-3 bg-bg-surface rounded border border-border">
+                        <div className="text-2xl font-bold text-accent-secondary">{githubSnapshot.stats.totalStarsGiven}</div>
+                        <div className="text-xs text-fg-muted">Stars Given</div>
+                      </div>
+                      <div className="p-3 bg-bg-surface rounded border border-border">
+                        <div className="text-2xl font-bold text-accent-tertiary">{githubSnapshot.stats.totalFollowers}</div>
+                        <div className="text-xs text-fg-muted">Followers</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {mode === 'PROJECTS' && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-bg-surface text-accent border border-border">
+                        {currentProject.visual.asciiBadge} ({activeProjectIdx + 1} of {featuredProjects.length})
+                      </span>
+                      <div className="flex items-center gap-1 text-accent-secondary text-sm">
+                        <Star className="w-4 h-4 fill-accent-secondary" />
+                        <span>{currentProject.stars} stars</span>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-bold text-fg">{currentProject.title}</h3>
+                    <p className="text-sm text-fg-muted">{currentProject.tagline}</p>
+                    <div className="flex flex-wrap gap-1.5 py-1">
+                      {currentProject.techStack.map((tech) => (
+                        <span key={tech} className="text-xs px-2 py-0.5 rounded bg-bg-surface text-fg-muted border border-border">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handlePrevProject}
+                          className="px-3 py-1 rounded bg-bg-surface hover:bg-bg-hover text-accent border border-border flex items-center gap-1 text-xs"
+                        >
+                          <ChevronLeft className="w-4 h-4" /> Prev
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleNextProject}
+                          className="px-3 py-1 rounded bg-bg-surface hover:bg-bg-hover text-accent border border-border flex items-center gap-1 text-xs"
+                        >
+                          Next <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-3">
                         {onSelectProject && (
                           <button
                             type="button"
-                            onClick={() => onSelectProject(currentProject.id)}
-                            className="text-accent underline font-mono"
+                            onClick={() => {
+                              onSelectProject(currentProject.id);
+                              setIsExpanded(false);
+                            }}
+                            className="text-accent underline text-xs font-mono"
                           >
-                            Inspect
+                            Open Details
                           </button>
                         )}
                         <a
                           href={currentProject.githubUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2 py-0.5 rounded bg-accent text-bg font-bold flex items-center gap-1 hover:opacity-90"
+                          className="px-3 py-1 rounded bg-accent text-bg font-bold flex items-center gap-1 text-xs hover:opacity-90"
                         >
-                          <span>View Repo</span>
-                          <ExternalLink className="w-2.5 h-2.5" />
+                          <span>View Code</span>
+                          <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* MODE 4: INTERACTIVE MINI TERMINAL */}
                 {mode === 'TERMINAL' && (
-                  <div className="flex-1 flex flex-col justify-between text-xs overflow-hidden">
-                    <div ref={terminalContainerRef} className="flex-1 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
+                  <div className="flex flex-col h-[280px] justify-between">
+                    <div ref={modalTerminalContainerRef} className="flex-1 overflow-y-auto space-y-2 pr-2 text-xs">
                       {terminalHistory.map((item, idx) => (
                         <div key={idx} className="space-y-0.5">
-                          <div className="text-accent flex items-center gap-1 font-mono">
-                            <span>$</span>
+                          <div className="text-accent flex items-center gap-1">
+                            <span>huzbi@room:~$</span>
                             <span className="text-fg">{item.command}</span>
                           </div>
-                          <div className="text-fg-muted whitespace-pre-wrap pl-2 leading-relaxed">
-                            {item.output}
-                          </div>
+                          <div className="text-fg-muted whitespace-pre-wrap pl-3">{item.output}</div>
                         </div>
                       ))}
                     </div>
-
-                    {/* Terminal Input Form with complete enclosed border and breathing room */}
-                    <form
-                      onSubmit={handleCommandSubmit}
-                      className="mt-1.5 pt-1.5 pb-1 border-t border-border/50 text-[11px]"
-                    >
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-bg-surface/90 border border-border focus-within:border-accent transition-colors">
-                        <span className="text-accent font-mono font-bold shrink-0">&gt;</span>
+                    <form onSubmit={handleCommandSubmit} className="mt-3 pt-2 border-t border-border/50">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-bg-surface border border-border focus-within:border-accent">
+                        <span className="text-accent font-bold">&gt;</span>
                         <input
-                          ref={inputRef}
+                          ref={modalInputRef}
                           type="text"
                           value={terminalInput}
-                          onChange={(e) => {
-                            setTerminalInput(e.target.value);
-                            onActivity?.('typing');
-                          }}
-                          onBlur={() => onActivity?.('idle')}
-                          placeholder="type help, projects, github..."
-                          className="flex-1 bg-transparent text-fg placeholder:text-fg-subtle outline-none border-none focus:outline-none focus:ring-0 font-mono text-[11px] p-0"
+                          onChange={(e) => setTerminalInput(e.target.value)}
+                          placeholder="Type 'help', 'projects', 'github', 'manga'..."
+                          className="flex-1 bg-transparent text-fg placeholder:text-fg-subtle outline-none text-xs"
+                          autoFocus
                         />
                         <button
                           type="submit"
-                          className="px-2 py-0.5 rounded bg-accent text-bg font-bold hover:opacity-90 text-[10px] tracking-wide shrink-0"
+                          className="px-3 py-1 rounded bg-accent text-bg font-bold text-xs hover:opacity-90"
                         >
-                          RUN
+                          Execute
                         </button>
                       </div>
                     </form>
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* CRT PHYSICAL BEZEL LOWER PANEL (Controls & Hardware Knobs) */}
-        <div className="mt-3 flex items-center justify-between px-1 font-mono text-[10px] select-none">
-          
-          {/* Left Brand Badge */}
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold tracking-widest text-[#5A687D] text-[11px]">HUZBI-84</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3D4757]" />
-            <span className="text-[9px] text-[#4F5B6E]">NTSC // RGB</span>
-          </div>
-
-          {/* Center Mode Selector Buttons */}
-          <div className="flex items-center gap-1 bg-[#121620] p-1 rounded-md border border-[#27303F]">
-            {(['IDLE', 'GITHUB', 'PROJECTS', 'TERMINAL'] as ScreenMode[]).map((m) => (
+            {/* Modal Footer Controls */}
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {(['IDLE', 'GITHUB', 'PROJECTS', 'TERMINAL'] as ScreenMode[]).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMode(m)}
+                    className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                      mode === m
+                        ? 'bg-accent text-bg font-bold shadow-crt'
+                        : 'text-fg-muted hover:text-fg bg-bg-surface border border-border'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
               <button
-                key={m}
                 type="button"
-                onClick={() => {
-                  setMode(m);
-                  if (!isPoweredOn) setIsPoweredOn(true);
-                  if (m === 'TERMINAL') setTimeout(() => inputRef.current?.focus(), 100);
-                }}
-                className={`px-1.5 py-0.5 rounded text-[9px] transition-all ${
-                  mode === m && isPoweredOn
-                    ? 'bg-accent text-bg font-bold shadow-crt'
-                    : 'text-[#8190A5] hover:text-fg'
-                }`}
+                onClick={() => setIsExpanded(false)}
+                className="px-3 py-1 rounded bg-bg-surface text-fg-muted hover:text-fg border border-border text-xs font-mono"
               >
-                {m === 'TERMINAL' ? 'TERM' : m === 'PROJECTS' ? 'PROJ' : m}
+                Return to Room
               </button>
-            ))}
-          </div>
-
-          {/* Right Power Switch & LED */}
-          <div className="flex items-center gap-2">
-            {/* Power LED Indicator */}
-            <div
-              className={`w-2 h-2 rounded-full transition-all ${
-                isPoweredOn
-                  ? 'bg-[#33FF66] shadow-[0_0_8px_#33FF66]'
-                  : 'bg-[#FF3333] shadow-[0_0_4px_#FF3333]'
-              }`}
-              title={isPoweredOn ? 'CRT Active' : 'Standby'}
-            />
-
-            {/* Power Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsPoweredOn(!isPoweredOn)}
-              className={`p-1 rounded-md border text-[9px] transition-all flex items-center gap-0.5 ${
-                isPoweredOn
-                  ? 'bg-[#151C27] text-accent border-[#2A374D] hover:border-accent'
-                  : 'bg-[#221515] text-[#FF6666] border-[#4D2A2A]'
-              }`}
-              title="Toggle CRT Power"
-            >
-              <Power className="w-2.5 h-2.5" />
-              <span>{isPoweredOn ? 'PWR' : 'OFF'}</span>
-            </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Monitor Base Stand (Physical retro pedestal) */}
-      <div className="w-28 h-3 bg-[#171D27] border-x-2 border-b-2 border-[#0F131A] shadow-md" />
-      <div className="w-40 h-2 bg-[#121620] rounded-b-md border border-[#0A0D13] shadow-lg" />
-    </div>
+      )}
+    </>
   );
 };
