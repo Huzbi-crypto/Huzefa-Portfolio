@@ -55,7 +55,7 @@ export function ProjectDetailModal({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-bg rounded-2xl border border-border/80 shadow-2xl overflow-y-auto z-10 overscroll-contain">
+      <div className="relative w-full max-w-5xl xl:max-w-6xl max-h-[90vh] bg-bg rounded-2xl border border-border/80 shadow-2xl overflow-y-auto z-10 overscroll-contain">
         {/* Sticky Modal Top Bar */}
         <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-bg/95 backdrop-blur border-b border-border/80">
           <div className="flex items-center gap-2 text-xs font-mono text-fg-muted">

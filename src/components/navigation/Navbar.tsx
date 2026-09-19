@@ -105,7 +105,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-bg/90 backdrop-blur-md transition-colors duration-200">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3">
+      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 h-14 flex items-center justify-between gap-3">
         {/* Brand / Logo */}
         <Link
           href="/"

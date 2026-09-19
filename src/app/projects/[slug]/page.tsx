@@ -53,7 +53,7 @@ export default async function ProjectSlugPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-bg text-fg font-sans selection:bg-accent selection:text-bg pb-24">
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-8">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 mb-8 text-xs font-mono text-fg-muted">
           <Link

@@ -29,9 +29,9 @@ export default function HomePage() {
     <div className="relative min-h-screen bg-bg text-fg font-sans selection:bg-accent selection:text-bg pb-24 transition-colors duration-300">
       
       {/* 1. HERO SECTION & CASUAL INTRODUCTION */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border/70">
-          <div className="space-y-4 max-w-2xl">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-6 sm:pt-10">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-8 border-b border-border/70">
+          <div className="space-y-4 max-w-3xl">
             {/* Status Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-bg-surface border border-border text-accent">
               <Radio className="w-3.5 h-3.5 animate-pulse" />
@@ -39,7 +39,7 @@ export default function HomePage() {
             </div>
 
             {/* Casual Headline */}
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-fg">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-fg">
               Hey, I&apos;m{' '}
               <span className="text-accent underline decoration-accent/40 decoration-wavy underline-offset-8">
                 {personalInfo.name}
@@ -52,7 +52,7 @@ export default function HomePage() {
               {personalInfo.bio}
             </p>
 
-            <p className="text-sm text-fg-muted font-mono leading-relaxed border-l-2 border-accent/50 pl-4">
+            <p className="text-sm sm:text-base text-fg-muted font-mono leading-relaxed border-l-2 border-accent/50 pl-4">
               &gt; {personalInfo.shortBio}
             </p>
 
@@ -105,37 +105,37 @@ export default function HomePage() {
           </div>
 
           {/* Mini Protagonist Avatar Card & Quick Stats */}
-          <div className="w-full lg:w-72 bg-bg-surface p-4 rounded-xl border border-border shadow-md font-mono text-xs space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-border/80 bg-bg-deep flex-shrink-0">
+          <div className="w-full lg:w-80 bg-bg-surface p-5 rounded-xl border border-border shadow-md font-mono text-xs space-y-4">
+            <div className="flex items-center gap-3.5">
+              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-border/80 bg-bg-deep flex-shrink-0">
                 <Image
                   src="/assets/cwnilmm1twqb1.jpeg"
                   alt="Huzbi Avatar"
                   fill
-                  sizes="48px"
+                  sizes="56px"
                   className="object-cover"
                 />
               </div>
               <div className="min-w-0">
-                <div className="font-bold text-fg truncate">{personalInfo.name}</div>
-                <div className="text-[11px] text-accent truncate">@{personalInfo.handle}</div>
-                <div className="text-[10px] text-fg-muted truncate">{personalInfo.location}</div>
+                <div className="font-bold text-fg text-sm truncate">{personalInfo.name}</div>
+                <div className="text-xs text-accent truncate">@{personalInfo.handle}</div>
+                <div className="text-[11px] text-fg-muted truncate">{personalInfo.location}</div>
               </div>
             </div>
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border/60 text-center">
-              <div className="bg-bg-deep p-1.5 rounded border border-border/40">
-                <div className="text-accent font-bold text-xs">{githubSnapshot.stats.totalRepos}</div>
-                <div className="text-[9px] text-fg-muted">Repos</div>
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/60 text-center">
+              <div className="bg-bg-deep p-2 rounded border border-border/40">
+                <div className="text-accent font-bold text-sm">{githubSnapshot.stats.totalRepos}</div>
+                <div className="text-[10px] text-fg-muted">Repos</div>
               </div>
-              <div className="bg-bg-deep p-1.5 rounded border border-border/40">
-                <div className="text-accent-secondary font-bold text-xs">{githubSnapshot.stats.totalStarsGiven}</div>
-                <div className="text-[9px] text-fg-muted">Stars</div>
+              <div className="bg-bg-deep p-2 rounded border border-border/40">
+                <div className="text-accent-secondary font-bold text-sm">{githubSnapshot.stats.totalStarsGiven}</div>
+                <div className="text-[10px] text-fg-muted">Stars</div>
               </div>
-              <div className="bg-bg-deep p-1.5 rounded border border-border/40">
-                <div className="text-accent-tertiary font-bold text-xs">2 AM</div>
-                <div className="text-[9px] text-fg-muted">Vibe</div>
+              <div className="bg-bg-deep p-2 rounded border border-border/40">
+                <div className="text-accent-tertiary font-bold text-sm">2 AM</div>
+                <div className="text-[10px] text-fg-muted">Vibe</div>
               </div>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function HomePage() {
       </section>
 
       {/* 2. THEME SELECTOR & LIVE 3-PALETTE COMPARISON BAR */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bg-deep/60 p-2.5 rounded-xl border border-border/60">
           <div className="flex items-center gap-2 text-xs font-mono text-fg-muted">
             <Compass className="w-3.5 h-3.5 text-accent" />
@@ -154,12 +154,12 @@ export default function HomePage() {
       </section>
 
       {/* 3. HUZBI'S COZY 2 AM DIGITAL ROOM (Centerpiece) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-6">
         <Room />
       </section>
 
       {/* 4. FEATURED LAB ARTIFACTS & SYSTEMS */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-16">
         <div className="flex items-center justify-between mb-8 border-b border-border/70 pb-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-fg flex items-center gap-2">
@@ -179,8 +179,8 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.slice(0, 6).map((project) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {projects.slice(0, 8).map((project) => (
             <div
               key={project.id}
               className="flex flex-col justify-between p-5 rounded-xl bg-bg-surface border border-border hover:border-accent/60 transition-all duration-300 hover:shadow-crt group"
@@ -249,7 +249,7 @@ export default function HomePage() {
       </section>
 
       {/* 5. READING & MEDIA STACK (Manga & Tech Books) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-16">
         <div className="p-6 rounded-xl bg-bg-surface border border-border">
           <div className="flex items-center justify-between mb-4">
             <div>

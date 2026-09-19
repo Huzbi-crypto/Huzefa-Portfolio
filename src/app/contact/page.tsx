@@ -86,7 +86,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-bg text-fg font-sans pb-24 transition-colors duration-200">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 space-y-10">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-8 sm:pt-12 space-y-10">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between border-b border-border/80 pb-4 font-mono text-xs">
           <div className="flex items-center gap-2 text-accent">

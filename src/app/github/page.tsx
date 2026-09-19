@@ -99,7 +99,7 @@ export default function GitHubHubPage() {
   return (
     <main className="min-h-screen bg-bg text-fg font-sans selection:bg-accent selection:text-bg pb-24">
       {/* Page Hero: Profile & Snapshot Meta */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-10 pb-8">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-6 sm:pt-10 pb-8">
         {/* Error / Nap Banner if API rate limited or unreachable */}
         {error && (
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-accent-secondary/15 border border-accent-secondary/40 mb-6 text-xs font-mono">
@@ -339,17 +339,17 @@ export default function GitHubHubPage() {
       </section>
 
       {/* SECTION 1: PIXEL CONTRIBUTION WALL */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 py-6">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-6">
         <ContributionWall repositories={repositories} />
       </section>
 
       {/* SECTION 2: CELESTIAL STAR CLUSTER */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 py-6">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-6">
         <StarCluster repositories={repositories} />
       </section>
 
       {/* SECTION 3: ALL 38 REPOSITORIES EXPLORER */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8">
         <div className="border-b border-border/70 pb-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>

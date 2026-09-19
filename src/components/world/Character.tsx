@@ -445,14 +445,6 @@ export const Character: React.FC<CharacterProps> = ({
           </g>
         )}
       </svg>
-
-      {/* State Badge Pill */}
-      <div className="flex items-center justify-center mt-1">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-bg-surface/80 border border-border text-[10px] font-mono text-accent">
-          <span className={`w-1.5 h-1.5 rounded-full ${state === 'typing' ? 'bg-accent animate-ping' : 'bg-accent'}`} />
-          {state.toUpperCase()}
-        </span>
-      </div>
     </div>
   );
 };

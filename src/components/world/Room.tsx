@@ -123,7 +123,7 @@ export const Room: React.FC<RoomProps> = ({
       ref={roomRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative w-full max-w-6xl mx-auto rounded-2xl border-2 border-border/80 bg-bg-deep shadow-2xl overflow-hidden select-none transition-colors duration-500 ${className}`}
+      className={`relative w-full max-w-[1700px] mx-auto rounded-2xl border-2 border-border/80 bg-bg-deep shadow-2xl overflow-hidden select-none transition-colors duration-500 ${className}`}
     >
       {/* 2 AM ROOM AMBIENT LIGHTING SHADOW / LAMP GLOW LAYER */}
       <div
@@ -222,7 +222,7 @@ export const Room: React.FC<RoomProps> = ({
         <div className="hidden md:grid grid-cols-12 gap-6 items-end">
           
           {/* LEFT ZONE: NIGHT STAR WINDOW & RETRO POSTER */}
-          <div className="col-span-4 flex flex-col items-center justify-between h-full space-y-6">
+          <div className="col-span-3 flex flex-col items-center justify-between h-full space-y-6">
             {/* Retro Wall Clock */}
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-bg-surface border border-border text-[11px] font-mono text-fg-muted">
               <Clock className="w-3.5 h-3.5 text-accent animate-pulse" />
@@ -230,7 +230,7 @@ export const Room: React.FC<RoomProps> = ({
             </div>
 
             {/* Star Window Component */}
-            <StarWindow theme={theme} className="w-full max-w-[260px]" />
+            <StarWindow theme={theme} className="w-full max-w-[280px]" />
 
             {/* Wall Poster (Anime / Systems Aesthetic) */}
             <div className="w-48 bg-[#181D26] p-2 rounded border border-[#263040] shadow-md rotate-[-2deg] select-none text-center">
@@ -246,17 +246,17 @@ export const Room: React.FC<RoomProps> = ({
           </div>
 
           {/* CENTER ZONE: CRT MONITOR, DESK, AND HUZBI CHARACTER */}
-          <div className="col-span-5 flex flex-col items-center relative">
-            {/* CRT Monitor positioned atop desk */}
-            <div className="w-full relative z-10 -mb-6">
+          <div className="col-span-6 flex flex-col items-center relative">
+            {/* CRT Monitor positioned atop desk riser */}
+            <div className="w-full max-w-lg relative z-10 -mb-8">
               <CRTMonitor
                 onActivity={handleActivity}
                 onSelectProject={onSelectProject}
               />
             </div>
 
-            {/* Character Huzbi sitting right in front of the setup */}
-            <div className="relative z-20 -mb-10 pointer-events-auto">
+            {/* Character Huzbi sitting directly behind the desk */}
+            <div className="relative z-20 -mb-12 pointer-events-auto">
               <Character
                 state={characterState}
                 cursorPos={cursorPos}
@@ -268,7 +268,7 @@ export const Room: React.FC<RoomProps> = ({
             </div>
 
             {/* Desk Surface with Battlestation (Laptop, Monitor, Keyboard, Mouse), Steaming Mug, and Lamp */}
-            <div className="w-full relative z-0">
+            <div className="w-full relative z-30">
               <Desk
                 lampOn={lampOn}
                 onToggleLamp={() => setLampOn(!lampOn)}
@@ -318,23 +318,27 @@ export const Room: React.FC<RoomProps> = ({
                 onSelectProject={onSelectProject}
                 className="w-full max-w-sm"
               />
-              <Character
-                state={characterState}
-                cursorPos={cursorPos}
-                gazeOverride={gazeOverride}
-                bubbleText={bubbleText}
-                onStateChange={setCharacterState}
-                isLampOn={lampOn}
-              />
-              <Desk
-                lampOn={lampOn}
-                onToggleLamp={() => setLampOn(!lampOn)}
-                onLaptopClick={handleLaptopOrKeyboardClick}
-                onKeyboardClick={handleLaptopOrKeyboardClick}
-                onMonitorClick={handleMonitorClick}
-                activeManga={activeMangaId}
-                isTyping={isDeskTyping}
-              />
+              <div className="relative z-20 -mb-10">
+                <Character
+                  state={characterState}
+                  cursorPos={cursorPos}
+                  gazeOverride={gazeOverride}
+                  bubbleText={bubbleText}
+                  onStateChange={setCharacterState}
+                  isLampOn={lampOn}
+                />
+              </div>
+              <div className="w-full relative z-30">
+                <Desk
+                  lampOn={lampOn}
+                  onToggleLamp={() => setLampOn(!lampOn)}
+                  onLaptopClick={handleLaptopOrKeyboardClick}
+                  onKeyboardClick={handleLaptopOrKeyboardClick}
+                  onMonitorClick={handleMonitorClick}
+                  activeManga={activeMangaId}
+                  isTyping={isDeskTyping}
+                />
+              </div>
             </div>
           )}
 

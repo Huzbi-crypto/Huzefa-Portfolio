@@ -62,20 +62,20 @@ export const Desk: React.FC<DeskProps> = ({
       )}
 
       {/* DESK SURFACE MAIN BODY */}
-      <div className="relative w-full bg-[#1A1817] rounded-xl border-t-4 border-[#3D3028] shadow-2xl p-3 sm:p-4 overflow-hidden">
+      <div className="relative w-full bg-[#1A1817] rounded-xl border-t-4 border-[#3D3028] shadow-2xl p-2 sm:p-2.5 overflow-hidden">
         {/* Wood grain / Texture horizontal stripes */}
         <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(0deg,#000,#000_2px,transparent_2px,transparent_8px)] pointer-events-none" />
 
-        {/* DESK SURFACE TOP ACCESSORIES ROW */}
-        <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
+        {/* DESK SURFACE TOP ACCESSORIES ROW (Strict horizontal layout, no vertical stacking) */}
+        <div className="relative z-10 flex flex-row items-end justify-between gap-2 sm:gap-4 w-full flex-nowrap">
           
           {/* 1. INTERACTIVE DESK LAMP (Left Side) */}
-          <div className="flex flex-col items-center group cursor-pointer" onClick={onToggleLamp}>
+          <div className="flex-shrink-0 flex flex-col items-center group cursor-pointer" onClick={onToggleLamp}>
             {/* Lamp Hood / Shade */}
             <div className="relative transition-transform duration-200 group-hover:scale-105">
               {/* Lamp Shade Polygon */}
               <div
-                className={`w-14 h-9 rounded-t-xl transition-all duration-300 flex items-center justify-center border-2 ${
+                className={`w-12 sm:w-14 h-8 sm:h-9 rounded-t-xl transition-all duration-300 flex items-center justify-center border-2 ${
                   lampOn
                     ? 'bg-[#E6A15C] border-[#F4DDB8] shadow-[0_0_24px_rgba(230,161,92,0.9)]'
                     : 'bg-[#29221F] border-[#3E332F]'
@@ -83,7 +83,7 @@ export const Desk: React.FC<DeskProps> = ({
                 title="Desk Lamp"
               >
                 <div
-                  className={`w-4 h-4 rounded-full transition-all ${
+                  className={`w-3.5 h-3.5 rounded-full transition-all ${
                     lampOn
                       ? 'bg-[#FFF9E6] shadow-[0_0_12px_#FFF9E6]'
                       : 'bg-[#1C1613]'
@@ -92,18 +92,18 @@ export const Desk: React.FC<DeskProps> = ({
               </div>
 
               {/* Lamp Stem / Joint */}
-              <div className="w-1.5 h-10 bg-[#3E332F] mx-auto relative">
+              <div className="w-1.5 h-8 sm:h-9 bg-[#3E332F] mx-auto relative">
                 {/* Brass Knuckle Joint */}
-                <div className="w-3 h-3 rounded-full bg-[#5A483E] -left-[3px] top-3 absolute border border-[#2B211A]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#5A483E] -left-[2px] top-2.5 absolute border border-[#2B211A]" />
               </div>
 
               {/* Lamp Circular Base */}
-              <div className="w-10 h-3 bg-[#2D2521] border border-[#44362E] rounded-full mx-auto shadow-md" />
+              <div className="w-9 sm:w-10 h-2.5 bg-[#2D2521] border border-[#44362E] rounded-full mx-auto shadow-md" />
 
               {/* Switch Pill Indicator */}
-              <div className="mt-1 flex items-center justify-center">
+              <div className="mt-0.5 flex items-center justify-center">
                 <span
-                  className={`text-[9px] font-mono px-1.5 py-0.2 rounded border transition-colors ${
+                  className={`text-[8px] sm:text-[9px] font-mono px-1.5 py-0.2 rounded border transition-colors ${
                     lampOn
                       ? 'text-[#E6A15C] border-[#E6A15C]/60 bg-[#E6A15C]/10'
                       : 'text-fg-subtle border-border bg-bg-deep'
@@ -116,9 +116,9 @@ export const Desk: React.FC<DeskProps> = ({
           </div>
 
           {/* 2. CENTER DESK MAT WITH RETRO BATTLESTATION SETUP */}
-          <div className="flex-1 max-w-2xl mx-auto flex flex-col items-center">
+          <div className="flex-1 max-w-xl mx-auto flex flex-col items-center min-w-0">
             {/* Desk Mat (Stitched precision battlestation mat) */}
-            <div className="w-full bg-[#12151D] rounded-xl p-2.5 sm:p-3.5 border border-[#232B3A] shadow-inner flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 sm:gap-4">
+            <div className="w-full bg-[#12151D] rounded-xl p-2 sm:p-2.5 border border-[#232B3A] shadow-inner flex flex-row items-end justify-center gap-2 sm:gap-4 flex-nowrap">
               
               {/* --- RETRO LAPTOP (Left Side of Mat) --- */}
               <div
@@ -415,10 +415,10 @@ export const Desk: React.FC<DeskProps> = ({
           </div>
 
           {/* 3. COFFEE/TEA MUG & STICKY NOTE (Right Side) */}
-          <div className="flex items-end gap-3">
+          <div className="flex-shrink-0 flex items-end gap-2 sm:gap-3">
             {/* Sticky Note */}
             <div
-              className="relative w-20 min-h-[86px] sm:w-24 sm:min-h-[92px] bg-[#F5E8C7] text-[#332A15] p-2 sm:p-2.5 rounded shadow-md rotate-2 border border-[#E0D0A6] cursor-pointer hover:rotate-0 transition-transform select-none flex flex-col justify-between"
+              className="relative w-18 min-h-[76px] sm:w-22 sm:min-h-[84px] bg-[#F5E8C7] text-[#332A15] p-1.5 sm:p-2 rounded shadow-md rotate-2 border border-[#E0D0A6] cursor-pointer hover:rotate-0 transition-transform select-none flex flex-col justify-between"
               onMouseEnter={() => setStickyHovered(true)}
               onMouseLeave={() => setStickyHovered(false)}
               title="Desk sticky note"
