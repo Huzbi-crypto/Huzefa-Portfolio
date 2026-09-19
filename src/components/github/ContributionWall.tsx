@@ -215,8 +215,8 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
       </div>
 
       {/* Contribution Grid Container with Horizontal Scroll */}
-      <div className="relative overflow-x-auto pb-2 scrollbar-thin">
-        <div className="inline-block min-w-[760px]">
+      <div className="relative overflow-x-auto pb-2 scrollbar-thin flex">
+        <div className="my-0 mx-auto min-w-max">
           {/* Month Labels */}
           <div className="relative h-5 mb-1.5 ml-7 text-[10px] font-mono text-fg-subtle select-none">
             {monthLabels.map((lbl, idx) => (
