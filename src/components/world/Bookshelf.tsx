@@ -29,8 +29,8 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       status: 'favorite',
       note: 'The pinnacle of grand adventure, absurd worldbuilding, and pure freedom.',
     },
-    height: 74,
-    width: 23,
+    height: 72,
+    width: 19,
     spineColor: '#A82828',
     textColor: '#F5E8C7',
     goldTrim: true,
@@ -44,8 +44,8 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       status: 'favorite',
       note: 'Tactical ninja combat and the stubborn resolve to never back down.',
     },
-    height: 70,
-    width: 21,
+    height: 69,
+    width: 18,
     spineColor: '#E67E22',
     textColor: '#FFFFFF',
     goldTrim: true,
@@ -60,7 +60,7 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       note: 'Peerless character drip, stylish paneling, and Bankai releases.',
     },
     height: 68,
-    width: 20,
+    width: 18,
     spineColor: '#1A1D24',
     textColor: '#FFFFFF',
     goldTrim: false,
@@ -75,7 +75,7 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       note: 'High-octane pacing, magic teamwork, and Asta\'s anti-magic hustle.',
     },
     height: 66,
-    width: 20,
+    width: 18,
     spineColor: '#2B3D2E',
     textColor: '#E8E6DD',
     goldTrim: true,
@@ -90,11 +90,71 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       note: 'Yusuke Murata\'s god-tier visual spreads and hilarious subversion of superhero stakes.',
     },
     height: 67,
-    width: 20,
+    width: 18,
     spineColor: '#E5A93C',
     textColor: '#1E1E1E',
     goldTrim: false,
     code: 'OPM',
+  },
+  {
+    item: personalInfo.readingList.find((b) => b.title.includes('Berserk')) || {
+      title: 'Berserk',
+      type: 'manga',
+      author: 'Kentaro Miura',
+      status: 'favorite',
+      note: 'The absolute pinnacle of dark fantasy art and raw human perseverance against fate.',
+    },
+    height: 74,
+    width: 19,
+    spineColor: '#6B1724',
+    textColor: '#F5E8C7',
+    goldTrim: true,
+    code: 'BERSERK',
+  },
+  {
+    item: personalInfo.readingList.find((b) => b.title.includes('Vagabond')) || {
+      title: 'Vagabond',
+      type: 'manga',
+      author: 'Takehiko Inoue',
+      status: 'favorite',
+      note: 'Philosophical masterpiece exploring the way of the sword, ego, and quiet self-mastery.',
+    },
+    height: 72,
+    width: 18,
+    spineColor: '#1F3324',
+    textColor: '#A8D672',
+    goldTrim: true,
+    code: 'VAGABOND',
+  },
+  {
+    item: personalInfo.readingList.find((b) => b.title.includes('Monster')) || {
+      title: 'Monster',
+      type: 'manga',
+      author: 'Naoki Urasawa',
+      status: 'favorite',
+      note: 'A masterclass in psychological suspense, moral ambiguity, and human darkness.',
+    },
+    height: 70,
+    width: 18,
+    spineColor: '#3E1929',
+    textColor: '#F3D5B5',
+    goldTrim: false,
+    code: 'MONSTER',
+  },
+  {
+    item: personalInfo.readingList.find((b) => b.title.includes('Vinland')) || {
+      title: 'Vinland Saga',
+      type: 'manga',
+      author: 'Makoto Yukimura',
+      status: 'favorite',
+      note: 'A true warrior needs no sword. Thorfinn\'s journey is profound.',
+    },
+    height: 71,
+    width: 18,
+    spineColor: '#203A43',
+    textColor: '#D6E7FF',
+    goldTrim: true,
+    code: 'VINLAND',
   },
   {
     item: personalInfo.readingList.find((b) => b.title.includes('SICP')) || {
@@ -104,8 +164,8 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       status: 'reading',
       note: 'Foundational mental models on computation and abstraction.',
     },
-    height: 78,
-    width: 26,
+    height: 76,
+    width: 20,
     spineColor: '#4A3B69',
     textColor: '#D6E7FF',
     goldTrim: true,
@@ -119,12 +179,42 @@ const BOOKS_DATA: ShelfBookMeta[] = [
       status: 'completed',
       note: 'Direct inspiration for the Routing Simulation project.',
     },
-    height: 76,
-    width: 24,
+    height: 74,
+    width: 19,
     spineColor: '#1E3A4C',
     textColor: '#7FB8D9',
     goldTrim: false,
     code: 'NETWORKS',
+  },
+  {
+    item: personalInfo.readingList.find((b) => b.title.includes('Designing Data-Intensive')) || {
+      title: 'Designing Data-Intensive Applications',
+      type: 'tech',
+      author: 'Martin Kleppmann',
+      status: 'reading',
+      note: 'The modern classic for building resilient, scalable distributed systems.',
+    },
+    height: 75,
+    width: 19,
+    spineColor: '#882233',
+    textColor: '#FFFFFF',
+    goldTrim: true,
+    code: 'DDIA',
+  },
+  {
+    item: personalInfo.readingList.find((b) => b.title.includes('Operating Systems')) || {
+      title: 'Operating Systems: Three Easy Pieces (OSTEP)',
+      type: 'tech',
+      author: 'Remzi & Andrea Arpaci-Dusseau',
+      status: 'completed',
+      note: 'Virtualization, concurrency, and persistence explained with crystalline clarity.',
+    },
+    height: 73,
+    width: 18,
+    spineColor: '#1A434E',
+    textColor: '#82D9B5',
+    goldTrim: false,
+    code: 'OSTEP',
   },
 ];
 
@@ -231,7 +321,7 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
             <BookOpen className="w-3 h-3 text-accent" />
             <span className="font-bold">SHELF // 2 AM READS</span>
           </div>
-          <span className="text-[9px] text-[#A69482]">7 VOLS</span>
+          <span className="text-[9px] text-[#A69482]">{BOOKS_DATA.length} VOLS</span>
         </div>
 
         {/* SHELF INNER ROW (Holds books + decorative items) */}
@@ -251,7 +341,7 @@ export const Bookshelf: React.FC<BookshelfProps> = ({
           <div className="w-1.5 h-16 bg-[#4A3D31] rounded-l border border-[#2B231B]" />
 
           {/* BOOKS ROW */}
-          <div className="flex items-end gap-1 flex-1 justify-center">
+          <div className="flex items-end gap-0.5 sm:gap-1 flex-1 justify-center">
             {BOOKS_DATA.map((book) => {
               const isHovered = hoveredBook?.item.title === book.item.title;
               const isSelected = selectedBook?.item.title === book.item.title;

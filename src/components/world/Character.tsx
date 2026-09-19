@@ -9,6 +9,7 @@ export interface CharacterProps {
   cursorPos?: { x: number; y: number }; // normalized coords between -1 and 1
   gazeOverride?: { x: number; y: number } | null;
   bubbleText?: string | null;
+  onAvatarClick?: () => void;
   onStateChange?: (state: CharacterAction) => void;
   className?: string;
   isLampOn?: boolean;
@@ -33,6 +34,7 @@ export const Character: React.FC<CharacterProps> = ({
   cursorPos = { x: 0, y: 0 },
   gazeOverride = null,
   bubbleText = null,
+  onAvatarClick,
   onStateChange,
   className = '',
   isLampOn = true,
@@ -40,6 +42,7 @@ export const Character: React.FC<CharacterProps> = ({
   const [blinking, setBlinking] = useState<boolean>(false);
   const [dialogueIndex, setDialogueIndex] = useState<number>(0);
   const [showSpeechBubble, setShowSpeechBubble] = useState<boolean>(false);
+  const [overrideBubble, setOverrideBubble] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [typingTick, setTypingTick] = useState<number>(0);
   const dialogueTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,17 +76,27 @@ export const Character: React.FC<CharacterProps> = ({
   // When bubbleText prop updates from parent (e.g. laptop or monitor clicked), trigger bubble
   useEffect(() => {
     if (bubbleText) {
+      setOverrideBubble(bubbleText);
       setShowSpeechBubble(true);
       if (dialogueTimeoutRef.current) {
         clearTimeout(dialogueTimeoutRef.current);
       }
       dialogueTimeoutRef.current = setTimeout(() => {
         setShowSpeechBubble(false);
-      }, 5000);
+        setOverrideBubble(null);
+      }, 4500);
+    } else {
+      setOverrideBubble(null);
     }
   }, [bubbleText]);
 
   const handleCharacterClick = () => {
+    // Dismiss any device quote override and notify parent
+    setOverrideBubble(null);
+    if (onAvatarClick) {
+      onAvatarClick();
+    }
+
     const nextIndex = (dialogueIndex + 1) % DIALOGUES.length;
     setDialogueIndex(nextIndex);
     setShowSpeechBubble(true);
@@ -113,7 +126,7 @@ export const Character: React.FC<CharacterProps> = ({
   // Head tilt for looking
   const headRotation = state === 'looking' ? effectiveX * 3 : 0;
 
-  const activeDialogueContent = bubbleText || DIALOGUES[dialogueIndex];
+  const activeDialogueContent = overrideBubble || DIALOGUES[dialogueIndex];
 
   return (
     <div

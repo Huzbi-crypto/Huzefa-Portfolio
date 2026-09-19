@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Character, CharacterAction } from './Character';
 import { CRTMonitor } from './CRTMonitor';
 import { Desk } from './Desk';
@@ -38,9 +38,19 @@ export const Room: React.FC<RoomProps> = ({
   const [isDeskTyping, setIsDeskTyping] = useState<boolean>(false);
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const gazeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const bubbleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [activeBook, setActiveBook] = useState<ReadingItem | null>(null);
   const [mobileTab, setMobileTab] = useState<'crt' | 'bookshelf' | 'window'>('crt');
   const roomRef = useRef<HTMLDivElement | null>(null);
+
+  // Clean up any timers on unmount
+  useEffect(() => {
+    return () => {
+      if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      if (gazeTimerRef.current) clearTimeout(gazeTimerRef.current);
+    };
+  }, []);
 
   // Track mouse coordinates across the room container and normalize to [-1, 1]
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -69,6 +79,14 @@ export const Room: React.FC<RoomProps> = ({
     setCharacterState(action);
   };
 
+  // When user clicks the avatar directly, clear any external device bubble override
+  const handleAvatarClick = useCallback(() => {
+    setBubbleText(null);
+    if (bubbleTimerRef.current) {
+      clearTimeout(bubbleTimerRef.current);
+    }
+  }, []);
+
   // When user clicks Laptop or Keyboard: typing animation starts, eyes look at laptop, coding thought appears
   const handleLaptopOrKeyboardClick = useCallback(() => {
     setCharacterState('typing');
@@ -89,25 +107,39 @@ export const Room: React.FC<RoomProps> = ({
     gazeTimerRef.current = setTimeout(() => {
       setGazeOverride(null);
     }, 3200);
+
+    // Auto-clear bubbleText after 4500ms so avatar returns to quiet state and general thoughts
+    if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+    bubbleTimerRef.current = setTimeout(() => {
+      setBubbleText(null);
+    }, 4500);
   }, [codingThoughtIndex]);
 
-  // When user clicks Monitor: eyes look at monitor, screen cycles manga, manga quote appears (cycling versions)
+  // When user clicks Monitor: advance manga first so screen art and quote are 100% in lockstep
   const handleMonitorClick = useCallback(() => {
-    const currentMangaMeta = MANGA_SERIES_LIST[activeMangaIndex % MANGA_SERIES_LIST.length];
-    const seriesId = currentMangaMeta.id;
+    const nextIndex = (activeMangaIndex + 1) % MANGA_SERIES_LIST.length;
+    setActiveMangaIndex(nextIndex);
+
+    const nextMangaMeta = MANGA_SERIES_LIST[nextIndex];
+    const seriesId = nextMangaMeta.id;
     const quotes = MANGA_DIALOGUES[seriesId];
-    const quoteIdx = mangaQuoteIndices[seriesId] % quotes.length;
+    const quoteIdx = (mangaQuoteIndices[seriesId] ?? 0) % quotes.length;
     const selectedQuote = quotes[quoteIdx];
 
     setMangaQuoteIndices((prev) => ({
       ...prev,
-      [seriesId]: (prev[seriesId] + 1) % quotes.length,
+      [seriesId]: ((prev[seriesId] ?? 0) + 1) % quotes.length,
     }));
 
-    setActiveMangaIndex((prev) => (prev + 1) % MANGA_SERIES_LIST.length);
     setCharacterState('looking');
     setGazeOverride({ x: 0.45, y: 0.35 });
     setBubbleText(selectedQuote);
+
+    // Auto-clear bubbleText after 4500ms
+    if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+    bubbleTimerRef.current = setTimeout(() => {
+      setBubbleText(null);
+    }, 4500);
 
     if (gazeTimerRef.current) clearTimeout(gazeTimerRef.current);
     gazeTimerRef.current = setTimeout(() => {
@@ -262,6 +294,7 @@ export const Room: React.FC<RoomProps> = ({
                 cursorPos={cursorPos}
                 gazeOverride={gazeOverride}
                 bubbleText={bubbleText}
+                onAvatarClick={handleAvatarClick}
                 onStateChange={setCharacterState}
                 isLampOn={lampOn}
               />
@@ -324,6 +357,7 @@ export const Room: React.FC<RoomProps> = ({
                   cursorPos={cursorPos}
                   gazeOverride={gazeOverride}
                   bubbleText={bubbleText}
+                  onAvatarClick={handleAvatarClick}
                   onStateChange={setCharacterState}
                   isLampOn={lampOn}
                 />

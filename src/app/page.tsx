@@ -39,16 +39,16 @@ export default function HomePage() {
             </div>
 
             {/* Casual Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-fg">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-fg pb-2 sm:pb-3">
               Hey, I&apos;m{' '}
-              <span className="text-accent underline decoration-accent/40 decoration-wavy underline-offset-8">
+              <span className="text-accent underline decoration-accent/40 decoration-wavy underline-offset-[8px]">
                 {personalInfo.name}
               </span>
               .
             </h1>
 
             {/* Natural Authentic Bio */}
-            <p className="text-lg sm:text-xl text-fg-muted font-sans leading-relaxed">
+            <p className="text-lg sm:text-xl text-fg-muted font-sans leading-relaxed pt-2 sm:pt-3">
               {personalInfo.bio}
             </p>
 
