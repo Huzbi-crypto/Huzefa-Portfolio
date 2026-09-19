@@ -1,0 +1,88 @@
+import { PersonalInfo } from '@/types/portfolio';
+
+export const personalInfo: PersonalInfo = {
+  name: 'Huzbi',
+  handle: 'Huzbi-crypto',
+  legalName: 'Huzefa Saifuddin',
+  title: 'Developer & Creative Coder',
+  bio: "I like to code, read manga 'n books, and occasionally build something that gets a little out of hand.",
+  shortBio: "Chill developer building random experiments, network simulators, AI tooling, and retro computer oddities.",
+  roomAtmosphere: "2 AM cozy workspace illuminated by CRT monitor glow, tea steam, and stacks of manga.",
+  location: 'Karachi, Pakistan',
+  education: {
+    degree: "Bachelor of Science in Computer Science (Graduate)",
+    institution: 'FAST National University (NUCES), Karachi',
+    focus: 'Systems, Networking, Compilers & AI',
+  },
+  email: 'xhuzbi@proton.me',
+  socials: {
+    github: 'https://github.com/Huzbi-crypto',
+    twitter: 'https://twitter.com/HuzbiC',
+    linkedin: 'https://www.linkedin.com/in/huzefa-saifuddin-95720b241/',
+    myanimelist: 'https://myanimelist.net/profile/Huzbi',
+  },
+  interests: [
+    'Systems Programming & Compilers',
+    'Network Routing & Distributed Topologies',
+    'Machine Learning & Autonomous Agents',
+    'Creative Coding & Generative Visuals',
+    'Retro Computing, TTYs & CRT Aesthetics',
+    'Manga, Light Novels & Speculative Fiction',
+  ],
+  currentFocus: [
+    'Exploring multi-agent graph orchestration (LangGraph)',
+    'Low-latency networking & software routing simulations',
+    'Crafting cozy, interactive personal web spaces',
+  ],
+  readingList: [
+    {
+      title: 'One Piece',
+      type: 'manga',
+      author: 'Eiichiro Oda',
+      status: 'favorite',
+      note: 'The pinnacle of grand adventure, absurdly expansive worldbuilding, and pure freedom.',
+    },
+    {
+      title: 'Naruto',
+      type: 'manga',
+      author: 'Masashi Kishimoto',
+      status: 'favorite',
+      note: 'Unforgettable ninja lore, tactical battles, and the stubborn resolve of someone refusing to back down.',
+    },
+    {
+      title: 'Bleach',
+      type: 'manga',
+      author: 'Tite Kubo',
+      status: 'favorite',
+      note: 'Peerless character drip, stylish paneling, and the ultimate hype of Bankai reveals.',
+    },
+    {
+      title: 'Black Clover',
+      type: 'manga',
+      author: 'Yūki Tabata',
+      status: 'favorite',
+      note: 'High-octane pacing, brilliant magic teamwork, and Asta\'s relentless hustle with zero magic.',
+    },
+    {
+      title: 'One Punch Man',
+      type: 'manga',
+      author: 'ONE / Yusuke Murata',
+      status: 'favorite',
+      note: 'Yusuke Murata\'s god-tier visual spreads and hilarious subversion of superhero stakes.',
+    },
+    {
+      title: 'Structure and Interpretation of Computer Programs (SICP)',
+      type: 'tech',
+      author: 'Harold Abelson & Gerald Jay Sussman',
+      status: 'reading',
+      note: 'Foundational mental models on computation, interpreters, and abstraction.',
+    },
+    {
+      title: 'Computer Networking: A Top-Down Approach',
+      type: 'tech',
+      author: 'Kurose & Ross',
+      status: 'completed',
+      note: 'Direct inspiration for the Routing Simulation project.',
+    },
+  ],
+};

@@ -1,0 +1,10 @@
+overrides:
+  postcss: ^8.5.28
+
+allowBuilds:
+  - sharp
+  - esbuild
+
+onlyBuiltDependencies:
+  - sharp
+  - esbuild

@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Default Font Tokens */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", Menlo, Monaco, Consolas, "Courier New", monospace;
+  --font-pixel: "Courier New", monospace;
+
+  /* Animation Timings */
+  --motion-fast: 150ms;
+  --motion-normal: 250ms;
+  --motion-slow: 450ms;
+
+  /* Default to Cozy CRT Theme */
+  --color-bg: #0B0E14;
+  --color-bg-deep: #111722;
+  --color-surface: #19202B;
+  --color-surface-hover: #222B3A;
+  --color-text: #E8E6DD;
+  --color-text-muted: #8C929D;
+  --color-text-subtle: #565C66;
+  --color-accent: #A8D672;
+  --color-accent-secondary: #E6A15C;
+  --color-accent-tertiary: #7FB8D9;
+  --color-accent-cream: #F5E8C7;
+  --color-border: #242E3D;
+  --color-border-subtle: #18202C;
+  --color-border-highlight: #A8D672;
+  --color-glow: rgba(168, 214, 114, 0.25);
+  --color-glow-secondary: rgba(230, 161, 92, 0.22);
+  --color-scanline: rgba(11, 14, 20, 0.4);
+  --color-selection-bg: #A8D672;
+  --color-selection-text: #0B0E14;
+  --theme-name: 'cozy-crt';
+}
+
+[data-theme="cozy-crt"] {
+  --color-bg: #0B0E14;
+  --color-bg-deep: #111722;
+  --color-surface: #19202B;
+  --color-surface-hover: #222B3A;
+  --color-text: #E8E6DD;
+  --color-text-muted: #8C929D;
+  --color-text-subtle: #565C66;
+  --color-accent: #A8D672;
+  --color-accent-secondary: #E6A15C;
+  --color-accent-tertiary: #7FB8D9;
+  --color-accent-cream: #F5E8C7;
+  --color-border: #242E3D;
+  --color-border-subtle: #18202C;
+  --color-border-highlight: #A8D672;
+  --color-glow: rgba(168, 214, 114, 0.25);
+  --color-glow-secondary: rgba(230, 161, 92, 0.22);
+  --color-scanline: rgba(11, 14, 20, 0.4);
+  --color-selection-bg: #A8D672;
+  --color-selection-text: #0B0E14;
+  --theme-name: 'cozy-crt';
+}
+
+[data-theme="warm-apartment"] {
+  --color-bg: #171416;
+  --color-bg-deep: #211B1B;
+  --color-surface: #2B2322;
+  --color-surface-hover: #3A302F;
+  --color-text: #F0E4D0;
+  --color-text-muted: #9E9184;
+  --color-text-subtle: #6D6359;
+  --color-accent: #D9825B;
+  --color-accent-secondary: #D6AE62;
+  --color-accent-tertiary: #91A878;
+  --color-accent-cream: #F4DDB8;
+  --color-border: #3D3231;
+  --color-border-subtle: #2D2423;
+  --color-border-highlight: #D9825B;
+  --color-glow: rgba(217, 130, 91, 0.25);
+  --color-glow-secondary: rgba(214, 174, 98, 0.22);
+  --color-scanline: rgba(23, 20, 22, 0.3);
+  --color-selection-bg: #D9825B;
+  --color-selection-text: #171416;
+  --theme-name: 'warm-apartment';
+}
+
+[data-theme="moonlit-terminal"] {
+  --color-bg: #080B10;
+  --color-bg-deep: #10151D;
+  --color-surface: #171E28;
+  --color-surface-hover: #212B3A;
+  --color-text: #E4E9EF;
+  --color-text-muted: #7F8996;
+  --color-text-subtle: #4D5766;
+  --color-accent: #73B7FF;
+  --color-accent-secondary: #A79BFF;
+  --color-accent-tertiary: #82D9B5;
+  --color-accent-cream: #D6E7FF;
+  --color-border: #232C3B;
+  --color-border-subtle: #19212D;
+  --color-border-highlight: #73B7FF;
+  --color-glow: rgba(115, 183, 255, 0.25);
+  --color-glow-secondary: rgba(167, 155, 255, 0.22);
+  --color-scanline: rgba(8, 11, 16, 0.35);
+  --color-selection-bg: #73B7FF;
+  --color-selection-text: #080B10;
+  --theme-name: 'moonlit-terminal';
+}
+
+/* Global resets and base styling */
+html {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  transition: background-color var(--motion-normal) ease, color var(--motion-normal) ease;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+::selection {
+  background-color: var(--color-selection-bg);
+  color: var(--color-selection-text);
+}
+
+/* Pixel Rendering Utilities */
+.pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* CRT and Retro Effects */
+.crt-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 4px 100%;
+  pointer-events: none;
+}
+
+.crt-vignette {
+  background: radial-gradient(
+    circle at center,
+    transparent 65%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  pointer-events: none;
+}
+
+.crt-glow {
+  text-shadow: 0 0 10px var(--color-glow);
+}
+
+.crt-box-glow {
+  box-shadow: 0 0 16px var(--color-glow);
+}
+
+.crt-flicker {
+  animation: crtFlicker 0.15s infinite;
+}
+
+@keyframes crtFlicker {
+  0% { opacity: 0.985; }
+  50% { opacity: 1; }
+  100% { opacity: 0.99; }
+}
+
+/* Pixel Borders and Badges */
+.pixel-border {
+  box-shadow:
+    -2px 0 0 0 var(--color-border),
+    2px 0 0 0 var(--color-border),
+    0 -2px 0 0 var(--color-border),
+    0 2px 0 0 var(--color-border);
+}
+
+.pixel-border-accent {
+  box-shadow:
+    -2px 0 0 0 var(--color-accent),
+    2px 0 0 0 var(--color-accent),
+    0 -2px 0 0 var(--color-accent),
+    0 2px 0 0 var(--color-accent);
+}
+
+/* Global Accessibility Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Overrides */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .crt-flicker,
+  .animate-flicker,
+  .animate-scanline,
+  .animate-pulse-subtle,
+  .animate-pulse,
+  .animate-ping,
+  .animate-spin {
+    animation: none !important;
+  }
+}
+
