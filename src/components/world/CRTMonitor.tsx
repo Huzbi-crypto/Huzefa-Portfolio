@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import githubSnapshot from '@/data/github-snapshot.json';
 import { projects } from '@/data/projects';
 import { personalInfo } from '@/data/personal';
@@ -35,6 +36,7 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
   const [uptimeSeconds, setUptimeSeconds] = useState<number>(7200);
   const [terminalInput, setTerminalInput] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
   const [terminalHistory, setTerminalHistory] = useState<CommandHistoryItem[]>([
     {
       command: 'motd',
@@ -44,6 +46,41 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
   const terminalContainerRef = useRef<HTMLDivElement | null>(null);
   const modalTerminalContainerRef = useRef<HTMLDivElement | null>(null);
   const modalInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Client-side mount flag for React portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle modal escape key and lock body scroll when expanded
+  useEffect(() => {
+    if (!isExpanded) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsExpanded(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isExpanded]);
+
+  // Focus modal input when expanded in terminal mode
+  useEffect(() => {
+    if (isExpanded && mode === 'TERMINAL') {
+      const timer = setTimeout(() => {
+        modalInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded, mode]);
 
   // Uptime tick
   useEffect(() => {
@@ -393,14 +430,17 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
         </div>
       </div>
 
-      {/* FULLSCREEN / MODAL EXPANDED VIEW WHEN CLICKED */}
-      {isExpanded && (
+      {/* FULLSCREEN / MODAL EXPANDED VIEW WHEN CLICKED (Mounted via React Portal directly to document.body) */}
+      {mounted && isExpanded && createPortal(
         <div
-          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 select-auto animate-in fade-in duration-200"
           onClick={() => setIsExpanded(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="CRT Terminal Workstation"
         >
           <div
-            className="relative w-full max-w-2xl bg-[#1E2430] p-5 sm:p-6 rounded-2xl border-4 border-[#121620] shadow-2xl"
+            className="relative w-full max-w-3xl bg-[#1E2430] p-5 sm:p-6 rounded-2xl border-4 border-[#121620] shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -408,13 +448,15 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse shadow-crt" />
                 <span className="font-mono text-sm font-bold text-accent">HUZBI-84 // CRT WORKSTATION</span>
+                <span className="text-[11px] font-mono text-fg-muted hidden sm:inline">(Press ESC to return)</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsExpanded(false)}
-                  className="p-1.5 rounded-lg bg-bg-surface text-fg-muted hover:text-fg border border-border transition-colors"
-                  title="Close"
+                  className="p-1.5 rounded-lg bg-bg-surface text-fg-muted hover:text-fg border border-border transition-colors hover:border-accent"
+                  title="Close (ESC)"
+                  aria-label="Close modal"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -422,7 +464,7 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
             </div>
 
             {/* Inner Monitor Bezel */}
-            <div className="relative bg-[#070A0F] rounded-xl p-4 border-2 border-[#151A24] overflow-hidden shadow-[inset_0_4px_16px_rgba(0,0,0,0.95)] min-h-[360px] max-h-[70vh] flex flex-col">
+            <div className="relative bg-[#070A0F] rounded-xl p-4 sm:p-5 border-2 border-[#151A24] overflow-hidden shadow-[inset_0_4px_16px_rgba(0,0,0,0.95)] min-h-[360px] max-h-[70vh] flex flex-col">
               <div className="absolute inset-0 crt-scanlines pointer-events-none z-20 opacity-50" />
               <div className="absolute inset-0 crt-vignette pointer-events-none z-20" />
 
@@ -433,7 +475,7 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
               </div>
 
               {/* Mode Content */}
-              <div className="flex-1 overflow-y-auto font-mono z-10">
+              <div className="flex-1 overflow-y-auto font-mono z-10 custom-scrollbar pr-1">
                 {mode === 'IDLE' && (
                   <div className="space-y-3 text-sm">
                     <p className="text-accent font-bold">&gt; system.status</p>
@@ -603,13 +645,14 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
               <button
                 type="button"
                 onClick={() => setIsExpanded(false)}
-                className="px-3 py-1 rounded bg-bg-surface text-fg-muted hover:text-fg border border-border text-xs font-mono"
+                className="px-3 py-1 rounded bg-bg-surface text-fg-muted hover:text-fg border border-border text-xs font-mono hover:border-accent"
               >
                 Return to Room
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
