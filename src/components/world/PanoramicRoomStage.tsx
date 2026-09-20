@@ -365,7 +365,9 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
       {/* 4. LAYER 3: RIGHT WALL DENSELY PACKED BOOKSHELF (13+ Books)               */}
       {/* ========================================================================= */}
       <div
-        className="absolute top-[6%] right-[1.5%] w-[15.5%] h-[67%] bg-[#241A14] rounded-t border-t-4 border-l-4 border-r-2 border-[#3D2C22] shadow-2xl p-1.5 flex flex-col justify-between z-20"
+        className={`absolute top-[6%] right-[1.5%] w-[15.5%] h-[67%] bg-[#241A14] rounded-t border-t-4 border-l-4 border-r-2 border-[#3D2C22] shadow-2xl p-1.5 flex flex-col justify-between transition-all ${
+          hoveredBookInfo ? 'z-50' : 'z-30'
+        }`}
         title="Huzbi's Manga & Tech Library (Click any book to read)"
       >
         {/* Top Header & Trailing Plant */}
@@ -659,7 +661,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         {/* Hovered Book Tooltip with Dynamic Shelf-Relative Alignment */}
         {hoveredBookInfo && (
           <div
-            className="absolute right-full mr-2.5 bg-bg-deep border-2 border-accent p-2.5 rounded-lg shadow-2xl z-50 pointer-events-none w-52 text-[10px] font-mono transition-all duration-150"
+            className="absolute right-full mr-2.5 bg-[#0B0E14] border-2 border-accent p-2.5 rounded-lg shadow-[0_12px_36px_rgba(0,0,0,0.95)] z-50 pointer-events-none w-52 text-[10px] font-mono transition-all duration-150"
             style={{
               top:
                 hoveredBookInfo.shelfIdx === 0
@@ -672,7 +674,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
             }}
           >
             {/* Pointer arrow pointing directly towards the hovered shelf */}
-            <div className="absolute -right-1.5 top-3 w-3 h-3 border-t-2 border-r-2 border-accent bg-bg-deep rotate-45" />
+            <div className="absolute -right-1.5 top-3 w-3 h-3 border-t-2 border-r-2 border-accent bg-[#0B0E14] rotate-45" />
             <p className="text-accent font-bold truncate">{hoveredBookInfo.book.title}</p>
             <p className="text-fg-muted text-[9px]">{hoveredBookInfo.book.author}</p>
             <p className="text-fg-subtle text-[8.5px] mt-1 line-clamp-2">&ldquo;{hoveredBookInfo.book.note}&rdquo;</p>
@@ -1232,37 +1234,95 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 
         {/* Sleeping Calico Cat nestled snugly in the pet bed */}
         <div className="absolute top-[8%] left-[16%] w-[68%] h-[68%] pointer-events-none">
-          <svg viewBox="0 0 60 40" className="w-full h-full overflow-visible" shapeRendering="crispEdges">
-            <g className="animate-pulse" style={{ animationDuration: '3.6s' }}>
-              {/* Cat Body */}
-              <ellipse cx="30" cy="22" rx="16" ry="10" fill="#E67E22" />
-              <ellipse cx="31" cy="21" rx="13" ry="8" fill="#F39C12" />
-              <ellipse cx="34" cy="23" rx="7" ry="5" fill="#FFFFFF" />
-              <rect x="25" y="15" width="2" height="5" fill="#BA4A00" />
-              <rect x="29" y="14" width="2" height="6" fill="#BA4A00" />
+          <svg viewBox="0 0 70 45" className="w-full h-full overflow-visible" shapeRendering="geometricPrecision">
+            {/* Soft Shadow on Velvet Cushion */}
+            <ellipse cx="36" cy="31" rx="22" ry="7" fill="#20132B" opacity="0.45" />
 
-              {/* Head */}
-              <circle cx="19" cy="20" r="7.5" fill="#E67E22" />
-              <polygon points="14,14 17,8 20,14" fill="#E67E22" />
-              <polygon points="20,14 23,9 25,14" fill="#E67E22" />
-              {/* Closed Sleepy Eyes */}
-              <path d="M15,19 Q17,21 19,19" stroke="#5D4037" strokeWidth="1.2" fill="none" />
-              <polygon points="19,21 18,20 20,20" fill="#F1948A" />
+            {/* Cat Main Curled Body (Loaf / Donut Pose) */}
+            <ellipse cx="37" cy="24" rx="18" ry="11" fill="#E67E22" stroke="#873600" strokeWidth="1" />
+            <ellipse cx="38" cy="22" rx="15" ry="8" fill="#F39C12" />
 
-              {/* Tail */}
-              <path d="M43,24 Q48,20 45,15" stroke="#E67E22" strokeWidth="3" strokeLinecap="round" fill="none" />
-              <circle cx="45" cy="15" r="1.8" fill="#FFFFFF" />
-            </g>
+            {/* Calico Dark Amber / Chocolate Tabby Stripes on Back */}
+            <path d="M44,14 Q49,16 47,21 Q42,19 44,14" fill="#6E2C00" />
+            <path d="M37,13 Q41,15 40,20 Q35,18 37,13" fill="#6E2C00" />
+            <path d="M30,14 Q33,15 32,19 Q28,18 30,14" fill="#BA4A00" />
+
+            {/* Fluffy Cream / White Chest & Tummy Patch */}
+            <ellipse cx="36" cy="27" rx="10" ry="5.5" fill="#FFFDF8" />
+
+            {/* Tucked Front Paws */}
+            <ellipse cx="25" cy="28" rx="3.5" ry="2.5" fill="#FFFDF8" stroke="#D5D8DC" strokeWidth="0.5" />
+            <ellipse cx="29" cy="29" rx="3.5" ry="2.5" fill="#FFFDF8" stroke="#D5D8DC" strokeWidth="0.5" />
+            {/* Paw Toe Pad Lines */}
+            <circle cx="24" cy="28" r="0.4" fill="#F472B6" />
+            <circle cx="26" cy="28" r="0.4" fill="#F472B6" />
+            <circle cx="28" cy="29" r="0.4" fill="#F472B6" />
+            <circle cx="30" cy="29" r="0.4" fill="#F472B6" />
+
+            {/* Curled Fluffy Tail Wrapped Around Flank */}
+            <path d="M52,25 Q60,21 57,14 Q54,11 48,13" stroke="#D35400" strokeWidth="4" strokeLinecap="round" fill="none" />
+            <path d="M52,25 Q60,21 57,14 Q54,11 48,13" stroke="#E67E22" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+            {/* White Tail Tip */}
+            <circle cx="48" cy="13" r="2.2" fill="#FFFDF8" stroke="#D5D8DC" strokeWidth="0.5" />
+
+            {/* Cat Head Nestled Peacefully on Cushion */}
+            <circle cx="20" cy="22" r="8.5" fill="#E67E22" stroke="#873600" strokeWidth="1" />
+            <ellipse cx="20" cy="22" rx="7" ry="6.5" fill="#F39C12" />
+
+            {/* White Cheek / Muzzle Patches */}
+            <ellipse cx="17" cy="24.5" rx="3.5" ry="3" fill="#FFFDF8" />
+            <ellipse cx="22" cy="24.5" rx="3.5" ry="3" fill="#FFFDF8" />
+
+            {/* Triangular Ears with Soft Pink Inner Pads */}
+            {/* Left Ear */}
+            <polygon points="12,16 15,7 19,14" fill="#D35400" stroke="#873600" strokeWidth="0.8" />
+            <polygon points="13.5,15 15.5,9 18,13.5" fill="#FBCFE8" />
+            {/* Right Ear */}
+            <polygon points="19,14 24,7 26,16" fill="#D35400" stroke="#873600" strokeWidth="0.8" />
+            <polygon points="20.5,13.5 23.5,9 25,15" fill="#FBCFE8" />
+
+            {/* Sleeping Face Details */}
+            {/* Happy Closed Curved Eyes */}
+            <path d="M14.5,21 Q16.5,23.5 18.5,21" stroke="#3E2723" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+            <path d="M21,21 Q23,23.5 25,21" stroke="#3E2723" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+            {/* Cute Pink Triangular Nose */}
+            <polygon points="20,23.8 19,22.8 21,22.8" fill="#EC407A" />
+            {/* Sweet Resting Mouth */}
+            <path d="M19,24.3 Q20,25.2 21,24.3" stroke="#4E342E" strokeWidth="0.8" fill="none" />
+
+            {/* Fine Delicate White Whiskers */}
+            <line x1="13.5" y1="23.5" x2="8" y2="22.5" stroke="#FFFDF8" strokeWidth="0.8" strokeLinecap="round" />
+            <line x1="13.5" y1="25" x2="8" y2="26" stroke="#FFFDF8" strokeWidth="0.8" strokeLinecap="round" />
+            <line x1="25" y1="23.5" x2="30.5" y2="22.5" stroke="#FFFDF8" strokeWidth="0.8" strokeLinecap="round" />
+            <line x1="25" y1="25" x2="30.5" y2="26" stroke="#FFFDF8" strokeWidth="0.8" strokeLinecap="round" />
           </svg>
         </div>
 
-        {/* Floating Hearts Animation when being petted */}
-        {actionState === 'petting' && (
-          <div className="absolute -top-5 left-[38%] flex gap-1 pointer-events-none animate-bounce">
-            <span className="text-red-400 text-sm">♥</span>
-            <span className="text-red-400 text-xs animate-ping">♥</span>
-          </div>
-        )}
+        {/* Dynamic Thought / Status Bubble Over Cat: "z Z Z" when sleeping, "purr... ♥" when petted */}
+        <div className="absolute -top-5 left-[32%] pointer-events-none select-none transition-all duration-200 z-50">
+          {actionState === 'petting' ? (
+            /* When Huzbi pets: zzz transforms into purr bubble with bounce & hearts */
+            <div className="flex items-center gap-1.5 bg-[#25132A]/95 border-2 border-[#F472B6] px-2.5 py-0.5 rounded-full shadow-[0_0_12px_rgba(244,114,182,0.6)] animate-bounce">
+              <span className="text-[8px] font-mono font-bold text-[#F472B6] leading-none tracking-wide">
+                purr...
+              </span>
+              <span className="text-[#EC4899] text-[9px] animate-ping leading-none">♥</span>
+              <span className="text-[#F472B6] text-[7.5px] leading-none">♪</span>
+            </div>
+          ) : (
+            /* When sleeping: cute floating z Z Z bubble with thought trail dots */
+            <div className="relative flex items-center gap-1 bg-[#161224]/90 border border-[#8B5CF6]/60 px-2 py-0.5 rounded-full shadow-lg">
+              <div className="flex items-end gap-0.5 font-mono font-bold leading-none">
+                <span className="text-[7px] text-[#A78BFA] animate-pulse" style={{ animationDuration: '2.4s' }}>z</span>
+                <span className="text-[8.5px] text-[#C4B5FD] animate-pulse" style={{ animationDuration: '2.4s', animationDelay: '0.4s' }}>Z</span>
+                <span className="text-[10px] text-[#E9D5FF] animate-pulse" style={{ animationDuration: '2.4s', animationDelay: '0.8s' }}>Z</span>
+              </div>
+              {/* Little thought bubble trail dots pointing to cat's head */}
+              <div className="absolute -bottom-1.5 left-2 w-1.5 h-1.5 bg-[#161224] border border-[#8B5CF6]/60 rounded-full" />
+              <div className="absolute -bottom-2.5 left-1 w-1 h-1 bg-[#161224] border border-[#8B5CF6]/60 rounded-full" />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Cat Water Dish & Toy on Floor next to Cat Bed */}

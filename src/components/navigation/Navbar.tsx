@@ -104,7 +104,7 @@ export default function Navbar() {
   const currentThemeMeta = THEME_OPTIONS.find((t) => t.id === theme) || THEME_OPTIONS[0];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-bg/90 backdrop-blur-md transition-colors duration-200">
+    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-bg/90 backdrop-blur-md transition-colors duration-200">
       <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 h-14 flex items-center justify-between gap-3">
         {/* Brand / Logo */}
         <Link
@@ -202,7 +202,7 @@ export default function Navbar() {
 
             {themeDropdownOpen && (
               <div
-                className="absolute right-0 mt-1.5 w-48 rounded-lg bg-bg-surface border border-border shadow-crt p-1.5 z-50 animate-in fade-in slide-in-from-top-1 font-mono text-xs"
+                className="absolute right-0 mt-1.5 w-48 rounded-lg bg-bg-surface border border-border shadow-crt p-1.5 z-[60] animate-in fade-in slide-in-from-top-1 font-mono text-xs"
                 role="menu"
                 aria-orientation="vertical"
               >
