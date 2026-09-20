@@ -173,142 +173,175 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
           if (onMonitorClick) onMonitorClick();
         }}
       >
-        {/* RETRO BEIGE / GREY HOUSING (90s Style) */}
-        <div className="relative w-full h-[90%] bg-[#B8B0A2] rounded-md border-2 border-[#6D6559] shadow-md p-1 flex flex-col justify-between overflow-hidden">
+        {/* RETRO BEIGE / GREY HOUSING (Authentic 3D Beveled 90s CRT Chassis) */}
+        <div className="relative w-full h-[88%] bg-gradient-to-b from-[#C5BCAD] via-[#B5AB9B] to-[#9C9281] rounded-lg border-t-[3px] border-t-[#DDD5C7] border-l-[3px] border-l-[#C2B9AA] border-r-[3px] border-r-[#7D7363] border-b-[4px] border-b-[#5E5547] shadow-[0_8px_20px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.4)] p-1.5 flex flex-col justify-between overflow-hidden">
           
-          {/* Subtle Top Bezel Ventilation Slots */}
-          <div className="flex justify-center gap-1 my-0.5 opacity-60">
-            <span className="w-4 h-0.5 bg-[#4A4339] rounded-full" />
-            <span className="w-4 h-0.5 bg-[#4A4339] rounded-full" />
-            <span className="w-4 h-0.5 bg-[#4A4339] rounded-full" />
+          {/* Subtle Top Bezel Ventilation Slots & Recessed Trim */}
+          <div className="flex justify-between items-center px-1 mb-1 opacity-70">
+            <div className="flex gap-1">
+              <span className="w-3.5 h-0.5 bg-[#4A4339] rounded-full shadow-inner" />
+              <span className="w-3.5 h-0.5 bg-[#4A4339] rounded-full shadow-inner" />
+              <span className="w-3.5 h-0.5 bg-[#4A4339] rounded-full shadow-inner" />
+            </div>
+            <span className="text-[5.5px] font-mono tracking-widest text-[#524B40] font-bold">TRINITRON // 14&quot;</span>
+            <div className="flex gap-1">
+              <span className="w-3.5 h-0.5 bg-[#4A4339] rounded-full shadow-inner" />
+              <span className="w-3.5 h-0.5 bg-[#4A4339] rounded-full shadow-inner" />
+              <span className="w-3.5 h-0.5 bg-[#4A4339] rounded-full shadow-inner" />
+            </div>
           </div>
 
-          {/* INNER CRT TUBE SCREEN (Curved Dark Bezel) */}
-          <div className="relative flex-1 bg-[#0A0E14] rounded border border-[#3E3830] overflow-hidden p-1 flex flex-col justify-between shadow-[inset_0_2px_8px_rgba(0,0,0,0.9)]">
-            {/* Scanlines & CRT curvature effect */}
-            <div className="absolute inset-0 crt-scanlines pointer-events-none z-20 opacity-40" />
-            <div className="absolute inset-0 crt-vignette pointer-events-none z-20" />
+          {/* INNER CRT TUBE BEZEL (Recessed Chamfered Surround) */}
+          <div className="relative flex-1 bg-[#1A1612] rounded-[6px] border-2 border-[#120F0C] p-1 flex flex-col justify-between shadow-[inset_0_4px_10px_rgba(0,0,0,0.95),0_1px_1px_rgba(255,255,255,0.2)]">
+            
+            {/* Cathode Ray Tube Screen (Bulbous Glass Face) */}
+            <div className="relative flex-1 bg-[#06090E] rounded-[4px] border border-[#26211B] overflow-hidden p-1.5 flex flex-col justify-between shadow-[inset_0_0_14px_rgba(0,0,0,0.95)]">
+              {/* Scanlines & Curvature & Glare reflection */}
+              <div className="absolute inset-0 crt-scanlines pointer-events-none z-20 opacity-45" />
+              <div className="absolute inset-0 crt-vignette pointer-events-none z-20 opacity-70" />
+              {/* Diagonal Glass Sheen Reflection Arc */}
+              <div
+                className="absolute inset-0 pointer-events-none z-20 opacity-25"
+                style={{
+                  background: 'linear-gradient(130deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.04) 28%, transparent 45%)',
+                }}
+              />
 
-            {!isPoweredOn ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-fg-subtle">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 mb-1 animate-pulse" />
-                <span className="text-[7px] font-mono">[STANDBY]</span>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col justify-between font-mono text-[7px] text-accent leading-tight overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-accent/30 pb-0.5">
-                  <span className="font-bold truncate">HUZBI.SYS // {mode}</span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsExpanded(true);
-                    }}
-                    className="text-fg-muted hover:text-accent p-0.5"
-                    title="Expand Full Terminal Screen"
-                  >
-                    <Maximize2 className="w-2.5 h-2.5" />
-                  </button>
+              {!isPoweredOn ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-fg-subtle">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 mb-1 animate-pulse" />
+                  <span className="text-[7px] font-mono">[STANDBY]</span>
                 </div>
-
-                {/* Content by mode */}
-                {mode === 'IDLE' && (
-                  <div className="py-0.5 space-y-0.5">
-                    <p className="text-[#F5E8C7] font-semibold">&gt; 02:14 AM SESSION</p>
-                    <p className="text-fg-muted">Huzbi // Fullstack &amp; Systems</p>
-                    <p className="text-accent-secondary truncate">38 Repos &bull; 349 Stars</p>
-                    <p className="text-accent font-bold animate-pulse">&gt; SYS_OK _</p>
-                  </div>
-                )}
-
-                {mode === 'GITHUB' && (
-                  <div className="py-0.5 space-y-0.5">
-                    <p className="text-[#F5E8C7] font-semibold truncate">@{githubSnapshot.user.login}</p>
-                    <div className="flex justify-between text-fg-muted">
-                      <span>Repos: {githubSnapshot.stats.totalRepos}</span>
-                      <span>Stars: {githubSnapshot.stats.totalStarsGiven}</span>
-                    </div>
-                    <p className="text-accent-secondary truncate">Python, JS, C++</p>
-                  </div>
-                )}
-
-                {mode === 'PROJECTS' && (
-                  <div className="py-0.5">
-                    <div className="flex items-center justify-between text-[#F5E8C7]">
-                      <span className="truncate font-bold">{currentProject.title}</span>
-                      <span className="text-[6px] text-accent-secondary">★ {currentProject.stars}</span>
-                    </div>
-                    <p className="text-fg-muted line-clamp-1">{currentProject.tagline}</p>
-                    <div className="flex items-center justify-between pt-0.5">
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={handlePrevProject}
-                          className="px-1 bg-black/40 text-accent rounded text-[6px]"
-                        >
-                          &lt;
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleNextProject}
-                          className="px-1 bg-black/40 text-accent rounded text-[6px]"
-                        >
-                          &gt;
-                        </button>
-                      </div>
-                      {onSelectProject && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectProject(currentProject.id);
-                          }}
-                          className="text-accent underline text-[6px]"
-                        >
-                          Details
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {mode === 'TERMINAL' && (
-                  <div className="py-0.5 flex flex-col justify-between h-full">
-                    <div className="text-[6.5px] text-fg-muted line-clamp-2">
-                      {terminalHistory.length > 0 ? (
-                        <>
-                          <span className="text-accent">$ {terminalHistory[terminalHistory.length - 1].command}</span>
-                          <br />
-                          {typeof terminalHistory[terminalHistory.length - 1].output === 'string'
-                            ? terminalHistory[terminalHistory.length - 1].output
-                            : 'Executed.'}
-                        </>
-                      ) : (
-                        'Ready. Click [⤢] to type.'
-                      )}
-                    </div>
+              ) : (
+                <div className="flex-1 flex flex-col justify-between font-mono text-[7px] text-accent leading-tight overflow-hidden relative z-10">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-accent/30 pb-0.5">
+                    <span className="font-bold truncate text-[#A8D672]">HUZBI.SYS // {mode}</span>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsExpanded(true);
                       }}
-                      className="mt-0.5 text-center text-accent underline text-[6.5px]"
+                      className="text-fg-muted hover:text-accent p-0.5"
+                      title="Expand Full Terminal Screen"
                     >
-                      [Open Interactive CLI ⤢]
+                      <Maximize2 className="w-2.5 h-2.5" />
                     </button>
                   </div>
-                )}
-              </div>
-            )}
+
+                  {/* Content by mode */}
+                  {mode === 'IDLE' && (
+                    <div className="py-0.5 space-y-0.5">
+                      <p className="text-[#F5E8C7] font-semibold">&gt; 02:14 AM SESSION</p>
+                      <p className="text-fg-muted">Huzbi // Fullstack &amp; Systems</p>
+                      <p className="text-accent-secondary truncate">38 Repos &bull; 349 Stars</p>
+                      <p className="text-accent font-bold animate-pulse">&gt; SYS_OK _</p>
+                    </div>
+                  )}
+
+                  {mode === 'GITHUB' && (
+                    <div className="py-0.5 space-y-0.5">
+                      <p className="text-[#F5E8C7] font-semibold truncate">@{githubSnapshot.user.login}</p>
+                      <div className="flex justify-between text-fg-muted">
+                        <span>Repos: {githubSnapshot.stats.totalRepos}</span>
+                        <span>Stars: {githubSnapshot.stats.totalStarsGiven}</span>
+                      </div>
+                      <p className="text-accent-secondary truncate">Python, JS, C++</p>
+                    </div>
+                  )}
+
+                  {mode === 'PROJECTS' && (
+                    <div className="py-0.5">
+                      <div className="flex items-center justify-between text-[#F5E8C7]">
+                        <span className="truncate font-bold">{currentProject.title}</span>
+                        <span className="text-[6px] text-accent-secondary">★ {currentProject.stars}</span>
+                      </div>
+                      <p className="text-fg-muted line-clamp-1">{currentProject.tagline}</p>
+                      <div className="flex items-center justify-between pt-0.5">
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={handlePrevProject}
+                            className="px-1 bg-black/40 text-accent rounded text-[6px]"
+                          >
+                            &lt;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleNextProject}
+                            className="px-1 bg-black/40 text-accent rounded text-[6px]"
+                          >
+                            &gt;
+                          </button>
+                        </div>
+                        {onSelectProject && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectProject(currentProject.id);
+                            }}
+                            className="text-accent underline text-[6px]"
+                          >
+                            Details
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {mode === 'TERMINAL' && (
+                    <div className="py-0.5 flex flex-col justify-between h-full">
+                      <div className="text-[6.5px] text-fg-muted line-clamp-2">
+                        {terminalHistory.length > 0 ? (
+                          <>
+                            <span className="text-accent">$ {terminalHistory[terminalHistory.length - 1].command}</span>
+                            <br />
+                            {typeof terminalHistory[terminalHistory.length - 1].output === 'string'
+                              ? terminalHistory[terminalHistory.length - 1].output
+                              : 'Executed.'}
+                          </>
+                        ) : (
+                          'Ready. Click [⤢] to type.'
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsExpanded(true);
+                        }}
+                        className="mt-0.5 text-center text-accent underline text-[6.5px]"
+                      >
+                        [Open Interactive CLI ⤢]
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* LOWER BEZEL BUTTONS (Authentic Retro Monitor Front) */}
-          <div className="mt-0.5 flex items-center justify-between px-0.5 text-[6.5px] font-mono select-none">
-            <span className="font-bold text-[#5A5043] tracking-wider">HUZBI-84</span>
+          {/* LOWER BEZEL HARDWARE CONTROLS (Dials, Mode Buttons, Speaker Louvers, Power Switch) */}
+          <div className="mt-1 flex items-center justify-between px-1 text-[6.5px] font-mono select-none bg-[#A89E8E] rounded py-0.5 border-t border-[#C0B7A8] shadow-inner">
+            {/* Vintage Rotary Dials (Brightness & Contrast) */}
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-0.5" title="Brightness Dial">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4A4237] border border-[#2E2820] shadow-sm flex items-center justify-center relative">
+                  <div className="w-0.5 h-1 bg-white/70 absolute top-0.5" />
+                </div>
+                <span className="text-[5px] text-[#4A4237] font-bold">BRT</span>
+              </div>
+              <div className="flex items-center gap-0.5" title="Contrast Dial">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4A4237] border border-[#2E2820] shadow-sm flex items-center justify-center relative">
+                  <div className="w-0.5 h-1 bg-white/70 absolute top-0.5 rotate-45" />
+                </div>
+                <span className="text-[5px] text-[#4A4237] font-bold">CON</span>
+              </div>
+            </div>
 
-            {/* Mode Mini-Tabs */}
+            {/* Mode Mechanical Push-Buttons */}
             <div className="flex gap-0.5">
               {(['IDLE', 'GITHUB', 'PROJECTS', 'TERMINAL'] as ScreenMode[]).map((m) => (
                 <button
@@ -319,10 +352,10 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
                     setMode(m);
                     if (!isPoweredOn) setIsPoweredOn(true);
                   }}
-                  className={`px-1 rounded-[1px] ${
+                  className={`px-1 py-0.5 rounded-[1px] text-[6px] border ${
                     mode === m && isPoweredOn
-                      ? 'bg-accent text-bg font-bold'
-                      : 'bg-[#9C9281] text-[#2E281F] hover:bg-[#857B6C]'
+                      ? 'bg-accent text-bg font-bold border-accent shadow-sm'
+                      : 'bg-[#7D7364] text-[#F0EBE1] border-[#5E5548] hover:bg-[#6B6254]'
                   }`}
                 >
                   {m === 'TERMINAL' ? 'CLI' : m === 'PROJECTS' ? 'PRJ' : m === 'GITHUB' ? 'GIT' : 'SYS'}
@@ -330,29 +363,34 @@ export const CRTMonitor: React.FC<CRTMonitorProps> = ({
               ))}
             </div>
 
-            {/* Power LED & Toggle */}
+            {/* Power Rocker Switch & Green Phosphor LED */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsPoweredOn(!isPoweredOn);
               }}
-              className="flex items-center gap-0.5 text-[#5A5043]"
+              className="flex items-center gap-1 text-[#4A4237] hover:opacity-80"
               title="Power Toggle"
             >
               <div
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isPoweredOn ? 'bg-[#33FF66] shadow-[0_0_4px_#33FF66]' : 'bg-[#E53935]'
+                className={`w-2 h-2 rounded-full border border-black/40 transition-shadow ${
+                  isPoweredOn ? 'bg-[#22C55E] shadow-[0_0_6px_#22C55E]' : 'bg-[#EF4444]'
                 }`}
               />
-              <span className="text-[5.5px]">PWR</span>
+              <span className="text-[5.5px] font-bold">PWR</span>
             </button>
           </div>
         </div>
 
-        {/* PEDESTAL MONITOR STAND (Resting on Desk Surface) */}
-        <div className="w-12 h-1.5 bg-[#8C8375] border-x border-[#5A5043]" />
-        <div className="w-20 h-1.5 bg-[#6D6559] rounded-b-[2px] shadow-sm border border-[#4A4339]" />
+        {/* 3D FLARED SWIVEL PEDESTAL STAND (Anchored Sturdily to Desk Surface) */}
+        <div className="w-14 h-2 bg-gradient-to-b from-[#7A7161] to-[#5A5245] border-x-2 border-[#423C32] relative flex items-center justify-center shadow-inner">
+          <div className="w-8 h-0.5 bg-[#3D372E] rounded-full" />
+        </div>
+        <div className="w-28 h-2.5 bg-gradient-to-b from-[#8C8272] via-[#756B5C] to-[#554E41] rounded-b-md shadow-lg border-2 border-t-0 border-[#3D372E] flex justify-between items-center px-2">
+          <div className="w-3 h-1 bg-[#3A342B] rounded-xs" />
+          <div className="w-3 h-1 bg-[#3A342B] rounded-xs" />
+        </div>
       </div>
 
       {/* FULLSCREEN / MODAL EXPANDED VIEW WHEN CLICKED */}

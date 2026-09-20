@@ -149,8 +149,13 @@ export const Character: React.FC<CharacterProps> = ({
       {/* 1. ADAPTIVE SPEECH BUBBLE (Mounted OUTSIDE the flipped sprite container so text is NEVER mirrored) */}
       {(showSpeechBubble || isHovered) && (
         <div
-          className={`absolute bottom-full mb-3 z-50 pointer-events-none transition-all duration-200 ${getBubbleAlignmentClasses()}`}
-          style={{ width: 'max-content', maxWidth: '320px' }}
+          className={`absolute z-50 pointer-events-none transition-all duration-200 ${getBubbleAlignmentClasses()}`}
+          style={{
+            width: 'max-content',
+            maxWidth: '320px',
+            bottom: actionState === 'petting' ? '70%' : '100%',
+            marginBottom: actionState === 'petting' ? '4px' : '12px',
+          }}
         >
           <div
             className="relative border-2 border-accent text-fg font-mono text-[11px] sm:text-xs px-3 py-1.5 rounded-xl shadow-2xl leading-relaxed bg-bg-deep"
@@ -404,17 +409,17 @@ export const Character: React.FC<CharacterProps> = ({
               <rect x="47" y="60" width="3" height="4" fill="#F3D5B5" />
             </g>
           ) : actionState === 'petting' ? (
-            // GENTLE PETTING MOTION - ARM REACHES FORWARD ONTO CAT
+            // GENTLE PETTING MOTION - ARM REACHES FORWARD AND DOWN ONTO FLOOR CAT COUCH
             <g id="arms-petting" transform="translate(0, 8)">
               {/* Left hand braced on knee */}
               <rect x="18" y="48" width="8" height="14" fill="#222834" />
               <rect x="18" y="60" width="6" height="5" fill="#F3D5B5" />
-              {/* Right arm extending long towards the right over the cat */}
+              {/* Right arm extending forward and angling down directly onto cat */}
               <g className="avatar-petting-arm">
                 <rect x="48" y="48" width="9" height="11" fill="#222834" />
-                <rect x="55" y="51" width="22" height="7" fill="#2C3443" />
+                <rect x="54" y="53" width="20" height="7" fill="#2C3443" rx="1" />
                 {/* Hand directly resting on and stroking cat */}
-                <rect x="75" y="54" width="14" height="6" fill="#F3D5B5" rx="2" />
+                <rect x="72" y="57" width="14" height="6" fill="#F3D5B5" rx="2" />
               </g>
             </g>
           ) : actionState === 'gazing' ? (

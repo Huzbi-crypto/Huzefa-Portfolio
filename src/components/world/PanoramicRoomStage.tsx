@@ -54,12 +54,35 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
   className = '',
 }) => {
   const books = personalInfo.readingList;
-  const [hoveredBook, setHoveredBook] = useState<ReadingItem | null>(null);
+  const [hoveredBookInfo, setHoveredBookInfo] = useState<{ book: ReadingItem; shelfIdx: number } | null>(null);
 
-  // Group books for shelves
-  const shelf2Books = books.slice(0, 5); // Manga icons
-  const shelf3Books = books.slice(5, 9); // Fiction / deep manga
-  const shelf4Books = books.slice(9, 13); // Tech & systems books
+  // Group books logically for shelves
+  const shelf1Books = books.slice(0, 5); // Shonen Manga: One Piece, Naruto, Bleach, Black Clover, OPM
+  const shelf2Books = [books[7], books[8], books[9], books[10]].filter(Boolean); // Seinen Masterpieces: Berserk, Vagabond, Monster, Vinland
+  const shelf3Books = [books[5], books[6], books[11], books[12]].filter(Boolean); // Systems & Tech: SICP, Networks, DDIA, OSTEP
+  const shelf4Manuals: ReadingItem[] = [
+    {
+      title: 'UNIX Systems Architecture & Internals',
+      author: 'Bell Labs / Huzbi',
+      type: 'tech',
+      status: 'completed',
+      note: 'Kernel primitives, virtual memory, process trees, and IPC mechanisms.',
+    },
+    {
+      title: 'TCP/IP Illustrated: The Protocols',
+      author: 'W. Richard Stevens',
+      type: 'tech',
+      status: 'completed',
+      note: 'The packet bible: TCP handshakes, sliding windows, congestion control, and routing topologies.',
+    },
+    {
+      title: 'Huzbi Labs System Binder',
+      author: 'Huzbi',
+      type: 'tech',
+      status: 'reading',
+      note: 'Personal lab notes on distributed systems, routing simulations, and compilers.',
+    },
+  ];
 
   return (
     <div
@@ -364,13 +387,13 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         <div className="flex-1 flex flex-col justify-between py-1 space-y-1">
           {/* SHELF 1: Shonen Manga Collection (One Piece, Naruto, Bleach, Black Clover, OPM) */}
           <div className="border-b-2 border-[#3D2C22] pb-0.5 flex items-end justify-start gap-1 h-[23%] px-0.5 overflow-hidden">
-            {shelf2Books.map((b, idx) => {
+            {shelf1Books.map((b, idx) => {
               const mangaSpines = [
-                { base: '#991B1B', gold: '#FBBF24', width: '19%', height: '88%', label: 'OP', code: '105' },
-                { base: '#C2410C', gold: '#FEF08A', width: '18%', height: '84%', label: 'NAR', code: '72' },
-                { base: '#111827', gold: '#E5E7EB', width: '19%', height: '87%', label: 'BLC', code: '74' },
-                { base: '#166534', gold: '#BBF7D0', width: '18%', height: '83%', label: 'BC', code: '35' },
-                { base: '#A16207', gold: '#FEF9C3', width: '18%', height: '85%', label: 'OPM', code: '28' },
+                { base: '#991B1B', gold: '#FBBF24', width: '19%', height: '88%', label: 'OP', code: '105', tilt: 'hover:-translate-y-1' },
+                { base: '#C2410C', gold: '#FEF08A', width: '18%', height: '84%', label: 'NAR', code: '72', tilt: 'hover:-translate-y-1 rotate-1 origin-bottom' },
+                { base: '#111827', gold: '#E5E7EB', width: '19%', height: '87%', label: 'BLC', code: '74', tilt: 'hover:-translate-y-1' },
+                { base: '#166534', gold: '#BBF7D0', width: '18%', height: '83%', label: 'BC', code: '35', tilt: 'hover:-translate-y-1 -rotate-1 origin-bottom' },
+                { base: '#A16207', gold: '#FEF9C3', width: '18%', height: '85%', label: 'OPM', code: '28', tilt: 'hover:-translate-y-1' },
               ];
               const spine = mangaSpines[idx % mangaSpines.length];
               return (
@@ -381,9 +404,9 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
                     e.stopPropagation();
                     if (onBookshelfClick) onBookshelfClick(b);
                   }}
-                  onMouseEnter={() => setHoveredBook(b)}
-                  onMouseLeave={() => setHoveredBook(null)}
-                  className="rounded-t-[2px] transition-transform hover:-translate-y-1 flex flex-col justify-between items-center py-0.5 px-0.5 cursor-pointer border border-black/50 select-none shrink-0"
+                  onMouseEnter={() => setHoveredBookInfo({ book: b, shelfIdx: 0 })}
+                  onMouseLeave={() => setHoveredBookInfo(null)}
+                  className={`rounded-t-[2px] transition-transform flex flex-col justify-between items-center py-0.5 px-0.5 cursor-pointer border border-black/50 select-none shrink-0 relative ${spine.tilt}`}
                   style={{
                     width: spine.width,
                     height: `${spine.height}`,
@@ -393,14 +416,20 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
                   }}
                   title={`${b.title} (${b.author})`}
                 >
+                  {/* Spine Crease / Gutter Groove Line */}
+                  <div className="absolute left-[1.5px] top-0 bottom-0 w-[0.5px] bg-black/40 pointer-events-none" />
+
+                  {/* Top Cream Paper Block Rims */}
+                  <div className="w-[85%] h-[1px] bg-[#FAF0DC] rounded-t-[0.5px] opacity-90 mx-auto" />
+
                   {/* Top Cloth Headband */}
                   <div className="w-full h-[1.5px] bg-[#D4AF37] opacity-90 rounded-t-[1px]" />
                   
                   {/* Upper Title Simulation Marks */}
                   <div className="w-full flex flex-col items-center gap-[1px] my-0.5">
-                    <div className="w-2.5 h-[1px] bg-white/70" />
-                    <div className="w-3.5 h-[1px] bg-white/70" />
-                    <div className="w-2 h-[1px] bg-white/60" />
+                    <div className="w-2.5 h-[1px] bg-white/80" />
+                    <div className="w-3.5 h-[1px] bg-white/80" />
+                    <div className="w-2 h-[1px] bg-white/70" />
                   </div>
 
                   {/* Horizontal Raised Spine Rib */}
@@ -413,6 +442,11 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 
                   {/* Bottom Cloth Tailband */}
                   <div className="w-full h-[1.5px] bg-[#D4AF37] opacity-90 rounded-b-[1px]" />
+
+                  {/* Silky Red Ribbon Bookmark dangling onto shelf (Volume 1) */}
+                  {idx === 0 && (
+                    <div className="w-[1.5px] h-2 bg-[#DC2626] -bottom-1 absolute left-1.5 z-20 shadow-sm rounded-b-xs pointer-events-none" />
+                  )}
                 </button>
               );
             })}
@@ -420,7 +454,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 
           {/* SHELF 2: Seinen / Dark Fantasy Hardcovers + Horizontal Stack */}
           <div className="border-b-2 border-[#3D2C22] pb-0.5 flex items-end justify-start gap-1 h-[23%] px-0.5 overflow-hidden">
-            {shelf3Books.map((b, idx) => {
+            {shelf2Books.map((b, idx) => {
               const seinenSpines = [
                 { base: '#4C0519', gold: '#FBBF24', width: '22%', height: '92%', badge: '✦' }, // Berserk Deluxe
                 { base: '#143823', gold: '#86EFAC', width: '18%', height: '86%', badge: '剣' }, // Vagabond
@@ -436,9 +470,9 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
                     e.stopPropagation();
                     if (onBookshelfClick) onBookshelfClick(b);
                   }}
-                  onMouseEnter={() => setHoveredBook(b)}
-                  onMouseLeave={() => setHoveredBook(null)}
-                  className="rounded-t-[2px] transition-transform hover:-translate-y-1 flex flex-col justify-between items-center py-0.5 px-0.5 cursor-pointer border border-black/60 select-none shrink-0"
+                  onMouseEnter={() => setHoveredBookInfo({ book: b, shelfIdx: 1 })}
+                  onMouseLeave={() => setHoveredBookInfo(null)}
+                  className="rounded-t-[2px] transition-transform hover:-translate-y-1 flex flex-col justify-between items-center py-0.5 px-0.5 cursor-pointer border border-black/60 select-none shrink-0 relative"
                   style={{
                     width: spine.width,
                     height: `${spine.height}`,
@@ -448,6 +482,12 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
                   }}
                   title={`${b.title} (${b.author})`}
                 >
+                  {/* Spine Crease / Gutter Groove Line */}
+                  <div className="absolute left-[1.5px] top-0 bottom-0 w-[0.5px] bg-black/40 pointer-events-none" />
+
+                  {/* Top Cream Paper Block Rims */}
+                  <div className="w-[85%] h-[1px] bg-[#FAF0DC] rounded-t-[0.5px] opacity-90 mx-auto" />
+
                   {/* Top Headband */}
                   <div className="w-full h-[1.5px] bg-[#E5E7EB]/80 rounded-t-[1px]" />
 
@@ -470,6 +510,11 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 
                   {/* Tailband */}
                   <div className="w-full h-[1.5px] bg-[#E5E7EB]/80 rounded-b-[1px]" />
+
+                  {/* Gold Bookmark Ribbon (Berserk) */}
+                  {idx === 0 && (
+                    <div className="w-[1.5px] h-2.5 bg-[#FBBF24] -bottom-1.5 absolute left-1.5 z-20 shadow-sm rounded-b-xs pointer-events-none" />
+                  )}
                 </button>
               );
             })}
@@ -493,7 +538,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 
           {/* SHELF 3: Heavy Computer Science & Systems Volumes (SICP, DDIA, Networks, OSTEP) */}
           <div className="border-b-2 border-[#3D2C22] pb-0.5 flex items-end justify-start gap-1 h-[23%] px-0.5 overflow-hidden">
-            {shelf4Books.map((b, idx) => {
+            {shelf3Books.map((b, idx) => {
               const techSpines = [
                 { base: '#312E81', gold: '#FDE047', width: '24%', height: '93%', tag: 'SICP' }, // Wizard Tome
                 { base: '#1E3A8A', gold: '#93C5FD', width: '22%', height: '89%', tag: 'NET' },
@@ -509,9 +554,9 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
                     e.stopPropagation();
                     if (onBookshelfClick) onBookshelfClick(b);
                   }}
-                  onMouseEnter={() => setHoveredBook(b)}
-                  onMouseLeave={() => setHoveredBook(null)}
-                  className="rounded-t-[2px] transition-transform hover:-translate-y-1 flex flex-col justify-between items-center py-0.5 px-0.5 cursor-pointer border border-black/60 select-none shrink-0"
+                  onMouseEnter={() => setHoveredBookInfo({ book: b, shelfIdx: 2 })}
+                  onMouseLeave={() => setHoveredBookInfo(null)}
+                  className="rounded-t-[2px] transition-transform hover:-translate-y-1 flex flex-col justify-between items-center py-0.5 px-0.5 cursor-pointer border border-black/60 select-none shrink-0 relative"
                   style={{
                     width: spine.width,
                     height: `${spine.height}`,
@@ -521,6 +566,12 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
                   }}
                   title={`${b.title} (${b.author})`}
                 >
+                  {/* Spine Crease / Gutter Groove Line */}
+                  <div className="absolute left-[1.5px] top-0 bottom-0 w-[0.5px] bg-black/40 pointer-events-none" />
+
+                  {/* Top Cream Paper Block Rims */}
+                  <div className="w-[85%] h-[1px] bg-[#FAF0DC] rounded-t-[0.5px] opacity-90 mx-auto" />
+
                   {/* Top Gold Headband */}
                   <div className="w-full h-[1.5px] bg-[#D4AF37] rounded-t-[1px]" />
 
@@ -556,27 +607,75 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
             <div className="w-[30%] h-[75%] bg-[#384C32] rounded-[1px] border border-[#243320] flex items-center justify-center">
               <div className="w-3 h-1 bg-[#1C2618] rounded-xs" />
             </div>
-            {/* 2 Leaning Manuals with Visible Cream Page Edges */}
-            <div className="w-[18%] h-[82%] bg-[#4A3B69] rounded-t-[1px] border border-black/40 -rotate-12 origin-bottom-left flex justify-end">
+
+            {/* Leaning Manual 1: UNIX Systems Architecture */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBookshelfClick) onBookshelfClick(shelf4Manuals[0]);
+              }}
+              onMouseEnter={() => setHoveredBookInfo({ book: shelf4Manuals[0], shelfIdx: 3 })}
+              onMouseLeave={() => setHoveredBookInfo(null)}
+              className="w-[18%] h-[82%] bg-[#4A3B69] rounded-t-[1px] border border-black/40 -rotate-12 origin-bottom-left flex justify-end cursor-pointer hover:scale-105 transition-transform select-none"
+              title={`${shelf4Manuals[0].title} (${shelf4Manuals[0].author})`}
+            >
               <div className="w-[3px] h-full bg-[#FAF0DC] rounded-r-xs" />
-            </div>
-            <div className="w-[18%] h-[82%] bg-[#2E3748] rounded-t-[1px] border border-black/40 -rotate-6 origin-bottom-left flex justify-end">
+            </button>
+
+            {/* Leaning Manual 2: TCP/IP Illustrated */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBookshelfClick) onBookshelfClick(shelf4Manuals[1]);
+              }}
+              onMouseEnter={() => setHoveredBookInfo({ book: shelf4Manuals[1], shelfIdx: 3 })}
+              onMouseLeave={() => setHoveredBookInfo(null)}
+              className="w-[18%] h-[82%] bg-[#2E3748] rounded-t-[1px] border border-black/40 -rotate-6 origin-bottom-left flex justify-end cursor-pointer hover:scale-105 transition-transform select-none"
+              title={`${shelf4Manuals[1].title} (${shelf4Manuals[1].author})`}
+            >
               <div className="w-[3px] h-full bg-[#FAF0DC] rounded-r-xs" />
-            </div>
-            {/* Thick Blue Binder */}
-            <div className="w-[24%] h-[90%] bg-[#1A365D] rounded-t-[1px] border border-black/40 flex flex-col justify-between py-0.5">
+            </button>
+
+            {/* Thick Blue Binder: Huzbi Labs System Binder */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBookshelfClick) onBookshelfClick(shelf4Manuals[2]);
+              }}
+              onMouseEnter={() => setHoveredBookInfo({ book: shelf4Manuals[2], shelfIdx: 3 })}
+              onMouseLeave={() => setHoveredBookInfo(null)}
+              className="w-[24%] h-[90%] bg-[#1A365D] rounded-t-[1px] border border-black/40 flex flex-col justify-between py-0.5 cursor-pointer hover:scale-105 transition-transform select-none"
+              title={`${shelf4Manuals[2].title} (${shelf4Manuals[2].author})`}
+            >
               <div className="w-full h-1 bg-white/50" />
               <div className="w-2.5 h-1.5 bg-white/30 mx-auto" />
-            </div>
+            </button>
           </div>
         </div>
 
-        {/* Hovered Book Tooltip */}
-        {hoveredBook && (
-          <div className="absolute right-full mr-2 top-10 bg-bg-deep border border-accent p-2 rounded-lg shadow-2xl z-50 pointer-events-none w-48 text-[10px] font-mono">
-            <p className="text-accent font-bold truncate">{hoveredBook.title}</p>
-            <p className="text-fg-muted text-[9px]">{hoveredBook.author}</p>
-            <p className="text-fg-subtle text-[8.5px] mt-1 line-clamp-2">&ldquo;{hoveredBook.note}&rdquo;</p>
+        {/* Hovered Book Tooltip with Dynamic Shelf-Relative Alignment */}
+        {hoveredBookInfo && (
+          <div
+            className="absolute right-full mr-2.5 bg-bg-deep border-2 border-accent p-2.5 rounded-lg shadow-2xl z-50 pointer-events-none w-52 text-[10px] font-mono transition-all duration-150"
+            style={{
+              top:
+                hoveredBookInfo.shelfIdx === 0
+                  ? '7%'
+                  : hoveredBookInfo.shelfIdx === 1
+                  ? '29%'
+                  : hoveredBookInfo.shelfIdx === 2
+                  ? '52%'
+                  : '74%',
+            }}
+          >
+            {/* Pointer arrow pointing directly towards the hovered shelf */}
+            <div className="absolute -right-1.5 top-3 w-3 h-3 border-t-2 border-r-2 border-accent bg-bg-deep rotate-45" />
+            <p className="text-accent font-bold truncate">{hoveredBookInfo.book.title}</p>
+            <p className="text-fg-muted text-[9px]">{hoveredBookInfo.book.author}</p>
+            <p className="text-fg-subtle text-[8.5px] mt-1 line-clamp-2">&ldquo;{hoveredBookInfo.book.note}&rdquo;</p>
           </div>
         )}
       </div>
@@ -685,37 +784,127 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
       {/* ========================================================================= */}
       {/* 7. LAYER 6: ON-DESK EQUIPMENT (ALL ANCHORED ON TOP OF DESK SLAB: bottom: 52%, z-40) */}
       {/* ========================================================================= */}
-      {/* 1. Left Desk: Retro Clamshell Laptop Station */}
+      {/* 1. Left Desk: Authentic Retro Clamshell Laptop Station (IBM ThinkPad / Retro 90s Style) */}
       <div
-        className="absolute cursor-pointer group z-40"
+        className="absolute cursor-pointer group z-40 select-none"
         style={{
           bottom: '52%',
-          left: '23.5%',
-          width: '13.5%',
-          height: '16%',
+          left: '22%',
+          width: '15.5%',
+          height: '18%',
         }}
         onClick={onLaptopClick}
-        title="Retro Laptop Workstation (Click to type)"
+        title="Retro Laptop Workstation (Click to type!)"
       >
-        {/* Laptop Screen Lid */}
-        <div className="w-full h-[64%] bg-[#1E2530] rounded-t border-2 border-[#333E50] p-1 shadow-lg group-hover:border-accent transition-colors flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <span className="text-[5.5px] font-mono text-accent">[H-PAD 90]</span>
-            <span className="w-1 h-1 rounded-full bg-accent animate-ping" />
+        {/* Tilted Open Screen Lid (3/4 Clamshell Perspective) */}
+        <div className="w-full h-[58%] bg-[#1A1F29] rounded-t-sm border-2 border-b-0 border-[#2D3645] shadow-xl p-1 flex flex-col justify-between group-hover:border-accent transition-colors relative overflow-hidden">
+          {/* Bevel Highlight & ThinkPad RGB Badge */}
+          <div className="flex justify-between items-center px-0.5">
+            <div className="flex items-center gap-1">
+              {/* IBM-style 3-stripe color logo */}
+              <div className="flex gap-[1px]">
+                <div className="w-1 h-1 bg-[#EF4444] rounded-[0.5px]" />
+                <div className="w-1 h-1 bg-[#22C55E] rounded-[0.5px]" />
+                <div className="w-1 h-1 bg-[#3B82F6] rounded-[0.5px]" />
+              </div>
+              <span className="text-[5.5px] font-mono font-bold text-accent tracking-tighter">[H-PAD 90]</span>
+            </div>
+            {/* Top ThinkLight / Webcam Dot & Latch */}
+            <div className="flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-accent animate-ping" />
+              <div className="w-2 h-0.5 bg-[#4A5568] rounded-xs" />
+            </div>
           </div>
-          <div className="bg-[#090D14] rounded-[1px] p-0.5 h-[68%] font-mono text-[5.5px] text-[#73B7FF] leading-none overflow-hidden">
-            <div>$ ./route_sim</div>
+
+          {/* High-Contrast Phosphor Screen with Glowing Terminal Output */}
+          <div className="relative bg-[#070D18] rounded-[1px] p-1 h-[68%] font-mono text-[5.5px] leading-tight overflow-hidden border border-black/60 shadow-[inset_0_0_8px_rgba(0,0,0,0.9)]">
+            {/* Glare Reflection Strip */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 45%)',
+              }}
+            />
+            <div className="text-[#38BDF8] flex items-center gap-1">
+              <span>$ ./route_sim</span>
+              <span className="text-[4.5px] bg-[#1E293B] px-0.5 text-accent rounded-xs">v2.1</span>
+            </div>
             <div className="text-accent">&gt; 128 pkts [OK]</div>
+            <div className="text-[#94A3B8] text-[4.5px] truncate">&gt; sys: fast-nuces/karachi</div>
           </div>
         </div>
-        {/* Laptop Base Keyboard Deck Resting on Desk Surface */}
-        <div className="w-full h-[36%] bg-[#252E3D] rounded-b border-2 border-t-0 border-[#333E50] flex items-center justify-center relative shadow-sm">
-          <div className="w-10 h-2 bg-[#171D27] rounded-[1px]" />
-          {/* Red TrackPoint Nub */}
-          <div className="w-1 h-1 rounded-full bg-[#E53935] absolute top-1 left-1/2 -translate-x-1/2" />
+
+        {/* Dual Heavy-Duty Cylindrical Metal Hinges */}
+        <div className="w-full h-1 bg-[#10141C] flex justify-between px-3 relative z-10">
+          <div className="w-3.5 h-1.5 -top-0.5 relative bg-[#475569] rounded-xs border border-[#1E293B]" />
+          <div className="w-3.5 h-1.5 -top-0.5 relative bg-[#475569] rounded-xs border border-[#1E293B]" />
         </div>
-        {/* Mouse with Coiled Cable beside laptop */}
-        <div className="absolute -right-3 bottom-0 w-2.5 h-3.5 bg-[#4A5568] rounded-t-sm border border-[#2D3748]" />
+
+        {/* Projected Keyboard Deck Lying Flat in Perspective on Desk Surface */}
+        <div className="w-full h-[40%] bg-gradient-to-b from-[#242C3B] to-[#181E29] rounded-b-sm border-2 border-[#2D3645] border-t-0 p-1 flex flex-col justify-between shadow-2xl relative">
+          {/* Recessed Keyboard Well with Staggered Key Rows */}
+          <div className="bg-[#10141C] rounded-[1px] p-0.5 border border-[#2B3545] shadow-inner space-y-[1px]">
+            {/* Row 1: Function / Number keys */}
+            <div className="flex justify-between gap-[1px]">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="flex-1 h-1 bg-[#1E2533] border-b border-black rounded-[0.5px]" />
+              ))}
+            </div>
+            {/* Row 2: QWERTY Keys with Red TrackPoint Nub in Center */}
+            <div className="flex justify-between items-center gap-[1px] relative">
+              <div className="w-[42%] h-1 bg-[#1E2533] border-b border-black rounded-[0.5px]" />
+              {/* Iconic Red TrackPoint Nub */}
+              <div className="w-1.5 h-1.5 rounded-full bg-[#EF4444] shadow-[0_0_2px_#EF4444] shrink-0 mx-[1px]" title="TrackPoint" />
+              <div className="w-[42%] h-1 bg-[#1E2533] border-b border-black rounded-[0.5px]" />
+            </div>
+            {/* Row 3: Spacebar & Dual Click Buttons with Blue/Red Trim */}
+            <div className="flex justify-center items-center gap-1 pt-[0.5px]">
+              <div className="w-7 h-1 bg-[#283244] border-b border-black rounded-[0.5px]" />
+              <div className="flex gap-[1px]">
+                <div className="w-2 h-1 bg-[#1E2533] border-t border-[#3B82F6] rounded-[0.5px]" />
+                <div className="w-2 h-1 bg-[#1E2533] border-t border-[#EF4444] rounded-[0.5px]" />
+              </div>
+            </div>
+          </div>
+
+          {/* Palm Rest, Status LEDs & Touchpad */}
+          <div className="flex items-center justify-between px-1 text-[4.5px] font-mono">
+            {/* Intel/OS Badge */}
+            <div className="w-2.5 h-1.5 bg-[#2563EB] rounded-[0.5px] text-[3.5px] text-white flex items-center justify-center font-bold">
+              SYS
+            </div>
+            {/* Centered Miniature Touchpad */}
+            <div className="w-5 h-1.5 bg-[#171C26] rounded-[0.5px] border border-[#2F3B4E]" />
+            {/* Status LEDs (Power, Amber Battery, Blinking Green Disk I/O) */}
+            <div className="flex gap-1 items-center">
+              <span className="w-1 h-1 rounded-full bg-accent" />
+              <span className="w-1 h-1 rounded-full bg-[#F59E0B]" />
+              <span className="w-1 h-1 rounded-full bg-accent animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Retro Optical Mouse & Coiled Wire Beside Laptop */}
+        <div className="absolute -right-3.5 bottom-0 flex flex-col items-center">
+          {/* Mousepad Base */}
+          <div className="w-3.5 h-4.5 bg-[#0F172A] rounded-sm border border-[#334155] flex flex-col items-center justify-center p-0.5 shadow-sm">
+            {/* Retro 2-Button Mouse with Scroll Wheel */}
+            <div className="w-2.5 h-3.5 bg-[#475569] rounded-t-sm rounded-b-[1px] border border-[#1E293B] relative shadow-sm flex flex-col justify-between items-center py-[1px]">
+              {/* Split Buttons & Scroll Wheel */}
+              <div className="w-full flex justify-between px-[1px] gap-[0.5px]">
+                <div className="w-1 h-1 bg-[#334155] rounded-tl-xs" />
+                <div className="w-0.5 h-1 bg-[#0F172A]" />
+                <div className="w-1 h-1 bg-[#334155] rounded-tr-xs" />
+              </div>
+              {/* Red Optical Glow Underneath */}
+              <div className="w-1 h-0.5 bg-[#EF4444] rounded-full shadow-[0_0_2px_#EF4444]" />
+            </div>
+          </div>
+          {/* Fine Coiled Wire Curling to Laptop Side Port */}
+          <svg viewBox="0 0 20 15" className="w-3 h-2 -mt-1 overflow-visible" fill="none">
+            <path d="M5,15 Q2,8 0,3" stroke="#1E293B" strokeWidth="1" />
+          </svg>
+        </div>
       </div>
 
       {/* Steaming Mug of Chai on Desk */}
@@ -723,16 +912,17 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         className="absolute z-40 pointer-events-none"
         style={{
           bottom: '52%',
-          left: '37.5%',
-          width: '12px',
-          height: '16px',
+          left: '38.5%',
+          width: '14px',
+          height: '18px',
         }}
       >
-        <div className="w-full h-3 bg-[#E2E8F0] rounded-b-sm border border-[#A0AEC0] relative">
-          <div className="w-1 h-1.5 border-r border-[#A0AEC0] absolute -right-1 top-0.5 rounded-r-xs" />
+        <div className="w-full h-3.5 bg-[#D97706] rounded-b-sm border border-[#B45309] shadow-sm relative flex items-center justify-center">
+          <div className="w-1.5 h-2 border-r border-t border-b border-[#B45309] absolute -right-1.5 top-0.5 rounded-r-xs" />
+          <div className="w-2 h-0.5 bg-[#78350F] rounded-full" />
         </div>
         {/* Steam Animation */}
-        <div className="w-1 h-2 -mt-1 mx-auto bg-white/40 rounded-full animate-bounce" style={{ animationDuration: '2s' }} />
+        <div className="w-1.5 h-2.5 -mt-1 mx-auto bg-white/40 rounded-full animate-bounce" style={{ animationDuration: '2.2s' }} />
       </div>
 
       {/* 2. Center-Left Desk: Interactive Retro CRT Monitor */}
@@ -741,8 +931,8 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         style={{
           bottom: '52%',
           left: '41%',
-          width: '18%',
-          height: '26%',
+          width: '17.5%',
+          height: '25%',
         }}
         title="Interactive CRT Monitor (Click to watch & cycle modes)"
       >
@@ -754,66 +944,225 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         />
       </div>
 
-      {/* 3. Right Desk: Secondary Screen (Manga Display) */}
+      {/* 3. Right Desk: Dedicated Retro Manga Display Terminal */}
       <div
-        className="absolute z-40 bg-[#1A1D24] rounded-t border-2 border-[#333C4D] shadow-lg p-1 flex flex-col justify-between cursor-pointer group hover:border-[#FBBF24] transition-colors"
+        className="absolute z-40 select-none cursor-pointer group"
         style={{
           bottom: '52%',
-          left: '60.5%',
-          width: '12%',
-          height: '16%',
+          left: '59.5%',
+          width: '13.5%',
+          height: '18%',
         }}
         onClick={onMonitorClick}
-        title="Secondary Manga Display (Click to cycle manga)"
+        title="Secondary Manga Display (Click to cycle manga!)"
       >
-        <div className="bg-[#080B10] rounded-[1px] h-[75%] p-1 flex flex-col items-center justify-center text-center overflow-hidden border border-black/50">
-          <div className="text-[7.5px] font-mono font-bold text-[#FBBF24] tracking-wider uppercase">
-            {activeManga.replace('-', ' ')}
+        {/* Monitor Upper Chassis */}
+        <div className="w-full h-[85%] bg-gradient-to-b from-[#252B36] to-[#181C24] rounded-t border-2 border-[#384252] group-hover:border-[#FBBF24] transition-colors shadow-2xl p-1 flex flex-col justify-between overflow-hidden">
+          {/* Monitor Header Badge & Status LED */}
+          <div className="flex items-center justify-between border-b border-[#2C3442] pb-0.5 px-0.5">
+            <span className="text-[5.5px] font-mono text-[#FBBF24] font-bold tracking-wider">MANGA-OS // V-SYNC</span>
+            <span className="w-1 h-1 rounded-full bg-[#FBBF24] animate-pulse" />
           </div>
-          <div className="text-[5.5px] font-mono text-accent-cream opacity-80 mt-0.5">
-            {activeManga === 'one-piece'
-              ? 'GEAR 5 // NIKA'
-              : activeManga === 'naruto'
-              ? 'SAGE OF SIX PATHS'
-              : activeManga === 'bleach'
-              ? 'BANKAI // HOLLOW'
-              : activeManga === 'black-clover'
-              ? 'ANTI-MAGIC GRIND'
-              : 'SERIOUS PUNCH'}
+
+          {/* CRT Screen Tube Displaying Unique Pixel Art Manga Badges */}
+          <div className="relative bg-[#070A0F] rounded-[1px] h-[74%] p-1 flex flex-col items-center justify-between text-center overflow-hidden border border-black/70 shadow-[inset_0_0_8px_rgba(0,0,0,0.9)]">
+            {/* Scanline Overlay */}
+            <div className="absolute inset-0 crt-scanlines pointer-events-none opacity-30" />
+            <div
+              className="absolute inset-0 pointer-events-none opacity-20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 40%)',
+              }}
+            />
+
+            {/* MANGA 1: ONE PIECE */}
+            {activeManga === 'one-piece' && (
+              <div className="flex-1 flex flex-col items-center justify-between w-full py-0.5 relative z-10">
+                {/* Straw Hat Pixel Art Icon */}
+                <div className="w-7 h-4 relative flex items-center justify-center">
+                  <div className="w-6 h-1 bg-[#D97706] rounded-full absolute bottom-0.5" />
+                  <div className="w-4 h-2.5 bg-[#FBBF24] rounded-t-full relative">
+                    <div className="w-full h-0.5 bg-[#DC2626] absolute bottom-0.5" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[7.5px] font-mono font-bold text-[#FBBF24] tracking-wider leading-none">ONE PIECE</div>
+                  <div className="text-[5px] font-mono text-[#FDE68A] mt-0.5">GEAR 5 // SUN GOD NIKA</div>
+                </div>
+                <div className="w-full bg-[#1E293B] rounded-xs px-1 py-[0.5px] flex justify-between text-[4.5px] font-mono text-[#94A3B8]">
+                  <span className="text-[#FBBF24]">BOUNTY</span>
+                  <span>3,000,000,000 ฿</span>
+                </div>
+              </div>
+            )}
+
+            {/* MANGA 2: NARUTO */}
+            {activeManga === 'naruto' && (
+              <div className="flex-1 flex flex-col items-center justify-between w-full py-0.5 relative z-10">
+                {/* Konoha Spiral Headband Icon */}
+                <div className="w-6 h-3 bg-[#475569] rounded-[1px] border border-[#94A3B8] flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full border border-white flex items-center justify-center">
+                    <div className="w-0.5 h-0.5 bg-white rounded-full" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[7.5px] font-mono font-bold text-[#FB923C] tracking-wider leading-none">NARUTO</div>
+                  <div className="text-[5px] font-mono text-[#FED7AA] mt-0.5">SAGE OF SIX PATHS</div>
+                </div>
+                <div className="w-full bg-[#1E293B] rounded-xs px-1 py-[0.5px] flex justify-between text-[4.5px] font-mono text-[#94A3B8]">
+                  <span className="text-[#FB923C]">CHAKRA</span>
+                  <span className="text-accent">100% [MAX]</span>
+                </div>
+              </div>
+            )}
+
+            {/* MANGA 3: BLEACH */}
+            {activeManga === 'bleach' && (
+              <div className="flex-1 flex flex-col items-center justify-between w-full py-0.5 relative z-10">
+                {/* Hollow Mask / Crossed Blades Icon */}
+                <div className="w-5 h-3 flex items-center justify-center relative">
+                  <div className="w-3.5 h-3 bg-[#F1F5F9] rounded-t-md rounded-b-xs relative flex items-center justify-around px-0.5">
+                    <div className="w-0.5 h-1 bg-[#DC2626]" />
+                    <div className="w-0.5 h-1 bg-[#1E293B]" />
+                    <div className="w-0.5 h-1 bg-[#1E293B]" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[7.5px] font-mono font-bold text-[#F87171] tracking-wider leading-none">BLEACH</div>
+                  <div className="text-[5px] font-mono text-[#C084FC] mt-0.5">BANKAI // TENSA ZANGETSU</div>
+                </div>
+                <div className="w-full bg-[#1E293B] rounded-xs px-1 py-[0.5px] flex justify-between text-[4.5px] font-mono text-[#94A3B8]">
+                  <span className="text-[#C084FC]">REIRYOKU</span>
+                  <span className="text-red-400">OVERFLOW</span>
+                </div>
+              </div>
+            )}
+
+            {/* MANGA 4: BLACK CLOVER */}
+            {activeManga === 'black-clover' && (
+              <div className="flex-1 flex flex-col items-center justify-between w-full py-0.5 relative z-10">
+                {/* 5-Leaf Clover Icon */}
+                <div className="w-4 h-3 flex items-center justify-center">
+                  <span className="text-[9px] text-[#EF4444] leading-none">🍀</span>
+                </div>
+                <div>
+                  <div className="text-[7.5px] font-mono font-bold text-[#EF4444] tracking-wider leading-none">BLACK CLOVER</div>
+                  <div className="text-[5px] font-mono text-[#FCA5A5] mt-0.5">ANTI-MAGIC // DEVIL UNION</div>
+                </div>
+                <div className="w-full bg-[#1E293B] rounded-xs px-1 py-[0.5px] flex justify-between text-[4.5px] font-mono text-[#94A3B8]">
+                  <span className="text-[#EF4444]">MANA</span>
+                  <span>ZERO // WILL: ∞</span>
+                </div>
+              </div>
+            )}
+
+            {/* MANGA 5: ONE PUNCH MAN */}
+            {activeManga === 'one-punch-man' && (
+              <div className="flex-1 flex flex-col items-center justify-between w-full py-0.5 relative z-10">
+                {/* Saitama Hero Profile / Fist Icon */}
+                <div className="w-4 h-3 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-[#FDE68A] rounded-full border border-[#D97706] shadow-sm" />
+                </div>
+                <div>
+                  <div className="text-[7.5px] font-mono font-bold text-[#EAB308] tracking-wider leading-none">ONE PUNCH MAN</div>
+                  <div className="text-[5px] font-mono text-[#FEF08A] mt-0.5">SERIOUS PUNCH // 100%</div>
+                </div>
+                <div className="w-full bg-[#1E293B] rounded-xs px-1 py-[0.5px] flex justify-between text-[4.5px] font-mono text-[#94A3B8]">
+                  <span className="text-[#EF4444]">THREAT</span>
+                  <span className="text-accent font-bold">GOD LEVEL</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        {/* Mini Stand */}
-        <div className="w-8 h-1 bg-[#2C3440] mx-auto rounded-b-xs" />
+
+        {/* Dual Tubular Metallic Stand Legs & Flat Desk Footplate */}
+        <div className="w-full h-[15%] flex flex-col items-center justify-end">
+          <div className="w-8 h-2 flex justify-between px-1">
+            <div className="w-1.5 h-full bg-[#64748B] border-x border-[#334155]" />
+            <div className="w-1.5 h-full bg-[#64748B] border-x border-[#334155]" />
+          </div>
+          <div className="w-14 h-1 bg-[#475569] rounded-b-xs border border-t-0 border-[#1E293B] shadow-md" />
+        </div>
       </div>
 
-      {/* 4. Far Right Desk: Audio Cassette Deck & Amp with Bouncing VU Meters */}
+      {/* 4. Far Right Desk: Retro Hi-Fi Audio Cassette Deck D-88 */}
       <div
-        className="absolute z-40 bg-[#242A36] rounded border border-[#3A4456] shadow-md p-1 flex flex-col justify-between pointer-events-none"
+        className="absolute z-40 bg-[#1C2029] rounded border-2 border-[#333C4D] shadow-xl p-1.5 flex flex-col justify-between pointer-events-none select-none"
         style={{
           bottom: '52%',
           left: '73.5%',
-          width: '8.5%',
-          height: '14%',
+          width: '9%',
+          height: '16%',
         }}
       >
-        {/* Cassette Windows */}
-        <div className="flex justify-around items-center h-4 bg-[#12161F] rounded-[1px] border border-black/40">
-          <div className="w-2.5 h-2.5 rounded-full border border-[#4A5568] flex items-center justify-center">
-            <div className="w-1 h-1 rounded-full bg-white/60 animate-spin" style={{ animationDuration: '4s' }} />
-          </div>
-          <div className="w-2.5 h-2.5 rounded-full border border-[#4A5568] flex items-center justify-center">
-            <div className="w-1 h-1 rounded-full bg-white/60 animate-spin" style={{ animationDuration: '4s' }} />
+        {/* Brushed Metal Top Trim with Silk-screened Branding */}
+        <div className="flex items-center justify-between border-b border-[#2C3442] pb-0.5">
+          <span className="text-[5px] font-mono text-[#D4AF37] font-bold tracking-wider">HUZBI D-88</span>
+          {/* Digital 7-Segment Tape Counter */}
+          <div className="bg-[#0A0D13] px-1 rounded-[0.5px] border border-[#232936] text-[5px] font-mono text-[#EF4444] font-bold leading-tight">
+            02:14
           </div>
         </div>
-        {/* Bouncing Audio VU Meter */}
-        <div className="flex items-center justify-between px-0.5">
-          <div className="flex gap-0.5 items-end h-2">
-            <div className="w-1 h-1 bg-accent" />
-            <div className="w-1 h-1.5 bg-accent" />
-            <div className="w-1 h-2 bg-[#E6A15C] animate-pulse" />
-            <div className="w-1 h-1.5 bg-[#E53935]" />
+
+        {/* Clear Acrylic Cassette Bay Door with Rotating Spools & Magnetic Tape */}
+        <div className="relative bg-[#0A0D13] rounded-[1px] p-1 border border-black/70 shadow-inner flex flex-col justify-between h-[52%]">
+          {/* Cassette Tape Housing Inside Bay */}
+          <div className="w-full h-full bg-[#181D26] rounded-[1px] border border-[#333C4D] p-0.5 flex flex-col justify-between">
+            {/* Label Strip */}
+            <div className="w-full h-1 bg-[#DC2626] rounded-[0.5px] flex items-center justify-center">
+              <span className="text-[3.5px] font-mono text-white font-bold">LO-FI BEATS // 90M</span>
+            </div>
+
+            {/* Twin Geared Spools with Spinning Crossbars */}
+            <div className="flex justify-around items-center py-0.5">
+              <div className="w-3 h-3 rounded-full bg-[#2A3342] border border-[#4A5568] flex items-center justify-center relative">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/70 animate-spin" style={{ animationDuration: '3.5s' }} />
+                <div className="w-0.5 h-0.5 rounded-full bg-[#0A0D13] absolute" />
+              </div>
+              {/* Visible Magnetic Tape Ribbon Bridge */}
+              <div className="w-4 h-0.5 bg-[#451A03] rounded-full opacity-90" />
+              <div className="w-3 h-3 rounded-full bg-[#2A3342] border border-[#4A5568] flex items-center justify-center relative">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/70 animate-spin" style={{ animationDuration: '3.5s' }} />
+                <div className="w-0.5 h-0.5 rounded-full bg-[#0A0D13] absolute" />
+              </div>
+            </div>
           </div>
-          <span className="text-[5px] font-mono text-fg-subtle">LO-FI</span>
+        </div>
+
+        {/* Dynamic Dual VU Meters & Physical Tape Transport Buttons */}
+        <div className="space-y-0.5 pt-0.5">
+          {/* Dual Stereo Jumping LED Ladders */}
+          <div className="flex items-center justify-between bg-[#0A0D13] px-1 py-0.5 rounded-[0.5px] border border-black/50">
+            <span className="text-[4px] font-mono text-[#94A3B8]">L/R</span>
+            <div className="flex gap-1 items-center">
+              <div className="flex gap-[0.5px] items-end h-1.5">
+                <div className="w-0.5 h-1 bg-accent" />
+                <div className="w-0.5 h-1 bg-accent" />
+                <div className="w-0.5 h-1.5 bg-[#F59E0B] animate-pulse" />
+                <div className="w-0.5 h-1.5 bg-[#EF4444]" />
+              </div>
+              <div className="flex gap-[0.5px] items-end h-1.5">
+                <div className="w-0.5 h-1 bg-accent" />
+                <div className="w-0.5 h-1 bg-accent" />
+                <div className="w-0.5 h-1.5 bg-[#F59E0B]" />
+                <div className="w-0.5 h-1.5 bg-[#EF4444] animate-pulse" />
+              </div>
+            </div>
+          </div>
+
+          {/* Tape Controls: REC, PLAY, STOP & Headphone Jack */}
+          <div className="flex justify-between items-center px-0.5">
+            <div className="flex gap-[1px]">
+              <div className="w-1.5 h-1 bg-[#DC2626] rounded-[0.5px]" title="REC" />
+              <div className="w-1.5 h-1 bg-accent rounded-[0.5px]" title="PLAY" />
+              <div className="w-1.5 h-1 bg-[#475569] rounded-[0.5px]" title="STOP" />
+            </div>
+            {/* Knurled Volume Potentiometer Dial */}
+            <div className="w-2 h-2 rounded-full bg-[#475569] border border-[#1E293B] flex items-center justify-center relative shadow-sm">
+              <div className="w-0.5 h-1 bg-white absolute top-0" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -846,41 +1195,43 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 9. LAYER 8: RIGHT FOREGROUND PLUSH ARMCHAIR & SLEEPING CAT               */}
+      {/* 9. LAYER 8: RIGHT FOREGROUND COZY FLOOR CAT COUCH & SLEEPING CALICO CAT   */}
       {/* ========================================================================= */}
       <div
-        className="absolute bottom-[3%] left-[77%] w-[21.5%] h-[34%] z-40 cursor-pointer group select-none"
+        className="absolute bottom-[2%] left-[76.5%] w-[20%] h-[18%] z-40 cursor-pointer group select-none"
         onClick={onCatClick}
-        title="Sleeping Cat Mascot on Armchair (Click to pet!)"
+        title="Sleeping Cat Mascot in Cat Bed (Click to pet!)"
       >
-        {/* Retro Corduroy Armchair SVG */}
-        <svg viewBox="0 0 100 80" className="w-full h-full drop-shadow-2xl overflow-visible" shapeRendering="crispEdges">
-          {/* Armchair Backrest with Vertical Ribbed Sections */}
-          <rect x="15" y="10" width="70" height="35" fill="#3D324F" rx="3" />
-          <rect x="18" y="13" width="64" height="29" fill="#4E4065" rx="2" />
-          <line x1="34" y1="13" x2="34" y2="42" stroke="#342A43" strokeWidth="1.5" />
-          <line x1="50" y1="13" x2="50" y2="42" stroke="#342A43" strokeWidth="1.5" />
-          <line x1="66" y1="13" x2="66" y2="42" stroke="#342A43" strokeWidth="1.5" />
+        {/* Miniature Velvet Cat Couch / Bed SVG */}
+        <svg viewBox="0 0 100 65" className="w-full h-full drop-shadow-xl overflow-visible" shapeRendering="crispEdges">
+          {/* Back Bolster Cushion */}
+          <rect x="12" y="8" width="76" height="30" rx="6" fill="#3D2A4A" stroke="#251830" strokeWidth="2" />
+          {/* Tufted Button Accents on Back Cushion */}
+          <circle cx="28" cy="20" r="1.5" fill="#251830" />
+          <circle cx="50" cy="18" r="1.5" fill="#251830" />
+          <circle cx="72" cy="20" r="1.5" fill="#251830" />
 
-          {/* Left Armrest */}
-          <rect x="5" y="30" width="16" height="40" fill="#342A43" rx="2" />
-          <rect x="7" y="32" width="12" height="36" fill="#4E4065" rx="1.5" />
+          {/* Left Bolster Armrest */}
+          <rect x="6" y="20" width="16" height="30" rx="5" fill="#4B355A" stroke="#251830" strokeWidth="1.5" />
+          <rect x="8.5" y="22" width="11" height="25" rx="3.5" fill="#5F4573" />
 
-          {/* Right Armrest */}
-          <rect x="79" y="30" width="16" height="40" fill="#342A43" rx="2" />
-          <rect x="81" y="32" width="12" height="36" fill="#4E4065" rx="1.5" />
+          {/* Right Bolster Armrest */}
+          <rect x="78" y="20" width="16" height="30" rx="5" fill="#4B355A" stroke="#251830" strokeWidth="1.5" />
+          <rect x="80.5" y="22" width="11" height="25" rx="3.5" fill="#5F4573" />
 
-          {/* Seat Cushion Base */}
-          <rect x="19" y="44" width="62" height="22" fill="#342A43" rx="2" />
-          <rect x="21" y="45" width="58" height="19" fill="#584972" rx="1.5" />
+          {/* Deep Velvet Mattress Cushion */}
+          <rect x="18" y="26" width="64" height="26" rx="5" fill="#5E4373" stroke="#251830" strokeWidth="1.5" />
+          <rect x="21" y="28" width="58" height="20" rx="3.5" fill="#75568F" />
+          {/* Front Bolster Lip */}
+          <rect x="18" y="44" width="64" height="8" rx="2" fill="#3D2A4A" stroke="#251830" strokeWidth="1" />
 
-          {/* Wooden Legs */}
-          <rect x="14" y="68" width="5" height="10" fill="#241710" />
-          <rect x="81" y="68" width="5" height="10" fill="#241710" />
+          {/* Miniature Wooden Bun Feet on Floor */}
+          <rect x="14" y="52" width="6" height="5" rx="1.5" fill="#241710" />
+          <rect x="80" y="52" width="6" height="5" rx="1.5" fill="#241710" />
         </svg>
 
-        {/* Sleeping Calico Cat nestled on the armchair seat */}
-        <div className="absolute top-[26%] left-[14%] w-[48%] h-[40%] pointer-events-none">
+        {/* Sleeping Calico Cat nestled snugly in the pet bed */}
+        <div className="absolute top-[8%] left-[16%] w-[68%] h-[68%] pointer-events-none">
           <svg viewBox="0 0 60 40" className="w-full h-full overflow-visible" shapeRendering="crispEdges">
             <g className="animate-pulse" style={{ animationDuration: '3.6s' }}>
               {/* Cat Body */}
@@ -907,28 +1258,19 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 
         {/* Floating Hearts Animation when being petted */}
         {actionState === 'petting' && (
-          <div className="absolute -top-6 left-[35%] flex gap-1 pointer-events-none animate-bounce">
+          <div className="absolute -top-5 left-[38%] flex gap-1 pointer-events-none animate-bounce">
             <span className="text-red-400 text-sm">♥</span>
             <span className="text-red-400 text-xs animate-ping">♥</span>
           </div>
         )}
       </div>
 
-      {/* Retro Game Controller on Floor in front of Armchair */}
-      <div className="absolute bottom-[2%] left-[84%] w-[6%] h-[4%] z-30 pointer-events-none">
-        <svg viewBox="0 0 40 25" className="w-full h-full" fill="none">
-          {/* Gamepad Body */}
-          <rect x="4" y="5" width="32" height="15" rx="4" fill="#4A5568" stroke="#1A202C" strokeWidth="1" />
-          {/* D-Pad */}
-          <rect x="8" y="10" width="7" height="2.5" fill="#CBD5E1" />
-          <rect x="10.25" y="7.75" width="2.5" height="7" fill="#CBD5E1" />
-          {/* Action Buttons */}
-          <circle cx="26" cy="11" r="1.5" fill="#E53935" />
-          <circle cx="30" cy="9" r="1.5" fill="#FBBF24" />
-          <circle cx="28" cy="14" r="1.5" fill="#38A169" />
-          {/* Winding Wire */}
-          <path d="M20,5 Q18,-3 12,-1 Q8,2 2,-2" stroke="#1A202C" strokeWidth="1" fill="none" />
-        </svg>
+      {/* Cat Water Dish & Toy on Floor next to Cat Bed */}
+      <div className="absolute bottom-[2%] left-[72.5%] w-5 h-3 bg-[#E2E8F0] rounded-b-md border border-[#A0AEC0] flex items-center justify-center pointer-events-none shadow-sm z-30">
+        <div className="w-3 h-0.5 bg-[#60A5FA] rounded-full" />
+      </div>
+      <div className="absolute bottom-[1.5%] left-[97%] w-2.5 h-2.5 bg-[#E53935] rounded-full shadow-sm pointer-events-none z-30 flex items-center justify-center">
+        <div className="w-1 h-0.5 bg-white/60 -rotate-45" />
       </div>
 
       {/* ========================================================================= */}

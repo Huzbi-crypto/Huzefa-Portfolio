@@ -59,8 +59,8 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
   },
   'mascot-pet': {
     id: 'mascot-pet',
-    x: 75.5,
-    bottom: 7,
+    x: 74,
+    bottom: 5,
     zIndex: 45,
     facing: 'right',
     action: 'petting',
