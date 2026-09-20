@@ -13,6 +13,7 @@ export interface CharacterProps {
   onAvatarClick?: () => void;
   className?: string;
   isLampOn?: boolean;
+  isSofaHovered?: boolean;
 }
 
 export const DIALOGUES = [
@@ -39,6 +40,7 @@ export const Character: React.FC<CharacterProps> = ({
   onAvatarClick,
   className = '',
   isLampOn = true,
+  isSofaHovered = false,
 }) => {
   const [blinking, setBlinking] = useState<boolean>(false);
   const [dialogueIndex, setDialogueIndex] = useState<number>(0);
@@ -254,14 +256,16 @@ export const Character: React.FC<CharacterProps> = ({
             ♩
           </span>
 
-          {/* Floating Lo-Fi Audio Vibe Pill (Like the Cat's Purr / ZZZ Bubble) */}
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-[#1F1429]/95 border-2 border-[#A8D672] px-2.5 py-0.5 rounded-full shadow-[0_0_14px_rgba(168,214,114,0.5)] animate-bounce">
-            <span className="text-[8px] font-mono font-bold text-[#A8D672] leading-none tracking-wide">
-              humming...
-            </span>
-            <span className="text-[#F472B6] text-[9px] animate-ping leading-none">♪</span>
-            <span className="text-[#7FB8D9] text-[7.5px] leading-none">♫</span>
-          </div>
+          {/* Floating Lo-Fi Audio Vibe Pill (Enlarged & Prominent) */}
+          {!showSpeechBubble && !isHovered && !isSofaHovered && (
+            <div className="absolute -top-6 sm:-top-7 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#1F1429]/95 border-2 border-[#A8D672] px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-[0_0_16px_rgba(168,214,114,0.6)] animate-bounce whitespace-nowrap z-50 pointer-events-none">
+              <span className="text-[11px] sm:text-xs font-mono font-bold text-[#A8D672] leading-none tracking-wider">
+                humming...
+              </span>
+              <span className="text-[#F472B6] text-xs sm:text-sm animate-ping leading-none font-bold">♪</span>
+              <span className="text-[#7FB8D9] text-[10.5px] sm:text-xs leading-none font-bold">♫</span>
+            </div>
+          )}
         </div>
       )}
 

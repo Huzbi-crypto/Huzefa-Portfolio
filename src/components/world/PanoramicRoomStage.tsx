@@ -57,6 +57,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
 }) => {
   const books = personalInfo.readingList;
   const [hoveredBookInfo, setHoveredBookInfo] = useState<{ book: ReadingItem; shelfIdx: number } | null>(null);
+  const [isSofaHovered, setIsSofaHovered] = useState<boolean>(false);
 
   // Group books logically for shelves
   const shelf1Books = books.slice(0, 5); // Shonen Manga: One Piece, Naruto, Bleach, Black Clover, OPM
@@ -1330,19 +1331,12 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
           height: '27%',
         }}
         onClick={onSofaClick}
+        onMouseEnter={() => setIsSofaHovered(true)}
+        onMouseLeave={() => setIsSofaHovered(false)}
         title="Comfy Sofa (Click to sit, close eyes & hum lo-fi beats)"
         role="button"
         tabIndex={0}
       >
-        {/* Floating Tooltip Indicator on Hover */}
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 whitespace-nowrap">
-          <div className="bg-[#181124]/95 text-accent border border-accent/60 px-2.5 py-1 rounded-full text-[9px] font-mono shadow-xl flex items-center gap-1.5 backdrop-blur-xs">
-            <span className="text-[#F472B6]">🛋️</span>
-            <span className="font-bold text-[#F0E6D8]">Comfy Sofa</span>
-            <span className="text-accent-secondary">// Click to relax &amp; hum ♪</span>
-          </div>
-        </div>
-
         {/* Ambient Warm Pulse Under Sofa when Huzbi is Humming */}
         {actionState === 'humming' && (
           <div className="absolute inset-0 -bottom-1 rounded-2xl bg-accent/10 filter blur-md pointer-events-none animate-pulse" />
@@ -1436,6 +1430,28 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
       </div>
 
       {/* ========================================================================= */}
+      {/* 9.6 SOFA HOVER TOOLTIP (Stage-level z-50: never clipped or hidden behind avatar) */}
+      {/* ========================================================================= */}
+      {isSofaHovered && (
+        <div
+          className="absolute left-[48%] -translate-x-1/2 pointer-events-none transition-all duration-200 z-50 whitespace-nowrap"
+          style={{
+            bottom: actionState === 'humming' ? '50%' : '35.5%',
+          }}
+        >
+          <div className="bg-[#181124]/95 text-accent border border-accent/60 px-3 py-1 rounded-full text-[9.5px] font-mono shadow-2xl flex items-center gap-1.5 backdrop-blur-xs">
+            <span className="text-[#F472B6]">🛋️</span>
+            <span className="font-bold text-[#F0E6D8]">Comfy Sofa</span>
+            <span className="text-accent-secondary">
+              {actionState === 'humming'
+                ? '// Relaxing to lo-fi beats ♪'
+                : '// Click to relax & hum ♪'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* 10. LAYER 9: DYNAMIC SPATIAL MOVING AVATAR (Huzbi)                       */}
       {/* ========================================================================= */}
       <div
@@ -1461,6 +1477,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
             bubbleText={bubbleText}
             onAvatarClick={onAvatarClick}
             isLampOn={lampOn}
+            isSofaHovered={isSofaHovered}
           />
         </div>
       </div>
