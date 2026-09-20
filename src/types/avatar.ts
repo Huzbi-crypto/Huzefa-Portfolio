@@ -82,7 +82,7 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
   'sofa-chill': {
     id: 'sofa-chill',
     x: 48,
-    bottom: 17.5,
+    bottom: 11.5,
     zIndex: 45,
     facing: 'front',
     action: 'humming',
@@ -92,7 +92,7 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
   'idle-chill': {
     id: 'idle-chill',
     x: 48,
-    bottom: 17.5,
+    bottom: 11.5,
     zIndex: 45,
     facing: 'front',
     action: 'humming',

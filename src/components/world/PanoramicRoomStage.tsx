@@ -707,119 +707,6 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         </div>
       </div>
 
-      {/* Center Desk/Lounge: INTERACTIVE COMFY SOFA */}
-      <div
-        className="absolute bottom-[12.5%] left-[32%] w-[32%] h-[32%] z-35 cursor-pointer select-none group flex flex-col justify-end items-center"
-        onClick={onSofaClick}
-        title="Comfy Sofa (Click to sit, close eyes & hum lo-fi beats)"
-        role="button"
-        tabIndex={0}
-      >
-        {/* Floating Tooltip Indicator on Hover */}
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 whitespace-nowrap">
-          <div className="bg-[#181124]/95 text-accent border border-accent/60 px-2.5 py-1 rounded-full text-[9px] font-mono shadow-xl flex items-center gap-1.5 backdrop-blur-xs">
-            <span className="text-[#F472B6]">🛋️</span>
-            <span className="font-bold text-[#F0E6D8]">Comfy Sofa</span>
-            <span className="text-accent-secondary">// Click to relax &amp; hum ♪</span>
-          </div>
-        </div>
-
-        {/* Ambient Warm Pulse Under Sofa when Huzbi is Humming */}
-        {actionState === 'humming' && (
-          <div className="absolute inset-0 -bottom-1 rounded-2xl bg-accent/10 filter blur-md pointer-events-none animate-pulse" />
-        )}
-
-        {/* Main Sofa Body */}
-        <div className="relative w-full h-full flex flex-col justify-end items-center group-hover:drop-shadow-[0_0_12px_rgba(168,214,114,0.35)] transition-all">
-          {/* 1. Plush Tufted Backrest Header Roll */}
-          <div className="w-[91%] h-4 bg-gradient-to-r from-[#4A1D2B] via-[#742E43] to-[#4A1D2B] rounded-t-xl border-t-2 border-x-2 border-[#33111D] shadow-sm flex items-center justify-around px-4">
-            <span className="w-3 h-0.5 bg-white/20 rounded-full" />
-            <span className="w-4 h-0.5 bg-white/25 rounded-full" />
-            <span className="w-4 h-0.5 bg-white/25 rounded-full" />
-            <span className="w-4 h-0.5 bg-white/25 rounded-full" />
-            <span className="w-3 h-0.5 bg-white/20 rounded-full" />
-          </div>
-
-          {/* 2. Tufted Backrest Channels */}
-          <div className="w-[91%] flex-1 bg-[#5A2335] border-x-2 border-[#33111D] flex justify-between px-3 py-1 shadow-inner relative min-h-[42px]">
-            {/* Vertical Fluted Cushion Seams & Buttons */}
-            <div className="w-full h-full flex justify-between">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-1 border-r border-[#3D1422] flex flex-col items-center justify-center gap-2">
-                  {/* Upper button row */}
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2E0B17] border border-[#20060E] shadow-inner" />
-                  {/* Lower button row */}
-                  <div className="w-1 h-1 rounded-full bg-[#2E0B17] border border-[#20060E] shadow-inner opacity-70" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 3. Deep Double-Padded Seat Cushion & Armrests */}
-          <div className="relative w-full flex items-center justify-between z-10 -mt-1.5">
-            {/* Left Padded Rounded Armrest */}
-            <div className="w-6 sm:w-7 h-15 sm:h-17 bg-gradient-to-b from-[#7A3349] via-[#632739] to-[#421624] rounded-t-xl rounded-bl-sm border-2 border-[#33111D] shadow-lg flex flex-col justify-between p-1">
-              <div className="w-full h-1.5 bg-white/20 rounded-xs" />
-              <div className="w-full h-1 bg-[#33111D] rounded-xs" />
-            </div>
-
-            {/* Thick Center Seat Cushion */}
-            <div className="flex-1 h-11 sm:h-13 bg-gradient-to-b from-[#8C3A53] via-[#742E43] to-[#4E1B2A] rounded-xs border-t-2 border-[#A84A65] border-b-2 border-[#33111D] shadow-md flex flex-col justify-between p-1 mx-0.5 relative">
-              {/* Cushion Surface Highlight Sheen */}
-              <div className="w-full h-1.5 bg-[#A84A65] opacity-70 rounded-xs" />
-              {/* Center Cushion Split Seam */}
-              <div className="w-full flex justify-center">
-                <div className="w-0.5 h-7 bg-[#33111D] rounded-full opacity-60" />
-              </div>
-              <div className="w-full h-1 bg-[#38111E] rounded-xs" />
-
-              {/* Cozy Corner Throw Pillows on Left Side */}
-              <div className="absolute left-2 -top-4 flex items-center -space-x-1.5">
-                {/* Sage Green Pillow */}
-                <div className="w-6 h-6 bg-gradient-to-tr from-[#3D7A4D] to-[#86EFAC] rounded-xs border border-[#166534] -rotate-12 shadow-sm flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-[#166534] rounded-full" />
-                </div>
-                {/* Honey Amber Mini Pillow */}
-                <div className="w-4.5 h-4.5 bg-gradient-to-tr from-[#D97706] to-[#FDE68A] rounded-xs border border-[#92400E] rotate-6 shadow-xs flex items-center justify-center">
-                  <div className="w-1 h-1 bg-[#92400E] rounded-full" />
-                </div>
-              </div>
-
-              {/* Cozy Draped Throw Blanket on Right Side */}
-              <div className="absolute right-1 -top-3 w-5 h-8 bg-gradient-to-b from-[#E6A15C] via-[#D97706] to-[#B45309] rounded-xs border border-[#78350F] rotate-3 shadow-sm flex flex-col justify-end items-center pb-1">
-                {/* Blanket Fringes */}
-                <div className="flex gap-[1.5px]">
-                  <span className="w-0.5 h-1.5 bg-[#FDE68A]" />
-                  <span className="w-0.5 h-1.5 bg-[#FDE68A]" />
-                  <span className="w-0.5 h-1.5 bg-[#FDE68A]" />
-                  <span className="w-0.5 h-1.5 bg-[#FDE68A]" />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Padded Rounded Armrest */}
-            <div className="w-6 sm:w-7 h-15 sm:h-17 bg-gradient-to-b from-[#7A3349] via-[#632739] to-[#421624] rounded-t-xl rounded-br-sm border-2 border-[#33111D] shadow-lg flex flex-col justify-between p-1">
-              <div className="w-full h-1.5 bg-white/20 rounded-xs" />
-              <div className="w-full h-1 bg-[#33111D] rounded-xs" />
-            </div>
-          </div>
-
-          {/* 4. Tapered Wooden Legs & Floor Shadow */}
-          <div className="w-[91%] flex justify-between items-center px-3 -mt-0.5 z-0">
-            {/* Front Left Angled Leg */}
-            <div className="w-2 h-4 bg-[#54280E] rounded-b-xs border-r border-[#301506] -rotate-12 shadow-sm relative">
-              <div className="w-full h-1 bg-[#D97706] absolute bottom-0 rounded-b-xs" />
-            </div>
-            {/* Front Center Base Skirt Rail */}
-            <div className="flex-1 h-1.5 bg-[#33111D] border-b border-[#20060E]" />
-            {/* Front Right Angled Leg */}
-            <div className="w-2 h-4 bg-[#54280E] rounded-b-xs border-l border-[#301506] rotate-12 shadow-sm relative">
-              <div className="w-full h-1 bg-[#D97706] absolute bottom-0 rounded-b-xs" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Right Under-Desk Red Mini-UPS & Teal Server Cabinet */}
       <div className="absolute bottom-[23.5%] left-[65.5%] w-[14%] h-[19%] flex items-end justify-between z-15 pointer-events-none">
         {/* Red Mini-UPS */}
@@ -1429,6 +1316,123 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
       </div>
       <div className="absolute bottom-[1.5%] left-[97%] w-2.5 h-2.5 bg-[#E53935] rounded-full shadow-sm pointer-events-none z-30 flex items-center justify-center">
         <div className="w-1 h-0.5 bg-white/60 -rotate-45" />
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 9.5 LAYER 8.5: FOREGROUND COMFY LOUNGE SOFA (z-[42] on rug, non-obstructing) */}
+      {/* ========================================================================= */}
+      <div
+        className="absolute cursor-pointer select-none group flex flex-col justify-end items-center z-[42]"
+        style={{
+          bottom: '7%',
+          left: '35.5%',
+          width: '25%',
+          height: '27%',
+        }}
+        onClick={onSofaClick}
+        title="Comfy Sofa (Click to sit, close eyes & hum lo-fi beats)"
+        role="button"
+        tabIndex={0}
+      >
+        {/* Floating Tooltip Indicator on Hover */}
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 whitespace-nowrap">
+          <div className="bg-[#181124]/95 text-accent border border-accent/60 px-2.5 py-1 rounded-full text-[9px] font-mono shadow-xl flex items-center gap-1.5 backdrop-blur-xs">
+            <span className="text-[#F472B6]">🛋️</span>
+            <span className="font-bold text-[#F0E6D8]">Comfy Sofa</span>
+            <span className="text-accent-secondary">// Click to relax &amp; hum ♪</span>
+          </div>
+        </div>
+
+        {/* Ambient Warm Pulse Under Sofa when Huzbi is Humming */}
+        {actionState === 'humming' && (
+          <div className="absolute inset-0 -bottom-1 rounded-2xl bg-accent/10 filter blur-md pointer-events-none animate-pulse" />
+        )}
+
+        {/* Main Sofa Body */}
+        <div className="relative w-full h-full flex flex-col justify-end items-center group-hover:drop-shadow-[0_0_12px_rgba(168,214,114,0.35)] transition-all">
+          {/* 1. Plush Tufted Backrest Header Roll */}
+          <div className="w-[90%] h-3.5 bg-gradient-to-r from-[#4A1D2B] via-[#742E43] to-[#4A1D2B] rounded-t-xl border-t-2 border-x-2 border-[#33111D] shadow-sm flex items-center justify-around px-3">
+            <span className="w-2.5 h-0.5 bg-white/20 rounded-full" />
+            <span className="w-3.5 h-0.5 bg-white/25 rounded-full" />
+            <span className="w-3.5 h-0.5 bg-white/25 rounded-full" />
+            <span className="w-2.5 h-0.5 bg-white/20 rounded-full" />
+          </div>
+
+          {/* 2. Tufted Backrest Channels */}
+          <div className="w-[90%] flex-1 bg-[#5A2335] border-x-2 border-[#33111D] flex justify-between px-2 py-0.5 shadow-inner relative min-h-[36px]">
+            {/* Vertical Fluted Cushion Seams & Buttons */}
+            <div className="w-full h-full flex justify-between">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex-1 border-r border-[#3D1422] flex flex-col items-center justify-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#2E0B17] border border-[#20060E] shadow-inner" />
+                  <div className="w-1 h-1 rounded-full bg-[#2E0B17] border border-[#20060E] shadow-inner opacity-70" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Deep Double-Padded Seat Cushion & Armrests */}
+          <div className="relative w-full flex items-center justify-between z-10 -mt-1">
+            {/* Left Padded Rounded Armrest */}
+            <div className="w-5 sm:w-6 h-13 sm:h-15 bg-gradient-to-b from-[#7A3349] via-[#632739] to-[#421624] rounded-t-xl rounded-bl-sm border-2 border-[#33111D] shadow-lg flex flex-col justify-between p-1">
+              <div className="w-full h-1 bg-white/20 rounded-xs" />
+              <div className="w-full h-0.5 bg-[#33111D] rounded-xs" />
+            </div>
+
+            {/* Thick Center Seat Cushion */}
+            <div className="flex-1 h-10 sm:h-11 bg-gradient-to-b from-[#8C3A53] via-[#742E43] to-[#4E1B2A] rounded-xs border-t-2 border-[#A84A65] border-b-2 border-[#33111D] shadow-md flex flex-col justify-between p-1 mx-0.5 relative">
+              {/* Cushion Surface Highlight Sheen */}
+              <div className="w-full h-1 bg-[#A84A65] opacity-70 rounded-xs" />
+              {/* Center Cushion Split Seam */}
+              <div className="w-full flex justify-center">
+                <div className="w-0.5 h-6 bg-[#33111D] rounded-full opacity-60" />
+              </div>
+              <div className="w-full h-0.5 bg-[#38111E] rounded-xs" />
+
+              {/* Cozy Corner Throw Pillows on Left Side */}
+              <div className="absolute left-1.5 -top-3.5 flex items-center -space-x-1">
+                {/* Sage Green Pillow */}
+                <div className="w-5 h-5 bg-gradient-to-tr from-[#3D7A4D] to-[#86EFAC] rounded-xs border border-[#166534] -rotate-12 shadow-sm flex items-center justify-center">
+                  <div className="w-1 h-1 bg-[#166534] rounded-full" />
+                </div>
+                {/* Honey Amber Mini Pillow */}
+                <div className="w-4 h-4 bg-gradient-to-tr from-[#D97706] to-[#FDE68A] rounded-xs border border-[#92400E] rotate-6 shadow-xs flex items-center justify-center">
+                  <div className="w-1 h-1 bg-[#92400E] rounded-full" />
+                </div>
+              </div>
+
+              {/* Cozy Draped Throw Blanket on Right Side */}
+              <div className="absolute right-1 -top-2.5 w-4.5 h-7 bg-gradient-to-b from-[#E6A15C] via-[#D97706] to-[#B45309] rounded-xs border border-[#78350F] rotate-3 shadow-sm flex flex-col justify-end items-center pb-0.5">
+                {/* Blanket Fringes */}
+                <div className="flex gap-[1px]">
+                  <span className="w-0.5 h-1 bg-[#FDE68A]" />
+                  <span className="w-0.5 h-1 bg-[#FDE68A]" />
+                  <span className="w-0.5 h-1 bg-[#FDE68A]" />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Padded Rounded Armrest */}
+            <div className="w-5 sm:w-6 h-13 sm:h-15 bg-gradient-to-b from-[#7A3349] via-[#632739] to-[#421624] rounded-t-xl rounded-br-sm border-2 border-[#33111D] shadow-lg flex flex-col justify-between p-1">
+              <div className="w-full h-1 bg-white/20 rounded-xs" />
+              <div className="w-full h-0.5 bg-[#33111D] rounded-xs" />
+            </div>
+          </div>
+
+          {/* 4. Tapered Wooden Legs & Floor Shadow */}
+          <div className="w-[90%] flex justify-between items-center px-2.5 -mt-0.5 z-0">
+            {/* Front Left Angled Leg */}
+            <div className="w-2 h-3.5 bg-[#54280E] rounded-b-xs border-r border-[#301506] -rotate-12 shadow-sm relative">
+              <div className="w-full h-0.5 bg-[#D97706] absolute bottom-0 rounded-b-xs" />
+            </div>
+            {/* Front Center Base Skirt Rail */}
+            <div className="flex-1 h-1 bg-[#33111D] border-b border-[#20060E]" />
+            {/* Front Right Angled Leg */}
+            <div className="w-2 h-3.5 bg-[#54280E] rounded-b-xs border-l border-[#301506] rotate-12 shadow-sm relative">
+              <div className="w-full h-0.5 bg-[#D97706] absolute bottom-0 rounded-b-xs" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ========================================================================= */}
