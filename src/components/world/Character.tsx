@@ -256,14 +256,14 @@ export const Character: React.FC<CharacterProps> = ({
             ♩
           </span>
 
-          {/* Floating Lo-Fi Audio Vibe Pill (Genuinely Prominent & Legible) */}
+          {/* Floating Lo-Fi Audio Vibe Pill (Cozy & Well-Proportioned) */}
           {!showSpeechBubble && !isHovered && !isSofaHovered && (
-            <div className="absolute -top-9 sm:-top-11 left-1/2 -translate-x-1/2 flex items-center gap-2.5 bg-[#1F1429]/95 border-[2.5px] border-[#A8D672] px-5 py-1.5 sm:px-6 sm:py-2 rounded-full shadow-[0_0_20px_rgba(168,214,114,0.65),0_4px_12px_rgba(0,0,0,0.8)] animate-bounce whitespace-nowrap z-50 pointer-events-none">
-              <span className="text-xs sm:text-sm md:text-base font-mono font-black text-[#A8D672] leading-none tracking-widest uppercase">
+            <div className="absolute -top-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-[#1F1429]/95 border-[1.5px] border-[#A8D672] px-3 py-0.5 rounded-full shadow-[0_0_10px_rgba(168,214,114,0.45)] animate-bounce whitespace-nowrap z-50 pointer-events-none">
+              <span className="text-[9.5px] font-mono font-bold text-[#A8D672] leading-none tracking-wide">
                 humming...
               </span>
-              <span className="text-sm sm:text-base md:text-lg text-[#F472B6] animate-ping leading-none font-black">♪</span>
-              <span className="text-xs sm:text-sm md:text-base text-[#7FB8D9] leading-none font-black">♫</span>
+              <span className="text-[11px] text-[#F472B6] animate-ping leading-none font-bold">♪</span>
+              <span className="text-[9px] text-[#7FB8D9] leading-none font-bold">♫</span>
             </div>
           )}
         </div>
