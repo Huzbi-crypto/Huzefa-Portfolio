@@ -8,7 +8,7 @@ import { MANGA_SERIES_LIST, MANGA_DIALOGUES, CODING_DIALOGUES, MangaSeries } fro
 import { AvatarHotspotId } from '@/types/avatar';
 import { useAvatarMotion } from '@/hooks/useAvatarMotion';
 import { PanoramicRoomStage } from './PanoramicRoomStage';
-import { Clock, Moon, Sun, BookOpen, Monitor, Laptop, Heart, Eye, Armchair } from 'lucide-react';
+import { Clock, Moon, Sun, BookOpen, Monitor, Laptop, Heart, Eye, Armchair, Tv } from 'lucide-react';
 
 export interface RoomProps {
   onSelectProject?: (projectId: string) => void;
@@ -34,8 +34,8 @@ export const Room: React.FC<RoomProps> = ({
   });
   const [codingThoughtIndex, setCodingThoughtIndex] = useState<number>(0);
   const [activeBook, setActiveBook] = useState<ReadingItem | null>(null);
-  const bubbleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const roomRef = useRef<HTMLDivElement | null>(null);
+  const bubbleTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Avatar Spatial Movement Hook
   const {
@@ -77,10 +77,32 @@ export const Room: React.FC<RoomProps> = ({
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
   }, []);
 
-  // 1. MONITOR CLICK: Huzbi walks to center desk, sits on red swivel stool, watches manga animation
+  // 1. CRT MONITOR CLICK: Huzbi walks to center desk, watches CRT terminal
   const handleMonitorClick = useCallback(() => {
     moveToHotspot('desk-monitor', () => {
       setGazeOverride({ x: 0, y: -0.3 });
+      const crtThoughts = [
+        "huzbi@room ~ $ running full system diagnostics... all green.",
+        "38 repos and counting. late night commits hit different.",
+        "retro trinitron crt scanlines give code an undefeated aesthetic.",
+        "building compilers and simulating network routes at 2 AM.",
+        "vintage crt glow... my favorite way to debug in the dark.",
+      ];
+      const thought = crtThoughts[Math.floor(Math.random() * crtThoughts.length)];
+      setBubbleText(thought);
+
+      if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+      bubbleTimerRef.current = setTimeout(() => {
+        setBubbleText(null);
+        setGazeOverride(null);
+      }, 5000);
+    });
+  }, [moveToHotspot]);
+
+  // 1.5 SECONDARY MANGA DISPLAY CLICK: Huzbi walks over to right monitor (x: 65.5%), cycles manga series & dialogues
+  const handleMangaDisplayClick = useCallback(() => {
+    moveToHotspot('manga-display', () => {
+      setGazeOverride({ x: 0.1, y: -0.3 });
       const nextIndex = (activeMangaIndex + 1) % MANGA_SERIES_LIST.length;
       setActiveMangaIndex(nextIndex);
 
@@ -211,6 +233,9 @@ export const Room: React.FC<RoomProps> = ({
       case 'desk-monitor':
         handleMonitorClick();
         break;
+      case 'manga-display':
+        handleMangaDisplayClick();
+        break;
       case 'desk-laptop':
         handleLaptopClick();
         break;
@@ -258,6 +283,7 @@ export const Room: React.FC<RoomProps> = ({
           {[
             { id: 'sofa-chill', icon: Armchair, label: 'Comfy Sofa' },
             { id: 'desk-monitor', icon: Monitor, label: 'CRT Screen' },
+            { id: 'manga-display', icon: Tv, label: 'Manga Screen' },
             { id: 'desk-laptop', icon: Laptop, label: 'Laptop' },
             { id: 'bookshelf-stand', icon: BookOpen, label: 'Bookshelf' },
             { id: 'mascot-pet', icon: Heart, label: 'Pet Cat' },
@@ -318,6 +344,7 @@ export const Room: React.FC<RoomProps> = ({
         bubbleText={bubbleText}
         onAvatarClick={handleAvatarClick}
         onMonitorClick={handleMonitorClick}
+        onMangaDisplayClick={handleMangaDisplayClick}
         onLaptopClick={handleLaptopClick}
         onBookshelfClick={handleBookshelfClick}
         onCatClick={handleCatClick}

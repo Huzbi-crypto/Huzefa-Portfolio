@@ -24,6 +24,7 @@ export interface PanoramicRoomStageProps {
   bubbleText?: string | null;
   onAvatarClick?: () => void;
   onMonitorClick?: () => void;
+  onMangaDisplayClick?: () => void;
   onLaptopClick?: () => void;
   onBookshelfClick?: (book: ReadingItem) => void;
   onCatClick?: () => void;
@@ -47,6 +48,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
   bubbleText = null,
   onAvatarClick,
   onMonitorClick,
+  onMangaDisplayClick,
   onLaptopClick,
   onBookshelfClick,
   onCatClick,
@@ -941,7 +943,7 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
           width: '13.5%',
           height: '18%',
         }}
-        onClick={onMonitorClick}
+        onClick={onMangaDisplayClick ?? onMonitorClick}
         title="Secondary Manga Display (Click to cycle manga!)"
       >
         {/* Monitor Upper Chassis */}
@@ -1436,11 +1438,11 @@ export const PanoramicRoomStage: React.FC<PanoramicRoomStageProps> = ({
         <div
           className="absolute left-[48%] -translate-x-1/2 pointer-events-none transition-all duration-200 z-50 whitespace-nowrap"
           style={{
-            bottom: actionState === 'humming' ? '50%' : '35.5%',
+            bottom: actionState === 'humming' ? '44%' : '35.5%',
           }}
         >
-          <div className="bg-[#181124]/95 text-accent border border-accent/60 px-3 py-1 rounded-full text-[9.5px] font-mono shadow-2xl flex items-center gap-1.5 backdrop-blur-xs">
-            <span className="text-[#F472B6]">🛋️</span>
+          <div className="bg-[#181124]/95 text-accent border border-accent/60 px-3.5 py-1.5 rounded-full text-[11px] font-mono shadow-2xl flex items-center gap-2 backdrop-blur-xs">
+            <span className="text-[#F472B6] text-xs">🛋️</span>
             <span className="font-bold text-[#F0E6D8]">Comfy Sofa</span>
             <span className="text-accent-secondary">
               {actionState === 'humming'

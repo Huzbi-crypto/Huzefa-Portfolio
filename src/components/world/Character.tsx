@@ -256,14 +256,14 @@ export const Character: React.FC<CharacterProps> = ({
             ♩
           </span>
 
-          {/* Floating Lo-Fi Audio Vibe Pill (Enlarged & Prominent) */}
+          {/* Floating Lo-Fi Audio Vibe Pill (Genuinely Prominent & Legible) */}
           {!showSpeechBubble && !isHovered && !isSofaHovered && (
-            <div className="absolute -top-6 sm:-top-7 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#1F1429]/95 border-2 border-[#A8D672] px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-[0_0_16px_rgba(168,214,114,0.6)] animate-bounce whitespace-nowrap z-50 pointer-events-none">
-              <span className="text-[11px] sm:text-xs font-mono font-bold text-[#A8D672] leading-none tracking-wider">
+            <div className="absolute -top-9 sm:-top-11 left-1/2 -translate-x-1/2 flex items-center gap-2.5 bg-[#1F1429]/95 border-[2.5px] border-[#A8D672] px-5 py-1.5 sm:px-6 sm:py-2 rounded-full shadow-[0_0_20px_rgba(168,214,114,0.65),0_4px_12px_rgba(0,0,0,0.8)] animate-bounce whitespace-nowrap z-50 pointer-events-none">
+              <span className="text-xs sm:text-sm md:text-base font-mono font-black text-[#A8D672] leading-none tracking-widest uppercase">
                 humming...
               </span>
-              <span className="text-[#F472B6] text-xs sm:text-sm animate-ping leading-none font-bold">♪</span>
-              <span className="text-[#7FB8D9] text-[10.5px] sm:text-xs leading-none font-bold">♫</span>
+              <span className="text-sm sm:text-base md:text-lg text-[#F472B6] animate-ping leading-none font-black">♪</span>
+              <span className="text-xs sm:text-sm md:text-base text-[#7FB8D9] leading-none font-black">♫</span>
             </div>
           )}
         </div>
@@ -306,16 +306,17 @@ export const Character: React.FC<CharacterProps> = ({
           ) : actionState === 'humming' ? (
             // RELAXED SOFA SEATED POSE (Lounging into plush sofa cushions)
             <g id="legs-sofa-chill">
-              <rect x="25" y="65" width="13" height="15" fill="#1A202A" rx="2" />
-              <rect x="42" y="65" width="13" height="15" fill="#171C26" rx="2" />
-              {/* Thighs relaxed into cushion */}
-              <rect x="23" y="70" width="14" height="9" fill="#222A36" rx="1.5" />
-              <rect x="43" y="70" width="14" height="9" fill="#1E242F" rx="1.5" />
-              {/* Green & Cream Sneakers resting comfortably forward */}
-              <rect x="22" y="79" width="14" height="6" fill="#E8E6DD" rx="1" />
-              <rect x="22" y="82" width="15" height="3" fill="#A8D672" />
-              <rect x="44" y="79" width="14" height="6" fill="#E8E6DD" rx="1" />
-              <rect x="43" y="82" width="15" height="3" fill="#A8D672" />
+              {/* Thighs resting flat on the deep plush seat cushion */}
+              <rect x="23" y="65" width="16" height="11" fill="#1A202A" rx="2" />
+              <rect x="41" y="65" width="16" height="11" fill="#171C26" rx="2" />
+              {/* Forward relaxed knees & lower legs */}
+              <rect x="22" y="73" width="16" height="10" fill="#222A36" rx="2" />
+              <rect x="42" y="73" width="16" height="10" fill="#1E242F" rx="2" />
+              {/* Green & Cream Sneakers resting comfortably on the floor / cushion edge */}
+              <rect x="21" y="81" width="17" height="6" fill="#E8E6DD" rx="1.5" />
+              <rect x="21" y="84" width="17" height="3" fill="#A8D672" rx="0.5" />
+              <rect x="42" y="81" width="17" height="6" fill="#E8E6DD" rx="1.5" />
+              <rect x="42" y="84" width="17" height="3" fill="#A8D672" rx="0.5" />
             </g>
           ) : actionState === 'watching' || (actionState === 'idle' && hotspot?.id === 'desk-monitor') ? (
             // SEATED AT STOOL (legs bent forward, feet dangling towards footring)

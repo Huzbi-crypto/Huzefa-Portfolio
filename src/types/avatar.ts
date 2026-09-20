@@ -1,6 +1,7 @@
 export type AvatarHotspotId =
   | 'desk-monitor'
   | 'desk-laptop'
+  | 'manga-display'
   | 'bookshelf-stand'
   | 'mascot-pet'
   | 'window-gaze'
@@ -33,7 +34,7 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
     id: 'desk-monitor',
     x: 47,
     bottom: 27,
-    zIndex: 45,
+    zIndex: 40, // Behind foreground sofa (z-[42]) so lower body is hidden behind backrest
     facing: 'front',
     action: 'watching',
     bubbleAnchor: 'top-center',
@@ -43,11 +44,21 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
     id: 'desk-laptop',
     x: 34,
     bottom: 22,
-    zIndex: 45,
+    zIndex: 40, // Behind foreground sofa (z-[42])
     facing: 'left',
     action: 'typing',
     bubbleAnchor: 'top-left',
     label: 'Coding Laptop',
+  },
+  'manga-display': {
+    id: 'manga-display',
+    x: 65.5,
+    bottom: 25,
+    zIndex: 40, // Behind foreground furniture/desk
+    facing: 'front',
+    action: 'watching',
+    bubbleAnchor: 'top-right',
+    label: 'Manga Display',
   },
   'bookshelf-stand': {
     id: 'bookshelf-stand',
@@ -82,8 +93,8 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
   'sofa-chill': {
     id: 'sofa-chill',
     x: 48,
-    bottom: 11.5,
-    zIndex: 45,
+    bottom: 3.8, // Sits directly into plush seat cushions (cushion top is at ~13%), feet resting on rug at 7.5%
+    zIndex: 43, // In front of sofa backrest (z-[42]) so Huzbi is visibly seated ON the sofa
     facing: 'front',
     action: 'humming',
     bubbleAnchor: 'top-center',
@@ -92,8 +103,8 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
   'idle-chill': {
     id: 'idle-chill',
     x: 48,
-    bottom: 11.5,
-    zIndex: 45,
+    bottom: 3.8,
+    zIndex: 43,
     facing: 'front',
     action: 'humming',
     bubbleAnchor: 'top-center',
