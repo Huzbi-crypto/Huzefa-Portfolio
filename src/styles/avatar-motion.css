@@ -126,3 +126,65 @@
   transform-origin: 54px 56px;
   animation: petStroke 1.1s infinite ease-in-out;
 }
+
+/* Floating Music Notes from Left Earphone */
+@keyframes floatMusicNoteLeft {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-5px, -10px) scale(1) rotate(-10deg);
+  }
+  60% {
+    opacity: 0.85;
+    transform: translate(-14px, -24px) scale(1.15) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-22px, -42px) scale(0.75) rotate(-20deg);
+  }
+}
+
+/* Floating Music Notes from Right Earphone */
+@keyframes floatMusicNoteRight {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(5px, -10px) scale(1) rotate(10deg);
+  }
+  60% {
+    opacity: 0.85;
+    transform: translate(14px, -24px) scale(1.15) rotate(-8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(22px, -42px) scale(0.75) rotate(20deg);
+  }
+}
+
+/* Lo-Fi Head Bobbing while Humming */
+@keyframes avatarHummingHeadBob {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) rotate(3deg);
+  }
+  50% {
+    transform: translateY(0.5px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(-3deg);
+  }
+}
+
+.avatar-humming-head {
+  transform-origin: 40px 38px;
+  animation: avatarHummingHeadBob 1.8s infinite ease-in-out !important;
+}
+

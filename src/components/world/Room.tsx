@@ -8,7 +8,7 @@ import { MANGA_SERIES_LIST, MANGA_DIALOGUES, CODING_DIALOGUES, MangaSeries } fro
 import { AvatarHotspotId } from '@/types/avatar';
 import { useAvatarMotion } from '@/hooks/useAvatarMotion';
 import { PanoramicRoomStage } from './PanoramicRoomStage';
-import { Clock, Moon, Sun, BookOpen, Monitor, Laptop, Heart, Eye } from 'lucide-react';
+import { Clock, Moon, Sun, BookOpen, Monitor, Laptop, Heart, Eye, Armchair } from 'lucide-react';
 
 export interface RoomProps {
   onSelectProject?: (projectId: string) => void;
@@ -180,9 +180,34 @@ export const Room: React.FC<RoomProps> = ({
     });
   }, [moveToHotspot]);
 
+  // 6. SOFA CLICK: Huzbi walks to the comfy sofa, sits down, closes eyes, and hums to lo-fi beats
+  const handleSofaClick = useCallback(() => {
+    moveToHotspot('sofa-chill', () => {
+      setGazeOverride({ x: 0, y: 0.1 });
+      const hummingThoughts = [
+        "~ *hmmmm~ hmmm~* nodding along to late-night lo-fi beats ♪ ♫",
+        "♪ ♫ *dum da dum~* eyes closed, soul at peace on this comfy couch.",
+        "~ ♬ humming favorite anime theme... sound is crisp on these headphones.",
+        "♪ ♫ ~ cozy 2 AM playlist on loop. good music, warm room.",
+        "~ ♩ hmmmm... sinking into the cushions, just pure comfort.",
+      ];
+      const thought = hummingThoughts[Math.floor(Math.random() * hummingThoughts.length)];
+      setBubbleText(thought);
+
+      if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+      bubbleTimerRef.current = setTimeout(() => {
+        setBubbleText(null);
+        setGazeOverride(null);
+      }, 5500);
+    });
+  }, [moveToHotspot]);
+
   // Quick navigation dispatcher from top strip
   const handleQuickNav = (hotspotId: AvatarHotspotId) => {
     switch (hotspotId) {
+      case 'sofa-chill':
+        handleSofaClick();
+        break;
       case 'desk-monitor':
         handleMonitorClick();
         break;
@@ -202,7 +227,7 @@ export const Room: React.FC<RoomProps> = ({
         break;
       case 'idle-chill':
       default:
-        moveToHotspot('idle-chill');
+        moveToHotspot('sofa-chill');
         break;
     }
   };
@@ -231,6 +256,7 @@ export const Room: React.FC<RoomProps> = ({
         <div className="flex items-center gap-1 text-[11px] flex-wrap">
           <span className="text-fg-muted hidden md:inline mr-1">Navigate Huzbi:</span>
           {[
+            { id: 'sofa-chill', icon: Armchair, label: 'Comfy Sofa' },
             { id: 'desk-monitor', icon: Monitor, label: 'CRT Screen' },
             { id: 'desk-laptop', icon: Laptop, label: 'Laptop' },
             { id: 'bookshelf-stand', icon: BookOpen, label: 'Bookshelf' },
@@ -296,6 +322,7 @@ export const Room: React.FC<RoomProps> = ({
         onBookshelfClick={handleBookshelfClick}
         onCatClick={handleCatClick}
         onWindowClick={handleWindowClick}
+        onSofaClick={handleSofaClick}
         onSelectProject={onSelectProject}
       />
 
@@ -314,6 +341,9 @@ export const Room: React.FC<RoomProps> = ({
             <span className="text-fg">{currentHotspot.label}</span>
             {activeBook && actionState === 'reading' && (
               <span className="text-accent-secondary ml-1.5">// &ldquo;{activeBook.title}&rdquo;</span>
+            )}
+            {actionState === 'humming' && (
+              <span className="text-accent-secondary ml-1.5">// &ldquo;listening to lo-fi beats&rdquo; ♪ ♫</span>
             )}
           </span>
           <span className="text-accent font-bold">[ONLINE]</span>

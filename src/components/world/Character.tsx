@@ -153,8 +153,8 @@ export const Character: React.FC<CharacterProps> = ({
           style={{
             width: 'max-content',
             maxWidth: '320px',
-            bottom: actionState === 'petting' ? '70%' : '100%',
-            marginBottom: actionState === 'petting' ? '4px' : '12px',
+            bottom: actionState === 'petting' ? '70%' : actionState === 'humming' ? '84%' : '100%',
+            marginBottom: actionState === 'petting' ? '4px' : actionState === 'humming' ? '8px' : '12px',
           }}
         >
           <div
@@ -175,7 +175,97 @@ export const Character: React.FC<CharacterProps> = ({
         </div>
       )}
 
-      {/* 2. INNER SPRITE CONTAINER (Flipped horizontally with scaleX based on walking direction) */}
+      {/* 2. FLOATING MUSIC NOTES FROM EARPHONES WHEN HUMMING (Like floating hearts during cat petting!) */}
+      {actionState === 'humming' && (
+        <div className="absolute inset-0 pointer-events-none z-40 overflow-visible select-none">
+          {/* Left Earphone Floating Music Notes */}
+          <span
+            className="absolute text-accent text-sm font-bold font-mono"
+            style={{
+              left: '20%',
+              top: '18%',
+              animation: 'floatMusicNoteLeft 2.4s infinite ease-out',
+              animationDelay: '0s',
+              textShadow: '0 0 6px var(--color-accent)',
+            }}
+          >
+            ♪
+          </span>
+          <span
+            className="absolute text-[#F472B6] text-xs font-bold font-mono"
+            style={{
+              left: '18%',
+              top: '22%',
+              animation: 'floatMusicNoteLeft 2.6s infinite ease-out',
+              animationDelay: '0.8s',
+              textShadow: '0 0 6px rgba(244,114,182,0.8)',
+            }}
+          >
+            ♫
+          </span>
+          <span
+            className="absolute text-[#7FB8D9] text-[11px] font-bold font-mono"
+            style={{
+              left: '22%',
+              top: '15%',
+              animation: 'floatMusicNoteLeft 2.8s infinite ease-out',
+              animationDelay: '1.6s',
+              textShadow: '0 0 6px rgba(127,184,217,0.8)',
+            }}
+          >
+            ♬
+          </span>
+
+          {/* Right Earphone Floating Music Notes */}
+          <span
+            className="absolute text-[#A8D672] text-sm font-bold font-mono"
+            style={{
+              left: '68%',
+              top: '18%',
+              animation: 'floatMusicNoteRight 2.5s infinite ease-out',
+              animationDelay: '0.4s',
+              textShadow: '0 0 6px var(--color-accent)',
+            }}
+          >
+            ♫
+          </span>
+          <span
+            className="absolute text-[#F472B6] text-xs font-bold font-mono"
+            style={{
+              left: '70%',
+              top: '22%',
+              animation: 'floatMusicNoteRight 2.7s infinite ease-out',
+              animationDelay: '1.2s',
+              textShadow: '0 0 6px rgba(244,114,182,0.8)',
+            }}
+          >
+            ♪
+          </span>
+          <span
+            className="absolute text-[#E6A15C] text-[11px] font-bold font-mono"
+            style={{
+              left: '66%',
+              top: '15%',
+              animation: 'floatMusicNoteRight 2.9s infinite ease-out',
+              animationDelay: '2.0s',
+              textShadow: '0 0 6px rgba(230,161,92,0.8)',
+            }}
+          >
+            ♩
+          </span>
+
+          {/* Floating Lo-Fi Audio Vibe Pill (Like the Cat's Purr / ZZZ Bubble) */}
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-[#1F1429]/95 border-2 border-[#A8D672] px-2.5 py-0.5 rounded-full shadow-[0_0_14px_rgba(168,214,114,0.5)] animate-bounce">
+            <span className="text-[8px] font-mono font-bold text-[#A8D672] leading-none tracking-wide">
+              humming...
+            </span>
+            <span className="text-[#F472B6] text-[9px] animate-ping leading-none">♪</span>
+            <span className="text-[#7FB8D9] text-[7.5px] leading-none">♫</span>
+          </div>
+        </div>
+      )}
+
+      {/* 3. INNER SPRITE CONTAINER (Flipped horizontally with scaleX based on walking direction) */}
       <div
         className={`w-full h-full transition-transform duration-200 ${
           actionState === 'walking' ? 'avatar-walk-bob' : ''
@@ -208,6 +298,20 @@ export const Character: React.FC<CharacterProps> = ({
               <rect x="42" y="62" width="16" height="16" fill="#171C26" rx="2" />
               <rect x="44" y="76" width="13" height="5" fill="#E8E6DD" />
               <rect x="44" y="79" width="13" height="3" fill="#A8D672" />
+            </g>
+          ) : actionState === 'humming' ? (
+            // RELAXED SOFA SEATED POSE (Lounging into plush sofa cushions)
+            <g id="legs-sofa-chill">
+              <rect x="25" y="65" width="13" height="15" fill="#1A202A" rx="2" />
+              <rect x="42" y="65" width="13" height="15" fill="#171C26" rx="2" />
+              {/* Thighs relaxed into cushion */}
+              <rect x="23" y="70" width="14" height="9" fill="#222A36" rx="1.5" />
+              <rect x="43" y="70" width="14" height="9" fill="#1E242F" rx="1.5" />
+              {/* Green & Cream Sneakers resting comfortably forward */}
+              <rect x="22" y="79" width="14" height="6" fill="#E8E6DD" rx="1" />
+              <rect x="22" y="82" width="15" height="3" fill="#A8D672" />
+              <rect x="44" y="79" width="14" height="6" fill="#E8E6DD" rx="1" />
+              <rect x="43" y="82" width="15" height="3" fill="#A8D672" />
             </g>
           ) : actionState === 'watching' || (actionState === 'idle' && hotspot?.id === 'desk-monitor') ? (
             // SEATED AT STOOL (legs bent forward, feet dangling towards footring)
@@ -262,6 +366,7 @@ export const Character: React.FC<CharacterProps> = ({
           {/* --- D. HEAD, FACE & HEADPHONES --- */}
           <g
             id="huzbi-head"
+            className={actionState === 'humming' ? 'avatar-humming-head' : ''}
             style={{
               transformOrigin: '40px 38px',
               transform:
@@ -290,6 +395,9 @@ export const Character: React.FC<CharacterProps> = ({
             {/* Contextual Mouth */}
             {actionState === 'reading' ? (
               <rect x="38" y="37" width="4" height="2" fill="#5A3D28" />
+            ) : actionState === 'humming' ? (
+              /* Sweet smiling humming arc */
+              <path d="M37.5,37 Q40,39.5 42.5,37" stroke="#5A3D28" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             ) : actionState === 'typing' || actionState === 'petting' ? (
               <g>
                 <rect x="38" y="37" width="4" height="1" fill="#5A3D28" />
@@ -300,11 +408,11 @@ export const Character: React.FC<CharacterProps> = ({
             )}
 
             {/* Contextual Eyes */}
-            {blinking || actionState === 'petting' ? (
-              // Happy / Affectionate closed curved eyes
+            {blinking || actionState === 'petting' || actionState === 'humming' ? (
+              // Happy / Affectionate / Relaxed closed curved eyes
               <g id="eyes-closed">
-                <path d="M33,31 Q35,28 37,31" stroke="#2E1C12" strokeWidth="1.4" fill="none" />
-                <path d="M43,31 Q45,28 47,31" stroke="#2E1C12" strokeWidth="1.4" fill="none" />
+                <path d="M33,31 Q35,28.5 37,31" stroke="#2E1C12" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                <path d="M43,31 Q45,28.5 47,31" stroke="#2E1C12" strokeWidth="1.5" strokeLinecap="round" fill="none" />
               </g>
             ) : (
               // Open tracking eyes
@@ -421,6 +529,18 @@ export const Character: React.FC<CharacterProps> = ({
                 {/* Hand directly resting on and stroking cat */}
                 <rect x="72" y="57" width="14" height="6" fill="#F3D5B5" rx="2" />
               </g>
+            </g>
+          ) : actionState === 'humming' ? (
+            // RELAXED ARMS SITTING ON SOFA ARMRESTS / LAP
+            <g id="arms-sofa-chill">
+              {/* Left arm resting comfortably along sofa armrest */}
+              <rect x="17" y="50" width="9" height="13" fill="#222834" rx="1.5" />
+              <rect x="16" y="59" width="8" height="6" fill="#2C3443" rx="1" />
+              <rect x="17" y="63" width="6" height="4" fill="#F3D5B5" rx="1" />
+              {/* Right arm resting along sofa armrest */}
+              <rect x="54" y="50" width="9" height="13" fill="#222834" rx="1.5" />
+              <rect x="56" y="59" width="8" height="6" fill="#2C3443" rx="1" />
+              <rect x="57" y="63" width="6" height="4" fill="#F3D5B5" rx="1" />
             </g>
           ) : actionState === 'gazing' ? (
             // HAND IN POCKET & CHILL AT WINDOW

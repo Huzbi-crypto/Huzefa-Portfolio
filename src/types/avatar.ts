@@ -4,6 +4,7 @@ export type AvatarHotspotId =
   | 'bookshelf-stand'
   | 'mascot-pet'
   | 'window-gaze'
+  | 'sofa-chill'
   | 'idle-chill';
 
 export type AvatarActionState =
@@ -13,7 +14,8 @@ export type AvatarActionState =
   | 'typing'
   | 'reading'
   | 'petting'
-  | 'gazing';
+  | 'gazing'
+  | 'humming';
 
 export interface HotspotCoordinates {
   id: AvatarHotspotId;
@@ -77,14 +79,24 @@ export const ROOM_HOTSPOTS: Record<AvatarHotspotId, HotspotCoordinates> = {
     bubbleAnchor: 'top-right',
     label: 'Night Window',
   },
-  'idle-chill': {
-    id: 'idle-chill',
-    x: 47,
-    bottom: 27,
+  'sofa-chill': {
+    id: 'sofa-chill',
+    x: 48,
+    bottom: 21,
     zIndex: 45,
     facing: 'front',
-    action: 'idle',
+    action: 'humming',
     bubbleAnchor: 'top-center',
-    label: 'Desk Stool',
+    label: 'Comfy Sofa',
+  },
+  'idle-chill': {
+    id: 'idle-chill',
+    x: 48,
+    bottom: 21,
+    zIndex: 45,
+    facing: 'front',
+    action: 'humming',
+    bubbleAnchor: 'top-center',
+    label: 'Comfy Sofa',
   },
 };
