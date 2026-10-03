@@ -11,6 +11,7 @@ interface ContributionWallProps {
 
 interface ContributionDay extends GitHubContributionDay {
   dayOfWeek: number; // 0 = Sun, 6 = Sat
+  dayOfMonth: number;
   month: string;
   flavor: string;
   formattedDate: string;
@@ -97,6 +98,7 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
     const days: ContributionDay[] = rawList.map((item) => {
       const d = new Date(item.date);
       const dayOfWeek = d.getUTCDay();
+      const dayOfMonth = d.getUTCDate();
       const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
       const formattedDate = d.toLocaleDateString('en-US', {
         weekday: 'short',
@@ -120,6 +122,7 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
       return {
         ...item,
         dayOfWeek,
+        dayOfMonth,
         month,
         formattedDate,
         flavor: item.count > 0 ? FLAVOR_TEXTS[flavorIndex] : 'Resting and reading manga',
@@ -131,20 +134,65 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
       else break;
     }
 
-    // Organize into columns (weeks) of 7 days
-    const weeksList: ContributionDay[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      weeksList.push(days.slice(i, i + 7));
+    // Organize into columns (weeks) of 7 days aligned by calendar week (Sunday = 0 to Saturday = 6)
+    const weeksList: (ContributionDay | null)[][] = [];
+    let currentWeek: (ContributionDay | null)[] = [];
+
+    // If first day is not Sunday, pad start of first week with null
+    if (days.length > 0 && days[0].dayOfWeek > 0) {
+      for (let i = 0; i < days[0].dayOfWeek; i++) {
+        currentWeek.push(null);
+      }
     }
 
-    // Determine month label positions aligned with the 16px column width
+    for (const day of days) {
+      currentWeek.push(day);
+      if (currentWeek.length === 7) {
+        weeksList.push(currentWeek);
+        currentWeek = [];
+      }
+    }
+
+    // Pad last week if incomplete
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(null);
+      }
+      weeksList.push(currentWeek);
+    }
+
+    // Determine month label positions aligned with the 16px column width (w-3 [12px] + gap-1 [4px] = 16px)
+    // GitHub's official algorithm:
+    // A week gets a month label if it contains the 1st of that month.
+    // Labels are spaced with at least 2 columns clearance and don't cram the right boundary.
     const labels: { month: string; colIndex: number }[] = [];
-    let prevMonth = '';
+    let lastLabelCol = -10;
+    const totalWeeks = weeksList.length;
+
     weeksList.forEach((week, colIdx) => {
-      const firstDay = week[0];
-      if (firstDay && firstDay.month !== prevMonth) {
-        labels.push({ month: firstDay.month, colIndex: colIdx });
-        prevMonth = firstDay.month;
+      const firstOfMonth = week.find((day) => day && day.dayOfMonth === 1);
+
+      if (colIdx === 0) {
+        if (firstOfMonth) {
+          labels.push({ month: firstOfMonth.month, colIndex: colIdx });
+          lastLabelCol = colIdx;
+        } else {
+          const firstDay = week.find((d) => d !== null);
+          if (firstDay) {
+            const nextFirstOfMonthCol = weeksList.findIndex(
+              (w, idx) => idx > 0 && w.some((d) => d && d.dayOfMonth === 1)
+            );
+            if (nextFirstOfMonthCol === -1 || nextFirstOfMonthCol >= 2) {
+              labels.push({ month: firstDay.month, colIndex: colIdx });
+              lastLabelCol = colIdx;
+            }
+          }
+        }
+      } else if (firstOfMonth) {
+        if (colIdx - lastLabelCol >= 2 && totalWeeks - colIdx >= 2) {
+          labels.push({ month: firstOfMonth.month, colIndex: colIdx });
+          lastLabelCol = colIdx;
+        }
       }
     });
 
@@ -246,30 +294,38 @@ export function ContributionWall({ repositories: _repositories = [] }: Contribut
             <div className="flex gap-1">
               {weeks.map((week, colIdx) => (
                 <div key={colIdx} className="flex flex-col gap-1">
-                  {week.map((day) => (
-                    <button
-                      key={day.date}
-                      type="button"
-                      onClick={() => setSelectedDay(day)}
-                      onMouseEnter={(e) => handleMouseEnter(day, e)}
-                      onMouseLeave={handleMouseLeave}
-                      aria-label={`${day.count} contributions on ${day.formattedDate}`}
-                      className="w-3 h-3 rounded-[2px] transition-all duration-150 hover:scale-125 hover:z-20 outline-none focus-visible:ring-1 focus-visible:ring-accent"
-                      style={{
-                        backgroundColor: getCellColor(day.level),
-                        boxShadow:
-                          day.level >= 3
-                            ? '0 0 5px rgba(168, 214, 114, 0.4)'
-                            : day.level > 0
-                            ? '0 0 2px rgba(168, 214, 114, 0.2)'
-                            : 'none',
-                        border:
-                          selectedDay?.date === day.date
-                            ? '1px solid var(--color-accent)'
-                            : '1px solid rgba(255, 255, 255, 0.04)',
-                      }}
-                    />
-                  ))}
+                  {week.map((day, dayIdx) =>
+                    day ? (
+                      <button
+                        key={day.date}
+                        type="button"
+                        onClick={() => setSelectedDay(day)}
+                        onMouseEnter={(e) => handleMouseEnter(day, e)}
+                        onMouseLeave={handleMouseLeave}
+                        aria-label={`${day.count} contributions on ${day.formattedDate}`}
+                        className="relative w-3 h-3 rounded-[2px] transition-all duration-150 hover:scale-125 hover:z-20 outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                        style={{
+                          backgroundColor: getCellColor(day.level),
+                          boxShadow:
+                            day.level >= 3
+                              ? '0 0 5px rgba(168, 214, 114, 0.4)'
+                              : day.level > 0
+                              ? '0 0 2px rgba(168, 214, 114, 0.2)'
+                              : 'none',
+                          border:
+                            selectedDay?.date === day.date
+                              ? '1px solid var(--color-accent)'
+                              : '1px solid rgba(255, 255, 255, 0.04)',
+                        }}
+                      />
+                    ) : (
+                      <div
+                        key={`empty-${colIdx}-${dayIdx}`}
+                        className="w-3 h-3 rounded-[2px] opacity-0 pointer-events-none"
+                        aria-hidden="true"
+                      />
+                    )
+                  )}
                 </div>
               ))}
             </div>
