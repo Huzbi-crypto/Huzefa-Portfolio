@@ -97,4 +97,23 @@ describe('SoundToggle', () => {
 
     expect(leaked).not.toHaveBeenCalled();
   });
+
+  it('lets_movement_keys_through_to_the_game', async () => {
+    const leaked = vi.fn();
+    await act(async () => {
+      root.render(
+        createElement(
+          'div',
+          { onKeyDown: leaked },
+          createElement(SoundToggle, { enabled: false, onToggle: () => undefined }),
+        ),
+      );
+    });
+
+    act(() => {
+      button().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    });
+
+    expect(leaked).toHaveBeenCalledTimes(1);
+  });
 });

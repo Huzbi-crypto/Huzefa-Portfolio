@@ -50,6 +50,11 @@ function PixelSpeaker({ on }: { on: boolean }) {
 
 /** The button owns its input; a click here must never walk the visitor. */
 function keepToTheButton(event: React.SyntheticEvent): void {
+  if (event.type === 'keydown' || event.type === 'keyup') {
+    const key = (event as React.KeyboardEvent).key;
+    // Arrows and WASD still reach the game while the toggle has focus.
+    if (key !== 'Enter' && key !== ' ') return;
+  }
   event.stopPropagation();
 }
 
