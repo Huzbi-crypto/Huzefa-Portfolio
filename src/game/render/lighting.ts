@@ -36,8 +36,6 @@ let lightYs = new Float64Array(8);
 let lightRadiiSq = new Float64Array(8);
 let lightInvRadiiSq = new Float64Array(8);
 let lightWarms = new Uint8Array(8);
-let rowDySq = new Float64Array(8);
-let rowMaxDxSq = new Float64Array(8);
 
 /**
  * Copy the current lights into reusable typed arrays. This only allocates
@@ -54,8 +52,6 @@ function prepareLights(lights: Light[]): void {
     lightRadiiSq = new Float64Array(size);
     lightInvRadiiSq = new Float64Array(size);
     lightWarms = new Uint8Array(size);
-    rowDySq = new Float64Array(size);
-    rowMaxDxSq = new Float64Array(size);
   }
 
   for (let i = 0; i < count; i += 1) {
@@ -104,9 +100,11 @@ export function lightLevel(lights: Light[], x: number, y: number): number {
 
 /**
  * Multiply an image by the quantised light levels, writing into `dst`.
- * `tint` is a hard choice per pixel (the stronger light wins the pixel) so
- * neighbouring pixels never blend into a smooth colour gradient. Nothing is
- * allocated per frame; all loop state lives in local scalars.
+ * `tint` is a hard choice per cell (the stronger light wins it) so
+ * neighbouring pixels never blend into a smooth colour gradient. The
+ * continuous light field is sampled once per 4 by 4 dither cell; the Bayer
+ * matrix supplies the per-pixel steps inside that cell. Nothing is allocated
+ * per frame.
  */
 export function applyLighting(
   src: ImageData,
@@ -124,34 +122,30 @@ export function applyLighting(
 
   prepareLights(lights);
 
-  for (let y = 0; y < height; y += 1) {
-    for (let i = 0; i < lightCount; i += 1) {
-      const dy = y - lightYs[i];
-      const dySq = dy * dy;
-      rowDySq[i] = dySq;
-      rowMaxDxSq[i] = lightRadiiSq[i] - dySq;
-    }
+  for (let cellY = 0; cellY < height; cellY += 4) {
+    const yEnd = Math.min(cellY + 4, height);
+    const sampleY = cellY + (yEnd - cellY) / 2;
 
-    for (let x = 0; x < width; x += 1) {
+    for (let cellX = 0; cellX < width; cellX += 4) {
+      const xEnd = Math.min(cellX + 4, width);
+      const sampleX = cellX + (xEnd - cellX) / 2;
+
       let warm = 0;
       let cool = 0;
 
       for (let i = 0; i < lightCount; i += 1) {
-        const maxDxSq = rowMaxDxSq[i];
-        if (maxDxSq <= 0) continue;
+        const dx = sampleX - lightXs[i];
+        const dy = sampleY - lightYs[i];
+        const distSq = dx * dx + dy * dy;
+        if (distSq >= lightRadiiSq[i]) continue;
 
-        const dx = x - lightXs[i];
-        const dxSq = dx * dx;
-        if (dxSq >= maxDxSq) continue;
-
-        const contribution = 1 - (dxSq + rowDySq[i]) * lightInvRadiiSq[i];
+        const contribution = 1 - distSq * lightInvRadiiSq[i];
         if (lightWarms[i] === 1) warm += contribution;
         else cool += contribution;
       }
 
       const total = warm + cool;
       const level = total > 1 ? 1 : total;
-      const step = LIGHT_STEPS[levelIndex(level, x, y)];
 
       let red = 1;
       let green = 1;
@@ -166,11 +160,17 @@ export function applyLighting(
         blue = COOL_TINT.b;
       }
 
-      const offset = (y * width + x) * 4;
-      dstData[offset] = srcData[offset] * step * red;
-      dstData[offset + 1] = srcData[offset + 1] * step * green;
-      dstData[offset + 2] = srcData[offset + 2] * step * blue;
-      dstData[offset + 3] = srcData[offset + 3];
+      for (let y = cellY; y < yEnd; y += 1) {
+        for (let x = cellX; x < xEnd; x += 1) {
+          const step = LIGHT_STEPS[levelIndex(level, x, y)];
+          const offset = (y * width + x) * 4;
+
+          dstData[offset] = srcData[offset] * step * red;
+          dstData[offset + 1] = srcData[offset + 1] * step * green;
+          dstData[offset + 2] = srcData[offset + 2] * step * blue;
+          dstData[offset + 3] = srcData[offset + 3];
+        }
+      }
     }
   }
 }
