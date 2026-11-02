@@ -18,6 +18,9 @@ export type Input = {
 
 type Direction = { x: -1 | 0 | 1; y: -1 | 0 | 1 };
 
+/** A touch that travels further than this is dragging, not tapping. */
+export const DRAG_SLOP = 8;
+
 const DIRECTIONS: Record<string, Direction> = {
   arrowleft: { x: -1, y: 0 },
   a: { x: -1, y: 0 },
@@ -54,6 +57,7 @@ export function createInput(
   const held = new Set<string>();
   const queue: InputEvent[] = [];
   let pointer: { x: number; y: number } | null = null;
+  let downPoint: { x: number; y: number } | null = null;
   let mode: Input['mode'] = 'mouse';
 
   const syncMove = (): void => {
@@ -121,6 +125,7 @@ export function createInput(
   const onPointerDown = (event: PointerEvent): void => {
     mode = deviceFor(event);
     pointer = localPoint(event);
+    downPoint = pointer;
   };
 
   const onPointerMove = (event: PointerEvent): void => {
@@ -132,13 +137,19 @@ export function createInput(
     mode = deviceFor(event);
     const point = localPoint(event);
     pointer = point;
-    if (!opts.isBlocked()) {
+    const dragDistance = downPoint
+      ? Math.hypot(point.x - downPoint.x, point.y - downPoint.y)
+      : 0;
+    const dragged = mode === 'touch' && dragDistance > DRAG_SLOP;
+    downPoint = null;
+    if (!opts.isBlocked() && !dragged) {
       queue.push({ type: 'tap', x: point.x, y: point.y });
     }
   };
 
   const onPointerLeave = (): void => {
     pointer = null;
+    downPoint = null;
   };
 
   target.addEventListener('keydown', onKeyDown);

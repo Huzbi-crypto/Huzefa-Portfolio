@@ -1,7 +1,7 @@
 import { SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { computeViewport } from '@/game/core/viewport';
-import { createInput, type Input } from '@/game/core/input';
+import { createInput, DRAG_SLOP, type Input } from '@/game/core/input';
 import { createLoop } from '@/game/core/loop';
 import { drawSprite } from '@/game/render/sprite';
 import { doorSwingFrame, drawIris } from '@/game/render/transition';
@@ -28,8 +28,6 @@ const STALL_MS = 400;
 const HOLD_MS = 420;
 const CLOSE_MS = 520;
 const OPEN_MS = 520;
-/** A touch that travels further than this is dragging the light, not tapping. */
-const DRAG_SLOP = 8;
 
 type Transition = {
   to: Scene['id'];
