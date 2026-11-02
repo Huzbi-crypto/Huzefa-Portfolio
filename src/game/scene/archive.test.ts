@@ -5,6 +5,7 @@ import type { Input } from '@/game/core/input';
 import { createStore, type GameStore } from '@/game/state/store';
 import { createEntity } from '@/game/world/entity';
 import { findPath, TILE } from '@/game/world/grid';
+import { createReadCookies } from '@/game/exhibits/readCookies';
 import { createTermExp } from '@/game/exhibits/termExp';
 import { createArchive, MONSTER_POSTER } from './archive';
 import { navMap } from './nav';
@@ -71,8 +72,12 @@ afterAll(() => {
   else globals.document = realDocument;
 });
 
-/** The archive's exhibits, by project id. Each exhibit adds its id here. */
-const EXHIBITS = ['term-exp'] as const;
+/** The archive's exhibits by project id, with the choices a visitor makes to try each one. */
+const PICKS: Record<string, string[]> = {
+  'term-exp': ['ls'],
+  'read-cookies': ['unlock'],
+};
+const EXHIBITS = Object.keys(PICKS);
 
 function ctxFor(over: Partial<SceneCtx> = {}): SceneCtx {
   const input: Input = {
@@ -170,7 +175,7 @@ describe('createArchive', () => {
       const api = fakeApi(store);
       expect(store.getState().found).not.toContain(projectStarId(id));
 
-      await play(store, Promise.resolve(hotspot(scene, id).onInteract(api)), ['ls']);
+      await play(store, Promise.resolve(hotspot(scene, id).onInteract(api)), [...PICKS[id]]);
 
       expect(store.getState().found, id).toContain(projectStarId(id));
       expect(api.shown, id).toEqual([id]);
@@ -184,7 +189,7 @@ describe('createArchive', () => {
       const scene = createArchive(store);
       const api = fakeApi(store);
 
-      await play(store, Promise.resolve(hotspot(scene, id).onInteract(api)), ['ls']);
+      await play(store, Promise.resolve(hotspot(scene, id).onInteract(api)), [...PICKS[id]]);
       // Still drawn and updated calmly with motion off.
       const g = fakeCanvas().getContext() as unknown as CanvasRenderingContext2D;
       scene.update(16, ctxFor({ reducedMotion: true }));
@@ -211,6 +216,36 @@ describe('createArchive', () => {
     expect(term.shell().trying).toBe(true);
     expect(term.shell().history).toEqual(['help', 'cat secrets.txt']);
     expect(store.getState().found).toContain(projectStarId('term-exp'));
+  });
+
+  it('walking_away_from_the_jar_unopened_earns_nothing', async () => {
+    const store = createStore(null);
+    const api = fakeApi(store);
+    const jar = createReadCookies({ x: 152, y: 72 });
+
+    await play(store, jar.use(api), ['leave']);
+
+    expect(jar.jar().unlocked).toBe(false);
+    expect(store.getState().found).not.toContain(projectStarId('read-cookies'));
+    expect(api.shown).toEqual([]);
+  });
+
+  it('eating_every_cookie_ends_cleanly_and_keeps_the_star', async () => {
+    const store = createStore(null);
+    const api = fakeApi(store);
+    const jar = createReadCookies({ x: 152, y: 72 });
+    const ids = jar.jar().cookies.map((cookie) => cookie.id);
+
+    await play(store, jar.use(api), ['unlock', ...ids]);
+
+    expect(jar.jar().cookies).toHaveLength(0);
+    expect(store.getState().found).toContain(projectStarId('read-cookies'));
+    expect(api.shown).toEqual(['read-cookies']);
+
+    // Back again: an empty jar is still fine to open.
+    await play(store, jar.use(api), []);
+    expect(jar.jar().cookies).toHaveLength(0);
+    expect(api.shown).toEqual(['read-cookies', 'read-cookies']);
   });
 
   it('monster_never_moves_toward_player', () => {

@@ -2,6 +2,7 @@ import { PALETTES, SPRITES } from '@/game/art';
 import { POSTER, POSTER_EYES, SHELF } from '@/game/art/sprites/archive';
 import { chalkPixels } from '@/game/art/sprites/darkGlyphs';
 import { copy } from '@/game/content/copy';
+import { createReadCookies } from '@/game/exhibits/readCookies';
 import { createTermExp } from '@/game/exhibits/termExp';
 import type { ArchiveExhibit } from '@/game/exhibits/archiveKit';
 import type { Light } from '@/game/render/lighting';
@@ -25,6 +26,7 @@ const COLORS = PALETTES['cozy-crt'];
 const AT = {
   exit: { x: 16, y: 8 },
   term: { x: 56, y: 92 },
+  cookies: { x: 152, y: 72 },
   chalkBack: { x: 44, y: 24 },
   chalkShh: { x: 206, y: 26 },
   chalkArchive: { x: 292, y: 22 },
@@ -148,7 +150,7 @@ function drawBackdrop(g: CanvasRenderingContext2D): void {
 }
 
 function buildExhibits(): ArchiveExhibit[] {
-  return [createTermExp(AT.term)];
+  return [createTermExp(AT.term), createReadCookies(AT.cookies)];
 }
 
 function buildSpaceDef(): SpaceDef {
