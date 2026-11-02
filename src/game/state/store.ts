@@ -12,6 +12,13 @@ import {
   saveProgress,
   type Progress,
 } from './progress';
+import {
+  hasClue as hasClueIn,
+  markClue as markClueIn,
+  onEndingSeen,
+  seenEndingLine as seenEndingLineIn,
+  type EndingLine,
+} from './story';
 
 export type GameUiState = {
   dialogue: DialogueState | null;
@@ -24,6 +31,8 @@ export type GameUiState = {
 
 export type GameStore = {
   getState(): GameUiState;
+  /** The live progress, for read-only checks. Change it through store methods. */
+  getProgress(): Progress;
   subscribe(fn: () => void): () => void;
   say(
     lines: string[],
@@ -34,6 +43,12 @@ export type GameStore = {
   tick(ms: number): void;
   count(id: string): number;
   increment(id: string): void;
+  /** Records a trail clue in the saved counters. */
+  markClue(id: string): void;
+  hasClue(id: string): boolean;
+  /** Records the best ending line seen so far. */
+  markEndingSeen(line: EndingLine): void;
+  seenEndingLine(): EndingLine | null;
   setDoorOpened(): void;
   setReducedMotion(v: boolean): void;
   /** Opens the project panel; resolves when it closes. */
@@ -47,7 +62,7 @@ export type GameStore = {
  * `useSyncExternalStore` needs.
  */
 export function createStore(storage: Storage | null): GameStore {
-  const progress: Progress = loadProgress(storage);
+  let progress: Progress = loadProgress(storage);
   const subscribers = new Set<() => void>();
   let dialogue: DialogueState | null = null;
   let reducedMotion = false;
@@ -92,6 +107,14 @@ export function createStore(storage: Storage | null): GameStore {
   return {
     getState(): GameUiState {
       return state;
+    },
+
+    getProgress(): Progress {
+      return {
+        ...progress,
+        found: [...progress.found],
+        counters: { ...progress.counters },
+      };
     },
 
     subscribe(fn: () => void): () => void {
@@ -150,6 +173,32 @@ export function createStore(storage: Storage | null): GameStore {
       progress.counters[id] = (progress.counters[id] ?? 0) + 1;
       persist();
       notify();
+    },
+
+    markClue(id: string): void {
+      const next = markClueIn(progress, id);
+      if (next === progress) return;
+
+      progress = next;
+      persist();
+      notify();
+    },
+
+    hasClue(id: string): boolean {
+      return hasClueIn(progress, id);
+    },
+
+    markEndingSeen(line: EndingLine): void {
+      const next = onEndingSeen(progress, line);
+      if (next === progress) return;
+
+      progress = next;
+      persist();
+      notify();
+    },
+
+    seenEndingLine(): EndingLine | null {
+      return seenEndingLineIn(progress);
     },
 
     setDoorOpened(): void {

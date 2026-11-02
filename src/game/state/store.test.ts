@@ -154,6 +154,50 @@ describe('createStore', () => {
     expect(state.total).toBeGreaterThan(state.found.length);
   });
 
+  it('clues_survive_reload', () => {
+    const storage = memoryStorage();
+    const store = createStore(storage);
+
+    store.markClue('clue:note');
+
+    expect(store.hasClue('clue:note')).toBe(true);
+    expect(store.hasClue('clue:hall')).toBe(false);
+
+    const saved = JSON.parse(storage.getItem(PROGRESS_KEY) ?? '{}');
+    expect(saved.counters['clue:note']).toBe(1);
+
+    const reloaded = createStore(storage);
+    expect(reloaded.hasClue('clue:note')).toBe(true);
+    expect(reloaded.hasClue('clue:hall')).toBe(false);
+  });
+
+  it('marking_a_clue_notifies_only_the_first_time', () => {
+    const store = createStore(null);
+    let calls = 0;
+    store.subscribe(() => {
+      calls += 1;
+    });
+
+    store.markClue('clue:note');
+    store.markClue('clue:note');
+
+    expect(calls).toBe(1);
+  });
+
+  it('ending_seen_persists_and_upgrades', () => {
+    const storage = memoryStorage();
+    const store = createStore(storage);
+
+    expect(store.seenEndingLine()).toBeNull();
+
+    store.markEndingSeen('few');
+    expect(store.seenEndingLine()).toBe('few');
+
+    store.markEndingSeen('full');
+    expect(store.seenEndingLine()).toBe('full');
+    expect(createStore(storage).seenEndingLine()).toBe('full');
+  });
+
   it('tick_advances_typing_and_notifies', () => {
     const store = createStore(null);
     void store.say(['Hello there']);
