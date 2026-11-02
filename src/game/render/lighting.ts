@@ -1,3 +1,5 @@
+import type { Input } from '../core/input';
+
 export type Light = {
   x: number;
   y: number;
@@ -10,7 +12,9 @@ export type Light = {
  * keeps the dark world inside the palette instead of drawing a smooth
  * gradient.
  */
-export const LIGHT_STEPS = [0.06, 0.13, 0.22, 0.34, 0.48, 0.64, 0.81, 1] as const;
+export const LIGHT_STEPS = [
+  0.06, 0.13, 0.22, 0.34, 0.48, 0.64, 0.81, 1,
+] as const;
 
 const BAYER_4 = [
   0, 8, 2, 10,
@@ -169,4 +173,21 @@ export function applyLighting(
       dstData[offset + 3] = srcData[offset + 3];
     }
   }
+}
+
+/**
+ * Where the lantern sits for the current input device. Mouse and touch follow
+ * the pointer or last drag; keyboard (and a mouse that has left the canvas)
+ * keep the light on the player. Existing objects are returned as-is so the
+ * game loop does not allocate a new position every frame.
+ */
+export function lanternPosition(
+  mode: Input['mode'],
+  pointer: { x: number; y: number } | null,
+  player: { x: number; y: number },
+  lastDrag: { x: number; y: number } | null,
+): { x: number; y: number } {
+  if (mode === 'mouse' && pointer !== null) return pointer;
+  if (mode === 'touch' && lastDrag !== null) return lastDrag;
+  return player;
 }

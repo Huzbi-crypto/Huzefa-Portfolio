@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LIGHT_STEPS,
   applyLighting,
+  lanternPosition,
   lightLevel,
   type Light,
 } from './lighting';
@@ -137,5 +138,34 @@ describe('applyLighting', () => {
     const average = (performance.now() - start) / 100;
 
     expect(average).toBeLessThan(4);
+  });
+});
+
+describe('lanternPosition', () => {
+  const player = { x: 10, y: 20 };
+
+  it('mouse_mode_uses_pointer', () => {
+    expect(
+      lanternPosition('mouse', { x: 3, y: 4 }, player, null),
+    ).toEqual({ x: 3, y: 4 });
+  });
+
+  it('keyboard_mode_uses_player', () => {
+    expect(
+      lanternPosition('keyboard', { x: 3, y: 4 }, player, { x: 5, y: 6 }),
+    ).toEqual(player);
+  });
+
+  it('mouse_mode_without_pointer_uses_player', () => {
+    expect(lanternPosition('mouse', null, player, null)).toEqual(player);
+  });
+
+  it('touch_uses_last_drag_then_player', () => {
+    expect(
+      lanternPosition('touch', { x: 3, y: 4 }, player, { x: 7, y: 8 }),
+    ).toEqual({ x: 7, y: 8 });
+    expect(lanternPosition('touch', { x: 3, y: 4 }, player, null)).toEqual(
+      player,
+    );
   });
 });
