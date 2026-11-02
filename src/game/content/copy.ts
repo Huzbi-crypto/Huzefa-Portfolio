@@ -357,6 +357,7 @@ export const copy = {
       up: 'TILT UP',
       down: 'TILT DOWN',
       leaveLabel: 'LET GO',
+      spun: ['Round it goes.', 'And round again.', 'Still going. It has nowhere else to be.'],
       pop: 'Now and then a corner pokes through the cube. The maths was never told it could not.',
     },
 
@@ -435,6 +436,20 @@ export const copy = {
       again: 'Another note, another trip. They have a system. Ish.',
       loopBefore: 'The THINK robot has asked itself the same question',
       loopAfter: 'times now. It has not noticed the note go by.',
+    },
+
+    /** `speech-translator`: two tin cans on a string. */
+    speech: {
+      label: 'Talk into the tin can',
+      prompt: 'Two tin cans on a string. One of them is plainly listening. Say something into the other.',
+      phrases: [
+        { id: 'hello', text: 'hello there' },
+        { id: 'coffee', text: 'I need coffee' },
+        { id: 'nap', text: 'wake me in five minutes' },
+      ],
+      heard: 'The other can says:',
+      lost: 'Not quite what you said. Something is always lost in translation, and it is usually the point.',
+      again: 'Different words again. The string has strong opinions.',
     },
   },
 } as const;
