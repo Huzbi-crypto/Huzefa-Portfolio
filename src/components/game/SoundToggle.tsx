@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { copy } from '@/game/content/copy';
 
 const SCALE = 3;
@@ -49,9 +50,9 @@ function PixelSpeaker({ on }: { on: boolean }) {
 }
 
 /** The button owns its input; a click here must never walk the visitor. */
-function keepToTheButton(event: React.SyntheticEvent): void {
+function stopAtTheButton(event: Event): void {
   if (event.type === 'keydown' || event.type === 'keyup') {
-    const key = (event as React.KeyboardEvent).key;
+    const key = (event as KeyboardEvent).key;
     // Arrows and WASD still reach the game while the toggle has focus.
     if (key !== 'Enter' && key !== ' ') return;
   }
@@ -66,19 +67,31 @@ export function SoundToggle({
   enabled: boolean;
   onToggle: () => void;
 }) {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  // Native listeners on the button itself beat the game's listener on the
+  // stage. React's handlers are delegated high above it, so they arrive late.
+  useEffect(() => {
+    const button = ref.current;
+    if (!button) return;
+
+    const types = ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'keyup'] as const;
+    for (const type of types) button.addEventListener(type, stopAtTheButton);
+
+    return () => {
+      for (const type of types) button.removeEventListener(type, stopAtTheButton);
+    };
+  }, []);
+
   return (
     <button
+      ref={ref}
       type="button"
       className="sound-toggle px-panel"
       data-on={enabled}
       aria-pressed={enabled}
       aria-label={enabled ? copy.ui.soundOnLabel : copy.ui.soundOffLabel}
       onClick={onToggle}
-      onPointerDown={keepToTheButton}
-      onPointerUp={keepToTheButton}
-      onPointerMove={keepToTheButton}
-      onKeyDown={keepToTheButton}
-      onKeyUp={keepToTheButton}
     >
       <PixelSpeaker on={enabled} />
       <span aria-hidden="true">{enabled ? copy.ui.soundOn : copy.ui.soundOff}</span>

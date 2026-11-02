@@ -98,6 +98,33 @@ describe('SoundToggle', () => {
     expect(leaked).not.toHaveBeenCalled();
   });
 
+  it('does_not_start_the_game_when_clicked', async () => {
+    await act(async () => {
+      root.render(
+        createElement(
+          'div',
+          { id: 'stage' },
+          createElement(SoundToggle, { enabled: false, onToggle: () => undefined }),
+        ),
+      );
+    });
+
+    const stage = container.querySelector('#stage');
+    if (!stage) throw new Error('no stage');
+    const gameTap = vi.fn();
+    stage.addEventListener('pointerdown', gameTap);
+    stage.addEventListener('pointerup', gameTap);
+
+    act(() => {
+      button().dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      button().dispatchEvent(new Event('pointerup', { bubbles: true }));
+    });
+
+    expect(gameTap).not.toHaveBeenCalled();
+    stage.removeEventListener('pointerdown', gameTap);
+    stage.removeEventListener('pointerup', gameTap);
+  });
+
   it('lets_movement_keys_through_to_the_game', async () => {
     const leaked = vi.fn();
     await act(async () => {
