@@ -31,6 +31,9 @@ const AT = {
   cat: { x: 212, y: 124 },
 } as const;
 
+/** The two windows share one night sky; every star lights in both. */
+const WINDOW_SPOTS = [AT.window, AT.windowTwo] as const;
+
 /** Eight slots in the window's four panes; stars light up as visitors find things. */
 const STAR_SLOTS = [
   [5, 5], [10, 8], [5, 16], [10, 19],
@@ -143,6 +146,21 @@ async function readWindow(api: GameApi): Promise<void> {
   }
 }
 
+/**
+ * A window's stand tile sits on the first floor row, so its rect reaches down
+ * to the wall base. Otherwise the visitor walks there and drops out of range
+ * before the interaction can fire.
+ */
+function windowHotspot(id: string, at: { x: number; y: number }, standX: number): Hotspot {
+  return {
+    id,
+    rect: { x: at.x, y: at.y, w: 32, h: 44 },
+    stand: { x: standX, y: 6 },
+    label: 'Look outside',
+    onInteract: readWindow,
+  };
+}
+
 function buildHotspots(): Hotspot[] {
   return [
     {
@@ -189,13 +207,8 @@ function buildHotspots(): Hotspot[] {
       label: 'Pet the cat',
       onInteract: petCat,
     },
-    {
-      id: 'window',
-      rect: { x: AT.window.x, y: AT.window.y, w: 32, h: 32 },
-      stand: { x: 4, y: 6 },
-      label: 'Look outside',
-      onInteract: readWindow,
-    },
+    windowHotspot('window', AT.window, 4),
+    windowHotspot('window-two', AT.windowTwo, 30),
     {
       id: 'door',
       rect: { x: AT.door.x, y: AT.door.y, w: 24, h: 40 },
@@ -289,14 +302,16 @@ function drawFade(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
 
 function drawWindowStars(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
   const lit = litSlotCount(ctx.found.length, starTotal());
-  STAR_SLOTS.forEach(([dx, dy], index) => {
-    drawSprite(
-      g,
-      sprite(index < lit ? 'starLit' : 'starDim'),
-      AT.window.x + dx,
-      AT.window.y + dy,
-    );
-  });
+  for (const spot of WINDOW_SPOTS) {
+    STAR_SLOTS.forEach(([dx, dy], index) => {
+      drawSprite(
+        g,
+        sprite(index < lit ? 'starLit' : 'starDim'),
+        spot.x + dx,
+        spot.y + dy,
+      );
+    });
+  }
 }
 
 export function createRoomScene(store: GameStore): Scene {

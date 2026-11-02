@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { copy } from '@/game/content/copy';
 import { allStarIds } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
 import { createEntity, stepEntity } from '@/game/world/entity';
@@ -6,6 +7,12 @@ import { findPath, TILE } from '@/game/world/grid';
 import { navMap } from './nav';
 import { createRoomScene } from './room';
 import type { GameApi, Hotspot } from './types';
+
+/** The world positions of the two window sprites in the room. */
+const WINDOW_SPOTS = [
+  { x: 24, y: 4 },
+  { x: 232, y: 4 },
+] as const;
 
 function setup() {
   const store = createStore(null);
@@ -23,7 +30,8 @@ async function interact(
   hotspot: Hotspot,
   api: GameApi,
   choice?: string,
-): Promise<void> {
+): Promise<string[]> {
+  const said: string[] = [];
   let finished = false;
   const done = Promise.resolve(hotspot.onInteract(api)).then(() => {
     finished = true;
@@ -32,9 +40,14 @@ async function interact(
   // let promise callbacks run between clicks.
   for (let guard = 0; !finished && guard < 200; guard += 1) {
     await new Promise((resolve) => setTimeout(resolve, 0));
-    if (api.store.getState().dialogue) api.store.advance(choice);
+    const dialogue = api.store.getState().dialogue;
+    if (dialogue) {
+      said.push(...dialogue.lines);
+      api.store.advance(choice);
+    }
   }
   await done;
+  return [...new Set(said)];
 }
 
 const byId = (scene: ReturnType<typeof setup>['scene'], id: string): Hotspot => {
@@ -58,7 +71,7 @@ describe('room layout', () => {
   it('has_every_planned_hotspot', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['cat', 'door', 'monitor', 'note', 'shelf', 'tea', 'window'],
+      ['cat', 'door', 'monitor', 'note', 'shelf', 'tea', 'window', 'window-two'],
     );
   });
 
@@ -159,6 +172,38 @@ describe('room hotspots', () => {
   it('window_never_awards_and_reports_progress', async () => {
     const { scene, api, store } = setup();
     await interact(byId(scene, 'window'), api);
+    expect(store.getState().found).toHaveLength(0);
+  });
+
+  it('every_window_has_a_hotspot_the_visitor_can_reach_and_use', async () => {
+    const { scene, api, store } = setup();
+    const covered = new Set<Hotspot>();
+
+    for (const spot of WINDOW_SPOTS) {
+      const middle = { x: spot.x + 16, y: spot.y + 16 };
+      const hotspot = scene.hotspots.find(
+        (h) =>
+          h.rect.x <= middle.x &&
+          h.rect.x + h.rect.w >= middle.x &&
+          h.rect.y <= middle.y &&
+          h.rect.y + h.rect.h >= middle.y,
+      );
+      expect(hotspot, `a hotspot over the window at ${spot.x},${spot.y}`).toBeDefined();
+      covered.add(hotspot!);
+
+      // The walk ends on the stand tile centre, so that point must be close
+      // enough to the rect for the game's interaction range to fire.
+      const px = hotspot!.stand.x * TILE + TILE / 2;
+      const py = hotspot!.stand.y * TILE + TILE / 2;
+      const dx = Math.max(hotspot!.rect.x - px, 0, px - (hotspot!.rect.x + hotspot!.rect.w));
+      const dy = Math.max(hotspot!.rect.y - py, 0, py - (hotspot!.rect.y + hotspot!.rect.h));
+      expect(Math.hypot(dx, dy), `the stand for the window at ${spot.x}`).toBeLessThanOrEqual(14);
+
+      const said = await interact(hotspot!, api);
+      expect(said.join(' '), `the window at ${spot.x}`).toContain(copy.window.none[0]);
+    }
+
+    expect(covered.size).toBe(WINDOW_SPOTS.length);
     expect(store.getState().found).toHaveLength(0);
   });
 
