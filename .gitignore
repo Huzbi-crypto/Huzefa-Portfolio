@@ -25,3 +25,7 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test output
+/test-results
+/playwright-report
