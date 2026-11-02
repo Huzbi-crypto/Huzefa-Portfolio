@@ -47,6 +47,19 @@ describe('stars', () => {
     expect(allStarIds()).toContain('silly:monster-poster');
   });
 
+  it('the_room_has_at_least_six_more_silly_stars', () => {
+    const fresh = [
+      'silly:sofa',
+      'silly:lamp',
+      'silly:rug',
+      'silly:note-thrice',
+      'silly:drink-tea',
+      'silly:wave-at-sky',
+      'silly:door-chicken',
+    ];
+    for (const id of fresh) expect(SILLY_STARS, id).toContain(id);
+  });
+
   it('id_helpers_build_documented_ids', () => {
     expect(projectStarId('routing-sim')).toBe('project:routing-sim');
     expect(readStarId('One Piece')).toBe('read:one-piece');

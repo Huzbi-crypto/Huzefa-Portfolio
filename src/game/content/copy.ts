@@ -48,6 +48,75 @@ export const copy = {
       'That is the whole shelf.',
       'Huzbi has opinions about every spine on it.',
     ],
+    /** The shelf has three rows; the visitor picks a row, then a spine. */
+    menu: ['Three rows of spines, all of them well thumbed.', 'Which row?'],
+    rowLabels: ['TOP ROW', 'MIDDLE ROW', 'BOTTOM ROW'],
+    nextLabel: 'WHATEVER IS NEXT',
+    leaveLabel: 'LEAVE IT',
+    backLabel: 'BACK',
+    which: 'Which one?',
+    readMark: '(read)',
+  },
+
+  /** More silly things to touch in the room. Each earns its own star. */
+  sofa: {
+    label: 'Sit on the sofa',
+    lines: [
+      'You sit. The sofa has a Huzbi-shaped dent and you are not it.',
+      'It is comfortable in a way that feels like a warning.',
+    ],
+    again: ['You sit again. The sofa accepts you, lightly.'],
+  },
+
+  lamp: {
+    label: 'Fiddle with the lamp',
+    lines: [
+      'You switch the lamp off. The room does not change at all.',
+      'You switch it on. Still nothing. This lamp is a decoration with ambitions.',
+    ],
+    again: ['The lamp is on. Probably.'],
+  },
+
+  rug: {
+    label: 'Check the rug',
+    lines: [
+      'You lift a corner of the rug.',
+      'Under it: a floor. Underneath the floor, presumably, more floor.',
+    ],
+    again: ['You put the corner back. The rug has seen you.'],
+  },
+
+  noteThrice: {
+    lines: [
+      'You read the note a third time.',
+      '"Back in 5 mins. Don\'t touch anything."',
+      'It has not changed. You are the only thing that has changed, a little, in the eyes.',
+    ],
+    again: ['Back in 5 mins. You know this. We both know this.'],
+  },
+
+  drinkTea: {
+    lines: [
+      'You drink the tea.',
+      'It is cold, a bit bitter and quite old. Somehow it still tastes like a decision.',
+    ],
+    again: ['The mug is empty now. Respect, and also concern.'],
+  },
+
+  waveAtSky: {
+    lines: [
+      'You wave at the night sky. Five times, with feeling.',
+      'The sky does not wave back. A star twinkles, which is almost the same thing.',
+    ],
+    again: ['The sky is waving back, in the sense that it is not moving.'],
+  },
+
+  doorChicken: {
+    lines: [
+      'You stay out for the third time.',
+      'The door says nothing, loudly. Chicken.',
+    ],
+    again: ['Still outside. The door is patient.'],
   },
 
   cat: {

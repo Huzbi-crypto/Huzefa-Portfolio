@@ -10,6 +10,13 @@ export const SILLY_STARS: string[] = [
   'silly:cold-tea',
   'silly:read-note',
   'silly:monster-poster',
+  'silly:sofa',
+  'silly:lamp',
+  'silly:rug',
+  'silly:note-thrice',
+  'silly:drink-tea',
+  'silly:wave-at-sky',
+  'silly:door-chicken',
 ];
 
 function slugify(title: string): string {
