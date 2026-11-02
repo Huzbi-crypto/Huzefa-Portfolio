@@ -7,6 +7,8 @@ import { drawSprite } from '@/game/render/sprite';
 import { doorSwingFrame, drawIris } from '@/game/render/transition';
 import type { GameApi, Hotspot, Scene, SceneCtx, SceneId } from '@/game/scene/types';
 import type { GameStore } from '@/game/state/store';
+import { NUDGE_AFTER_MS, pickNudge } from '@/game/state/nudge';
+import { TRAIL } from '@/game/state/story';
 import { computeCamera } from '@/game/world/camera';
 import {
   createEntity,
@@ -58,6 +60,8 @@ export type GameOptions = {
   isBlocked(): boolean;
   /** Called when the thing the visitor could use right now changes. */
   onHint?(hint: GameHint): void;
+  /** Called with a clue hotspot id when an idle visitor could use a nudge. */
+  onNudge?(target: string | null): void;
 };
 
 export type Game = {
@@ -85,6 +89,7 @@ type ControllerOptions = {
   openTerminal(): void;
   isBlocked(): boolean;
   onHint?(hint: GameHint): void;
+  onNudge?(target: string | null): void;
 };
 
 function distanceToRect(
@@ -125,6 +130,8 @@ export function createGameController(opts: ControllerOptions) {
   let touchOrigin: { x: number; y: number } | null = null;
   let dragged = false;
   let transition: Transition | null = null;
+  let idleMs = 0;
+  let nudge: string | null = null;
 
   const api: GameApi = {
     store,
@@ -262,6 +269,8 @@ export function createGameController(opts: ControllerOptions) {
     lightDrag = null;
     touchOrigin = null;
     dragged = false;
+    idleMs = 0;
+    clearNudge();
     updateCamera();
   }
 
@@ -335,6 +344,34 @@ export function createGameController(opts: ControllerOptions) {
           ? Math.min(1, tr.elapsed / CLOSE_MS)
           : Math.max(0, 1 - tr.elapsed / OPEN_MS);
     return { phase: tr.phase, progress, cx: tr.cx, cy: tr.cy };
+  }
+
+  function clearNudge(): void {
+    if (nudge === null) return;
+
+    nudge = null;
+    opts.onNudge?.(null);
+  }
+
+  /** Point a visitor who has gone quiet at the next clue in this space. */
+  function updateIdle(ms: number, active: boolean): void {
+    if (active) {
+      idleMs = 0;
+      clearNudge();
+      return;
+    }
+
+    idleMs += ms;
+    if (idleMs < NUDGE_AFTER_MS) return;
+
+    const targets = scene.hotspots
+      .filter((h) => (TRAIL as readonly string[]).includes(h.id))
+      .map((h) => ({ id: h.id, found: store.hasClue(h.id) }));
+    const target = pickNudge(store.getProgress(), idleMs, targets);
+
+    if (target === nudge) return;
+    nudge = target;
+    opts.onNudge?.(target);
   }
 
   /** Track whether a touch is dragging the light, so a drag never counts as a tap. */
@@ -431,6 +468,7 @@ export function createGameController(opts: ControllerOptions) {
       updateCamera();
       stepTransition(ms);
       emitHint(blocked);
+      updateIdle(ms, blocked || events.length > 0 || move.x !== 0 || move.y !== 0 || player.moving);
     },
 
     /** Draw the world, pixel-aligned, into a canvas the size of the view. */
@@ -489,6 +527,7 @@ export function createGameController(opts: ControllerOptions) {
         hotspots: scene.hotspots,
         transition: transitionView(),
         drag: lightDrag,
+        nudge,
       };
     },
   };

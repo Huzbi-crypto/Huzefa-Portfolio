@@ -9,7 +9,12 @@ import { TILE } from './world/grid';
 
 const STEP = 1000 / 60;
 
-function setup(opts: { blocked?: () => boolean; dark?: boolean; storage?: Storage | null } = {}) {
+function setup(opts: {
+  blocked?: () => boolean;
+  dark?: boolean;
+  storage?: Storage | null;
+  onNudge?: (target: string | null) => void;
+} = {}) {
   const store = createStore(opts.storage ?? null);
   const queue: InputEvent[] = [];
   const input: Input = {
@@ -20,15 +25,17 @@ function setup(opts: { blocked?: () => boolean; dark?: boolean; storage?: Storag
     dispose: () => undefined,
   };
   const openTerminalCalls: number[] = [];
+  const room = createRoomScene(store);
   const game = createGameController({
     store,
-    scenes: opts.dark ? [createRoomScene(store), createDarkScene(store)] : [createRoomScene(store)],
+    scenes: opts.dark ? [room, createDarkScene(store)] : [room],
     input,
     openTerminal: () => openTerminalCalls.push(1),
     isBlocked: opts.blocked ?? (() => store.getState().dialogue !== null),
+    onNudge: opts.onNudge,
   });
   game.resize(1366, 768);
-  return { store, input, queue, game, openTerminalCalls };
+  return { store, input, queue, game, openTerminalCalls, room };
 }
 
 type Ctx = ReturnType<typeof setup>;
@@ -338,6 +345,43 @@ describe('the door and the dark', () => {
     game.goTo('dark');
     run(game, 5);
     expect(store.getState().dialogue).toBeNull();
+  });
+});
+
+describe('the idle nudge', () => {
+  const CLUE = {
+    id: 'clue:note',
+    rect: { x: 10, y: 10, w: 8, h: 8 },
+    stand: { x: 2, y: 2 },
+    label: 'A clue',
+    onInteract: () => undefined,
+  };
+
+  it('no_nudge_until_thirty_seconds_have_passed', () => {
+    const nudges: (string | null)[] = [];
+    const { game, room } = setup({ onNudge: (target) => nudges.push(target) });
+    room.hotspots.push(CLUE);
+
+    run(game, Math.ceil(29_000 / STEP));
+    expect(nudges).toEqual([]);
+
+    run(game, Math.ceil(2_000 / STEP));
+    expect(nudges.at(-1)).toBe('clue:note');
+  });
+
+  it('moving_clears_the_nudge', () => {
+    const nudges: (string | null)[] = [];
+    const { game, room, input } = setup({ onNudge: (target) => nudges.push(target) });
+    room.hotspots.push(CLUE);
+
+    run(game, Math.ceil(31_000 / STEP));
+    expect(nudges.at(-1)).toBe('clue:note');
+
+    input.move.x = 1;
+    run(game, 2);
+    input.move.x = 0;
+
+    expect(nudges.at(-1)).toBeNull();
   });
 });
 
