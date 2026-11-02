@@ -206,7 +206,7 @@ describe('workshop art', () => {
 });
 
 /** The four exhibits the workshop holds, and a choice that makes each one play. */
-const EXHIBITS: { id: string; choice?: string }[] = [{ id: 'ai-anime' }];
+const EXHIBITS: { id: string; choice?: string }[] = [{ id: 'ai-anime' }, { id: 'lang-projects' }];
 
 describe('workshop exhibits', () => {
   it('holds_exactly_its_exhibits_and_the_way_home', () => {
@@ -251,6 +251,15 @@ describe('workshop exhibits', () => {
 
   it.each(EXHIBITS)('every_exhibit_belongs_to_a_real_project: $id', ({ id }) => {
     expect(projects.some((p) => p.id === id)).toBe(true);
+  });
+});
+
+describe('lang-projects robots', () => {
+  it('the_note_gets_through_and_the_loop_robot_gets_a_mention', async () => {
+    const env = setup();
+    const said = (await interact(env, byId(env.scene, 'lang-projects'))).join(' ');
+    expect(said).toContain(copy.workshop.lang.passed);
+    expect(said).toContain(copy.workshop.lang.loopBefore);
   });
 });
 

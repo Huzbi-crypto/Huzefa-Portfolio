@@ -403,12 +403,12 @@ export const FLOW_BOARD_ORIGIN = { x: 4, y: 6 } as const;
 
 const FLOW_BOARD = (() => {
   const w = 152;
-  const h = 56;
+  const h = 62;
   const cv = blank(w, h);
   // The top: slate with a wooden frame.
-  box(cv, 0, 0, w, 42, 'e', 'g');
+  box(cv, 0, 0, w, 48, 'e', 'g');
   rect(cv, 1, 1, w - 2, 1, 'h');
-  rect(cv, 3, 3, w - 6, 36, 'b');
+  rect(cv, 3, 3, w - 6, 42, 'b');
   rect(cv, 3, 3, w - 6, 1, 'a');
   // Chart lines: each hop is an arrow with a head.
   const pads = [
@@ -434,14 +434,14 @@ const FLOW_BOARD = (() => {
     rect(cv, p.x - 9, p.y - 3, 18, 1, 'd');
   }
   // Scuffs of chalk.
-  for (const [x, y] of [[8, 6], [9, 6], [140, 34], [141, 34], [60, 36], [100, 6]]) plot(cv, x, y, 'B');
+  for (const [x, y] of [[8, 6], [9, 6], [140, 40], [141, 40], [60, 42], [100, 6]]) plot(cv, x, y, 'B');
   // Front face and legs.
-  rect(cv, 0, 42, w, 5, 'f');
-  rect(cv, 0, 42, w, 1, 'e');
-  rect(cv, 0, 46, w, 1, 'e');
+  rect(cv, 0, 48, w, 5, 'f');
+  rect(cv, 0, 48, w, 1, 'e');
+  rect(cv, 0, 52, w, 1, 'e');
   for (const x of [6, 138]) {
-    rect(cv, x, 47, 8, 9, 'e');
-    rect(cv, x + 1, 47, 6, 8, 'f');
+    rect(cv, x, 53, 8, 9, 'e');
+    rect(cv, x + 1, 53, 6, 8, 'f');
   }
   return rows(cv);
 })();

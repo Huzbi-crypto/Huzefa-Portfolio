@@ -355,5 +355,17 @@ export const copy = {
       verdict: 'Close enough. The machine looks very pleased with itself.',
       again: 'Another pull. The machine sighs, then gets on with it.',
     },
+
+    /** `lang-projects`: tiny robots passing a note round a flow chart. */
+    lang: {
+      label: 'Hand the robots a note',
+      /** Chalked under each robot, capitals only. */
+      labels: ['ASK', 'ROUTE', 'THINK', 'WRITE'],
+      notes: ['"is this thing on?"', '"one coffee, please"', '"you are doing great"'],
+      passed: 'The note goes hand to hand to hand and comes out the other end. Mostly intact.',
+      again: 'Another note, another trip. They have a system. Ish.',
+      loopBefore: 'The THINK robot has asked itself the same question',
+      loopAfter: 'times now. It has not noticed the note go by.',
+    },
   },
 } as const;
