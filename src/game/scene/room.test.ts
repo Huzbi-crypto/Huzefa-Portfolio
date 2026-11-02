@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { allStarIds } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
+import { createEntity, stepEntity } from '@/game/world/entity';
 import { findPath, TILE } from '@/game/world/grid';
+import { navMap } from './nav';
 import { createRoomScene } from './room';
 import type { GameApi, Hotspot } from './types';
 
@@ -62,11 +64,35 @@ describe('room layout', () => {
 
   it('all_room_hotspots_reachable', () => {
     const { scene } = setup();
+    const nav = navMap(scene.map);
     for (const h of scene.hotspots) {
-      expect(scene.map.solid[h.stand.y * scene.map.w + h.stand.x], h.id).toBe(0);
-      const path = findPath(scene.map, scene.spawn, h.stand);
+      expect(nav.solid[h.stand.y * nav.w + h.stand.x], h.id).toBe(0);
+      const path = findPath(nav, scene.spawn, h.stand);
       const end = path.length > 0 ? path[path.length - 1] : scene.spawn;
       expect(end, h.id).toEqual(h.stand);
+    }
+  });
+
+  it('nav_map_only_offers_tiles_the_feet_can_stand_on', () => {
+    // The feet box is 10px wide, wider than a tile: a free tile touching a
+    // solid sideways would be one the visitor can path to but never stand on.
+    const { scene } = setup();
+    const { w, h, solid } = navMap(scene.map);
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        if (solid[y * w + x] === 1) continue;
+        const moved = [
+          { x: 1, y: 0 },
+          { x: -1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 0, y: -1 },
+        ].some((dir) => {
+          const e = createEntity(x * TILE + TILE / 2, y * TILE + TILE / 2);
+          stepEntity(e, dir, scene.map, 50);
+          return e.x !== x * TILE + TILE / 2 || e.y !== y * TILE + TILE / 2;
+        });
+        expect(moved, `tile ${x},${y}`).toBe(true);
+      }
     }
   });
 

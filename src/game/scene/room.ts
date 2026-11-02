@@ -146,7 +146,7 @@ function buildHotspots(): Hotspot[] {
   return [
     {
       id: 'note',
-      rect: { x: AT.note.x, y: AT.note.y, w: 10, h: 11 },
+      rect: { x: AT.note.x, y: AT.note.y, w: 10, h: 26 },
       stand: { x: 17, y: 7 },
       label: 'Read the note',
       async onInteract(api) {
@@ -156,7 +156,7 @@ function buildHotspots(): Hotspot[] {
     },
     {
       id: 'tea',
-      rect: { x: AT.tea.x, y: AT.tea.y, w: 12, h: 10 },
+      rect: { x: AT.tea.x, y: AT.tea.y, w: 12, h: 26 },
       stand: { x: 21, y: 7 },
       label: 'Check the tea',
       async onInteract(api) {
@@ -166,7 +166,7 @@ function buildHotspots(): Hotspot[] {
     },
     {
       id: 'monitor',
-      rect: { x: AT.crt.x, y: AT.crt.y, w: 20, h: 20 },
+      rect: { x: AT.crt.x, y: AT.crt.y, w: 20, h: 44 },
       stand: { x: 19, y: 7 },
       label: 'Use the monitor',
       async onInteract(api) {
