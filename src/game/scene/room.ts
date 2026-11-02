@@ -8,26 +8,27 @@ import { drawPos } from '@/game/world/entity';
 import { parseCollision, TILE } from '@/game/world/grid';
 import type { GameApi, Hotspot, Scene, SceneCtx } from './types';
 
-const WORLD_W = 288;
-const WORLD_H = 208;
+const WORLD_W = 336;
+const WORLD_H = 192;
 const COLS = WORLD_W / TILE;
 const ROWS = WORLD_H / TILE;
 
 /** Where everything stands, in world pixels. Sprites keep their own size. */
 const AT = {
   window: { x: 24, y: 4 },
-  shelf: { x: 88, y: 8 },
-  desk: { x: 136, y: 24 },
-  crt: { x: 150, y: 8 },
-  note: { x: 140, y: 26 },
-  tea: { x: 172, y: 26 },
-  door: { x: 240, y: 8 },
-  doorLight: { x: 238, y: 48 },
-  rug: { x: 120, y: 112 },
-  sofa: { x: 16, y: 104 },
-  lampGlow: { x: 200, y: 98 },
-  lamp: { x: 214, y: 100 },
-  cat: { x: 176, y: 136 },
+  windowTwo: { x: 232, y: 4 },
+  shelf: { x: 96, y: 8 },
+  desk: { x: 152, y: 24 },
+  crt: { x: 166, y: 8 },
+  note: { x: 156, y: 26 },
+  tea: { x: 188, y: 26 },
+  door: { x: 288, y: 8 },
+  doorLight: { x: 286, y: 48 },
+  rug: { x: 144, y: 96 },
+  sofa: { x: 24, y: 96 },
+  lampGlow: { x: 246, y: 90 },
+  lamp: { x: 260, y: 92 },
+  cat: { x: 212, y: 124 },
 } as const;
 
 /** Eight slots in the window's four panes; stars light up as visitors find things. */
@@ -52,9 +53,9 @@ function buildCollision() {
   solid(0, 0, 0, ROWS - 1);
   solid(COLS - 1, 0, COLS - 1, ROWS - 1);
   solid(0, ROWS - 1, COLS - 1, ROWS - 1);
-  solid(17, 6, 22, 6); // desk
-  solid(2, 13, 6, 16); // sofa
-  solid(26, 15, 27, 16); // lamp base
+  solid(19, 6, 24, 6); // desk
+  solid(3, 12, 7, 15); // sofa
+  solid(32, 14, 33, 15); // lamp base
 
   return parseCollision(grid.map((row) => row.join('')));
 }
@@ -147,7 +148,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'note',
       rect: { x: AT.note.x, y: AT.note.y, w: 10, h: 26 },
-      stand: { x: 17, y: 7 },
+      stand: { x: 19, y: 7 },
       label: 'Read the note',
       async onInteract(api) {
         const first = api.store.award('silly:read-note');
@@ -157,7 +158,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'tea',
       rect: { x: AT.tea.x, y: AT.tea.y, w: 12, h: 26 },
-      stand: { x: 21, y: 7 },
+      stand: { x: 24, y: 7 },
       label: 'Check the tea',
       async onInteract(api) {
         const first = api.store.award('silly:cold-tea');
@@ -167,7 +168,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'monitor',
       rect: { x: AT.crt.x, y: AT.crt.y, w: 20, h: 44 },
-      stand: { x: 19, y: 7 },
+      stand: { x: 21, y: 7 },
       label: 'Use the monitor',
       async onInteract(api) {
         await api.store.say([...copy.monitor.lines]);
@@ -177,14 +178,14 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'shelf',
       rect: { x: AT.shelf.x, y: AT.shelf.y, w: 32, h: 40 },
-      stand: { x: 12, y: 6 },
+      stand: { x: 13, y: 6 },
       label: 'Browse the shelf',
       onInteract: browseShelf,
     },
     {
       id: 'cat',
       rect: { x: AT.cat.x, y: AT.cat.y, w: 16, h: 14 },
-      stand: { x: 21, y: 17 },
+      stand: { x: 25, y: 16 },
       label: 'Pet the cat',
       onInteract: petCat,
     },
@@ -198,7 +199,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'door',
       rect: { x: AT.door.x, y: AT.door.y, w: 24, h: 40 },
-      stand: { x: 31, y: 6 },
+      stand: { x: 37, y: 6 },
       label: 'Check the door',
       onInteract: openDoor,
     },
@@ -212,7 +213,9 @@ function drawShell(g: CanvasRenderingContext2D): void {
     drawSprite(g, sprite('wallBase'), x, 32);
     drawSprite(g, sprite('floorUnderWall'), x, 48);
     for (let y = 64, row = 0; y < WORLD_H; y += 16, row += 1) {
-      drawSprite(g, sprite((x / 16 + row) % 2 ? 'floorAlt' : 'floor'), x, y);
+      // Boards run the width of the room; only an occasional end joint shows.
+      const joint = ((x / 16) * 7 + row * 5) % 9 === 0;
+      drawSprite(g, sprite(joint ? 'floorAlt' : 'floor'), x, y);
     }
   }
 }
@@ -237,7 +240,7 @@ export function createRoomScene(store: GameStore): Scene {
     worldW: WORLD_W,
     worldH: WORLD_H,
     map,
-    spawn: { x: 16, y: 15 },
+    spawn: { x: 20, y: 11 },
     hotspots: buildHotspots(),
 
     update() {
@@ -250,6 +253,7 @@ export function createRoomScene(store: GameStore): Scene {
 
       // Wall pieces.
       drawSprite(g, sprite('window'), AT.window.x, AT.window.y);
+      drawSprite(g, sprite('window'), AT.windowTwo.x, AT.windowTwo.y);
       drawWindowStars(g, ctx);
       drawSprite(g, sprite('shelfFull'), AT.shelf.x, AT.shelf.y);
       drawSprite(
