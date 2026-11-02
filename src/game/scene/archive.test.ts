@@ -5,6 +5,8 @@ import type { Input } from '@/game/core/input';
 import { createStore, type GameStore } from '@/game/state/store';
 import { createEntity } from '@/game/world/entity';
 import { findPath, TILE } from '@/game/world/grid';
+import { createLantern } from '@/game/exhibits/archiveKit';
+import { ASCII_REACH, litAsciiCells } from '@/game/exhibits/asciiArt';
 import { createReadCookies } from '@/game/exhibits/readCookies';
 import { createTermExp } from '@/game/exhibits/termExp';
 import { createArchive, MONSTER_POSTER } from './archive';
@@ -76,6 +78,7 @@ afterAll(() => {
 const PICKS: Record<string, string[]> = {
   'term-exp': ['ls'],
   'read-cookies': ['unlock'],
+  'ascii-art-tui': [],
 };
 const EXHIBITS = Object.keys(PICKS);
 
@@ -246,6 +249,31 @@ describe('createArchive', () => {
     await play(store, jar.use(api), []);
     expect(jar.jar().cookies).toHaveLength(0);
     expect(api.shown).toEqual(['read-cookies', 'read-cookies']);
+  });
+
+  it('ascii_converts_only_the_cells_the_light_touches', () => {
+    const origin = { x: 240, y: 14 };
+    expect(litAsciiCells(origin, { x: 400, y: 200 })).toEqual([]);
+
+    const left = litAsciiCells(origin, { x: 242, y: 28 });
+    const all = litAsciiCells(origin, { x: 256, y: 28 });
+    expect(left.length).toBeGreaterThan(0);
+    expect(all.length).toBeGreaterThan(left.length);
+    for (const cell of left) {
+      expect(Math.hypot(cell.x + 1.5 - 242, cell.y + 1.5 - 28)).toBeLessThanOrEqual(ASCII_REACH);
+      expect(cell.x, 'no cell far from the light').toBeLessThan(260);
+      expect(cell.ch).toHaveLength(1);
+    }
+    // Not the whole picture: the dark part stays a picture.
+    expect(all.length).toBeLessThan(12 * 10);
+  });
+
+  it('a_keyboard_visitors_lantern_reaches_the_frame_too', () => {
+    // Standing where the exhibit says to stand, with no pointer at all.
+    const player = createEntity(32 * TILE + TILE / 2, 6 * TILE + TILE / 2);
+    const lantern = createLantern()(ctxFor({ player }));
+
+    expect(litAsciiCells({ x: 240, y: 14 }, lantern).length).toBeGreaterThan(0);
   });
 
   it('monster_never_moves_toward_player', () => {

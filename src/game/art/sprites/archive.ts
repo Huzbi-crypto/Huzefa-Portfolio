@@ -204,21 +204,21 @@ const COOKIE_JAR = (() => {
 
 // --- the framed cat ---------------------------------------------------------
 
-export const FRAME = { w: 48, h: 36 } as const;
+export const FRAME = { w: 52, h: 38 } as const;
 /** The picture inside the frame, in sprite pixels. */
-export const FRAME_PICTURE = { x: 8, y: 4, w: 32, h: 28 } as const;
+export const FRAME_PICTURE = { x: 8, y: 4, w: 36, h: 30 } as const;
 
 /** The room's cat, big, against a patch of wall, as the picture in the frame. */
 function pictureRows(): string[] {
   const cv = blank(FRAME_PICTURE.w, FRAME_PICTURE.h);
   rect(cv, 0, 0, FRAME_PICTURE.w, FRAME_PICTURE.h, 'c');
   rect(cv, 0, 0, FRAME_PICTURE.w, 2, 'b');
-  rect(cv, 24, 3, 6, 8, 'd'); // a patch of light on the wall
+  rect(cv, 28, 3, 6, 8, 'd'); // a patch of light on the wall
   const cat = CAT_GRIDS['cat-sitting'];
   cat.forEach((row, y) => {
     for (let x = 0; x < row.length; x += 1) {
       if (row[x] === '.') continue;
-      rect(cv, x * 2, y * 2, 2, 2, row[x]); // scaled up two to one
+      rect(cv, 2 + x * 2, 1 + y * 2, 2, 2, row[x]); // scaled up two to one
     }
   });
   return rows(cv);
@@ -238,8 +238,8 @@ const FRAMED = (() => {
     for (let x = 0; x < row.length; x += 1) plot(cv, FRAME_PICTURE.x + x, FRAME_PICTURE.y + y, row[x]);
   });
   // A tiny brass plate, the way real galleries do.
-  rect(cv, 21, 33, 6, 1, 'r');
-  rect(cv, 21, 34, 6, 1, 'e');
+  rect(cv, 23, 35, 6, 1, 'r');
+  rect(cv, 23, 36, 6, 1, 'e');
   return rows(cv);
 })();
 
@@ -257,7 +257,10 @@ export function framePictureLuminance(): { w: number; h: number; pixels: number[
   const picture = pictureRows();
   const pixels: number[] = [];
   for (const row of picture) {
-    for (const ch of row) pixels.push(luminance(palette[ch] ?? palette.a));
+    // Stretched, so the cat's dark outline reaches blank and its belly reaches the heaviest marks.
+    for (const ch of row) {
+      pixels.push(Math.min(1, Math.max(0, (luminance(palette[ch] ?? palette.a) - 0.1) / 0.85)));
+    }
   }
   return { w: FRAME_PICTURE.w, h: FRAME_PICTURE.h, pixels };
 }
