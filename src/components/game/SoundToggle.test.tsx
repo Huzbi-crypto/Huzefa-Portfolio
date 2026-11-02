@@ -70,4 +70,31 @@ describe('SoundToggle', () => {
     expect(button().getAttribute('aria-hidden')).toBeNull();
     expect(button().querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('keeps_its_clicks_and_keys_out_of_the_game', async () => {
+    const leaked = vi.fn();
+    await act(async () => {
+      root.render(
+        createElement(
+          'div',
+          {
+            onPointerDown: leaked,
+            onPointerUp: leaked,
+            onKeyDown: leaked,
+            onKeyUp: leaked,
+          },
+          createElement(SoundToggle, { enabled: false, onToggle: () => undefined }),
+        ),
+      );
+    });
+
+    act(() => {
+      button().dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      button().dispatchEvent(new Event('pointerup', { bubbles: true }));
+      button().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      button().dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+    });
+
+    expect(leaked).not.toHaveBeenCalled();
+  });
 });

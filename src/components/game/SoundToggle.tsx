@@ -48,6 +48,11 @@ function PixelSpeaker({ on }: { on: boolean }) {
   );
 }
 
+/** The button owns its input; a click here must never walk the visitor. */
+function keepToTheButton(event: React.SyntheticEvent): void {
+  event.stopPropagation();
+}
+
 /** Sound is off until the visitor says otherwise, and the choice is visible. */
 export function SoundToggle({
   enabled,
@@ -64,6 +69,11 @@ export function SoundToggle({
       aria-pressed={enabled}
       aria-label={enabled ? copy.ui.soundOnLabel : copy.ui.soundOffLabel}
       onClick={onToggle}
+      onPointerDown={keepToTheButton}
+      onPointerUp={keepToTheButton}
+      onPointerMove={keepToTheButton}
+      onKeyDown={keepToTheButton}
+      onKeyUp={keepToTheButton}
     >
       <PixelSpeaker on={enabled} />
       <span aria-hidden="true">{enabled ? copy.ui.soundOn : copy.ui.soundOff}</span>
