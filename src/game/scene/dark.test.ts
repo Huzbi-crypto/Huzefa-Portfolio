@@ -182,7 +182,7 @@ describe('dark layout', () => {
   it('has_the_first_dark_space_and_nothing_from_phase_two', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['arch', 'cat', 'exit', 'eye', 'note-one', 'note-two', 'routing-sim'],
+      ['arch', 'cat', 'exit', 'eye', 'note-one', 'note-two', 'routing-sim', 'workshop-hatch'],
     );
   });
 
@@ -214,6 +214,19 @@ describe('dark hotspots', () => {
     const { scene, api } = setup();
     await interact(byId(scene, 'exit'), api, 'back');
     expect(api.goTo).toHaveBeenCalledWith('room');
+  });
+
+  it('the_hatch_goes_down_to_the_workshop_by_its_own_ladder', async () => {
+    const { scene, api } = setup();
+    await interact(byId(scene, 'workshop-hatch'), api, 'back');
+    expect(api.goTo).toHaveBeenCalledWith('workshop', 'fromHall');
+  });
+
+  it('coming_back_up_the_ladder_lands_beside_the_hatch', () => {
+    const { scene } = setup();
+    const at = scene.entries?.fromWorkshop;
+    expect(at).toBeDefined();
+    expect(scene.map.solid[at!.y * scene.map.w + at!.x]).toBe(0);
   });
 
   it('exit_hotspot_can_be_declined_and_nothing_happens', async () => {

@@ -44,6 +44,7 @@ const AT = {
   cat: { x: 40, y: 136 },
   chalkOne: { x: 56, y: 24 },
   chalkTwo: { x: 216, y: 24 },
+  hatch: { x: 112, y: 140 },
 } as const;
 
 const ROUTER_FEET_ROW = 14;
@@ -59,7 +60,8 @@ function sprite(name: string) {
 const monitorLight: Light = { x: 0, y: 0, radius: 34, tint: 'cool' };
 const doorLight: Light = { x: 0, y: 0, radius: 30, tint: 'warm' };
 const packetLight: Light = { x: 0, y: 0, radius: 13, tint: 'cool' };
-const LIGHTS: Light[] = [monitorLight, doorLight, packetLight];
+const hatchLight: Light = { x: AT.hatch.x + 16, y: AT.hatch.y + 11, radius: 22, tint: 'warm' };
+const LIGHTS: Light[] = [monitorLight, doorLight, packetLight, hatchLight];
 
 monitorLight.x = AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2;
 monitorLight.y = AT.monitor.y + MONITOR_SCREEN.y + MONITOR_SCREEN.h / 2;
@@ -134,6 +136,12 @@ function buildProps(): SpaceProp[] {
       id: 'exit-glow',
       footY: AT.exit.y + 40,
       glow: (g) => drawSprite(g, sprite('darkExitGlow'), AT.exit.x + 4, AT.exit.y + 3),
+    },
+    {
+      id: 'hatch-art',
+      // Flat on the floor: everything standing on it is drawn over it.
+      footY: AT.hatch.y,
+      draw: (g) => drawSprite(g, sprite('workshopHatch'), AT.hatch.x, AT.hatch.y),
     },
     {
       id: 'note-one',
@@ -306,7 +314,7 @@ function buildSpaceDef(): SpaceDef {
       { x: 28 * TILE, y: ROUTER_FEET_ROW * TILE, w: 4 * TILE, h: 2 * TILE },
     ],
     spawn: { x: 4, y: 7 },
-    entries: { fromRoom: { x: 4, y: 7 } },
+    entries: { fromRoom: { x: 4, y: 7 }, fromWorkshop: { x: 16, y: 21 } },
     exits: [
       {
         id: 'exit',
@@ -319,6 +327,18 @@ function buildSpaceDef(): SpaceDef {
         goLabel: copy.dark.exit.backLabel,
         stayLabel: copy.dark.exit.stayLabel,
         stayReply: copy.dark.exit.stayReply,
+      },
+      {
+        id: 'workshop-hatch',
+        rect: { x: AT.hatch.x, y: AT.hatch.y, w: 32, h: 22 },
+        stand: { x: 16, y: 20 },
+        label: copy.workshop.hatch.label,
+        to: 'workshop',
+        entry: 'fromHall',
+        lines: copy.workshop.hatch.lines,
+        goLabel: copy.workshop.hatch.goLabel,
+        stayLabel: copy.workshop.hatch.stayLabel,
+        stayReply: copy.workshop.hatch.stayReply,
       },
     ],
     props: buildProps(),
