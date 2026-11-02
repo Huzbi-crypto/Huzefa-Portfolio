@@ -25,6 +25,8 @@ export type GameUiState = {
   found: readonly string[];
   total: number;
   doorOpened: boolean;
+  /** The visitor's sound choice, remembered between visits. */
+  sound: boolean;
   /** The project whose panel is open, or null. */
   project: string | null;
 };
@@ -50,6 +52,8 @@ export type GameStore = {
   markEndingSeen(line: EndingLine): void;
   seenEndingLine(): EndingLine | null;
   setDoorOpened(): void;
+  /** Remembers whether sound should play. Never starts it by itself. */
+  setSound(v: boolean): void;
   setReducedMotion(v: boolean): void;
   /** Opens the project panel; resolves when it closes. */
   showProject(projectId: string): Promise<void>;
@@ -75,6 +79,7 @@ export function createStore(storage: Storage | null): GameStore {
     found: [...progress.found],
     total: starTotal(),
     doorOpened: progress.doorOpened,
+    sound: progress.sound,
     project,
   });
   let state = buildSnapshot();
@@ -205,6 +210,14 @@ export function createStore(storage: Storage | null): GameStore {
       if (progress.doorOpened) return;
 
       progress.doorOpened = true;
+      persist();
+      notify();
+    },
+
+    setSound(value: boolean): void {
+      if (progress.sound === value) return;
+
+      progress.sound = value;
       persist();
       notify();
     },

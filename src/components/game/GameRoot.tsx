@@ -17,6 +17,7 @@ const EMPTY_UI = {
   found: [],
   total: 0,
   doorOpened: false,
+  sound: false,
   project: null,
 } as const;
 

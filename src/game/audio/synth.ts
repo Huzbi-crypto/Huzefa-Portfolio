@@ -148,7 +148,7 @@ export function createSynth(ctx: AudioContextLike): Synth {
     const start = ctx.currentTime + LOOKAHEAD;
 
     for (const note of tune.notes) {
-      scheduleTuneNote(tune, note, musicGain, start + note.step * stepSeconds, stepSeconds);
+      scheduleTuneNote(note, musicGain, start + note.step * stepSeconds, stepSeconds);
     }
 
     // Schedule the next loop a little before this one runs out.
@@ -160,7 +160,6 @@ export function createSynth(ctx: AudioContextLike): Synth {
   }
 
   function scheduleTuneNote(
-    tune: Tune,
     note: TuneNote,
     target: AudioNodeLike,
     when: number,
