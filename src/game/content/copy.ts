@@ -190,6 +190,108 @@ export const copy = {
     },
   },
 
+  /** The Archive: five project exhibits and the poster. Placeholder voice, for Huzbi to edit. */
+  archive: {
+    /** Painted on the wall in chalk, capitals only. */
+    chalk: ['ARCHIVE', 'SHH', 'BACK'],
+
+    exit: {
+      label: 'Back to the hall',
+      lines: [
+        'The passage back to the hall. It still smells faintly of toast.',
+      ],
+      backLabel: 'GO BACK',
+      stayLabel: 'NOT YET',
+      stayReply: ['Fine. The boxes will keep. They have kept this long.'],
+    },
+
+    term: {
+      label: 'Use the little terminal',
+      intro: [
+        'A very small terminal on a stool. The prompt blinks, as if it had been waiting for you specifically.',
+        'Try a command. The suggestions below work with a keyboard, a mouse or a thumb.',
+      ],
+      commands: [
+        { id: 'help', line: 'help' },
+        { id: 'ls', line: 'ls' },
+        { id: 'cat', line: 'cat secrets.txt' },
+        { id: 'whoami', line: 'whoami' },
+        { id: 'sudo', line: 'sudo make me a sandwich' },
+      ],
+      leaveLabel: 'STEP AWAY',
+      /** The few letters the little screen shows, before and after a command. */
+      screenIdle: 'HI?',
+      screenReply: {
+        help: 'HELP?',
+        ls: 'NOPE',
+        cat: 'NO.',
+        whoami: 'YOU.',
+        clear: 'RUDE',
+      },
+      screenUnknown: 'WHAT?',
+    },
+
+    cookies: {
+      label: 'Open the cookie jar',
+      intro: [
+        'A cookie jar with a padlock. The tag on it says "evidence".',
+        'Every cookie wears a little label, like a browser session. Somebody has been taking them.',
+      ],
+      unlockLabel: 'UNLOCK IT',
+      leaveLabel: 'LEAVE IT',
+      leaveReply: ['Wise. Or suspicious. Hard to tell with cookies.'],
+      unlocked: [
+        'The padlock was never locked. It is only there for the look.',
+        'Take one. Go on. Nobody is watching. Probably.',
+      ],
+      moreLabel: 'ENOUGH COOKIES',
+      empty: 'The jar is empty. You are the evidence now.',
+    },
+
+    ascii: {
+      label: 'Look at the framed cat',
+      lines: [
+        'A framed picture of a cat. The cat is unimpressed.',
+        'Wherever your light falls, the picture turns into letters. Only there, and only while it lasts.',
+        'Wave the lantern over its face. It has seen worse.',
+      ],
+    },
+
+    particles: {
+      label: 'Watch the dust',
+      lines: [
+        'A glass case of drifting specks. They follow your light like a very small, very loyal swarm.',
+        'No point to it at all. That is the point.',
+      ],
+    },
+
+    renderer: {
+      label: 'Grab the old screen',
+      intro: [
+        'A chunky old screen spinning a wireframe. The 3D maths is real. The screen is tired.',
+        'Grab it with the mouse or a finger, or nudge it with the choices below.',
+      ],
+      left: 'SPIN LEFT',
+      right: 'SPIN RIGHT',
+      up: 'TILT UP',
+      down: 'TILT DOWN',
+      leaveLabel: 'LET GO',
+      pop: 'Now and then a corner pokes through the cube. The maths was never told it could not.',
+    },
+
+    monster: {
+      label: 'Look closer at the eyes',
+      lines: [
+        'Two red eyes in the dark. Your heart does a small, polite jump.',
+        'You step closer. It is a poster.',
+        'A green monster, a great deal of eyebrow, and tape that has seen better decades.',
+        'Underneath, in biro: "This is not what I look like."',
+        'You believe it. Mostly.',
+      ],
+      again: ['The poster glares. It is paper. The tape is winning.'],
+    },
+  },
+
   /** The project panel: real facts from `src/data/projects.ts`, labels here. */
   projectPanel: {
     label: 'Project details',
