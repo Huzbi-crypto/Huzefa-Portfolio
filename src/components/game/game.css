@@ -136,7 +136,7 @@ body {
 }
 
 .dialogue-text {
-  min-height: calc(3 * 1.45em);
+  min-height: calc(2 * 1.45em);
   margin: 0;
   text-wrap: pretty;
   overflow-wrap: break-word;

@@ -206,18 +206,85 @@ function buildHotspots(): Hotspot[] {
   ];
 }
 
-function drawShell(g: CanvasRenderingContext2D): void {
-  for (let x = 0; x < WORLD_W; x += 16) {
-    drawSprite(g, sprite('wall'), x, 0);
-    drawSprite(g, sprite('wall'), x, 16);
-    drawSprite(g, sprite('wallBase'), x, 32);
-    drawSprite(g, sprite('floorUnderWall'), x, 48);
-    for (let y = 64, row = 0; y < WORLD_H; y += 16, row += 1) {
+/** One row of the shell at world y, for any y: walls above, boards below. */
+function drawShellRow(g: CanvasRenderingContext2D, y: number, x0: number, x1: number): void {
+  const row = Math.floor((y - 64) / 16);
+  for (let x = Math.floor(x0 / 16) * 16; x < x1; x += 16) {
+    if (y === 32) drawSprite(g, sprite('wallBase'), x, y);
+    else if (y === 48) drawSprite(g, sprite('floorUnderWall'), x, y);
+    else if (y < 32) drawSprite(g, sprite('wall'), x, y);
+    else {
       // Boards run the width of the room; only an occasional end joint shows.
-      const joint = ((x / 16) * 7 + row * 5) % 9 === 0;
+      const joint = (Math.floor(x / 16) * 7 + row * 5) % 9 === 0;
       drawSprite(g, sprite(joint ? 'floorAlt' : 'floor'), x, y);
     }
   }
+}
+
+/**
+ * The room fills the world; where the view is bigger (a tall phone, a wide
+ * monitor) the walls and boards carry on and fade out in dithered steps, so
+ * the room is never a small picture floating in a void.
+ */
+function drawShell(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
+  const { camera, viewW, viewH } = ctx;
+  const top = Math.min(0, Math.floor(camera.y / 16) * 16);
+  const bottom = Math.max(WORLD_H, camera.y + viewH);
+  for (let y = top; y < bottom; y += 16) {
+    drawShellRow(g, y, Math.min(0, camera.x), Math.max(WORLD_W, camera.x + viewW));
+  }
+  drawFade(g, ctx);
+}
+
+/** Plain extension first, then seven dithered steps of this width fade to ink. */
+const FADE_LEAD = 6;
+const FADE_STEP = 14;
+const FADE_LEVELS = 7;
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const fadePatterns = new WeakMap<CanvasRenderingContext2D, CanvasPattern[]>();
+
+function fadePatternsFor(g: CanvasRenderingContext2D): CanvasPattern[] {
+  const cached = fadePatterns.get(g);
+  if (cached) return cached;
+
+  const patterns: CanvasPattern[] = [];
+  for (let level = 1; level <= FADE_LEVELS; level += 1) {
+    const tile = document.createElement('canvas');
+    tile.width = 4;
+    tile.height = 4;
+    const t = tile.getContext('2d');
+    if (!t) continue;
+    t.fillStyle = '#1b1428';
+    BAYER.forEach((threshold, index) => {
+      if (threshold < level * 2) t.fillRect(index % 4, Math.floor(index / 4), 1, 1);
+    });
+    const pattern = g.createPattern(tile, 'repeat');
+    if (pattern) patterns.push(pattern);
+  }
+  fadePatterns.set(g, patterns);
+  return patterns;
+}
+
+function drawFade(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
+  const { camera, viewW, viewH } = ctx;
+  const outsideX = camera.x < 0 || camera.x + viewW > WORLD_W;
+  const outsideY = camera.y < 0 || camera.y + viewH > WORLD_H;
+  if (!outsideX && !outsideY) return;
+
+  const patterns = fadePatternsFor(g);
+  const reach = 4000;
+  const ring = (grow: number, inner: number, fill: string | CanvasPattern): void => {
+    const path = new Path2D();
+    path.rect(-grow, -grow, WORLD_W + grow * 2, WORLD_H + grow * 2);
+    path.rect(-inner, -inner, WORLD_W + inner * 2, WORLD_H + inner * 2);
+    g.fillStyle = fill;
+    g.fill(path, 'evenodd');
+  };
+
+  patterns.forEach((pattern, index) => {
+    ring(FADE_LEAD + FADE_STEP * (index + 1), FADE_LEAD + FADE_STEP * index, pattern);
+  });
+  ring(reach, FADE_LEAD + FADE_STEP * patterns.length, '#1b1428');
 }
 
 function drawWindowStars(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
@@ -249,7 +316,7 @@ export function createRoomScene(store: GameStore): Scene {
 
     draw(g, ctx) {
       const { t, reducedMotion } = ctx;
-      drawShell(g);
+      drawShell(g, ctx);
 
       // Wall pieces.
       drawSprite(g, sprite('window'), AT.window.x, AT.window.y);
