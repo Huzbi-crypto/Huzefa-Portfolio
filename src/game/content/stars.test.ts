@@ -43,6 +43,10 @@ describe('stars', () => {
     }
   });
 
+  it('the_monster_poster_has_a_silly_star', () => {
+    expect(allStarIds()).toContain('silly:monster-poster');
+  });
+
   it('id_helpers_build_documented_ids', () => {
     expect(projectStarId('routing-sim')).toBe('project:routing-sim');
     expect(readStarId('One Piece')).toBe('read:one-piece');

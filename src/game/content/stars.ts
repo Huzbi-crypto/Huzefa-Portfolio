@@ -9,6 +9,7 @@ export const SILLY_STARS: string[] = [
   'silly:pet-cat',
   'silly:cold-tea',
   'silly:read-note',
+  'silly:monster-poster',
 ];
 
 function slugify(title: string): string {
