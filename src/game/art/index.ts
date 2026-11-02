@@ -1,5 +1,6 @@
 import { decodeSprite, type Sprite } from '../render/sprite';
 import { PALETTES } from './palette';
+import { ARCHIVE_SPRITE_GRIDS } from './sprites/archive';
 import { CAT_GRIDS } from './sprites/cat';
 import { DARK_PROP_GRIDS } from './sprites/darkProps';
 import { DARK_TILE_GRIDS } from './sprites/darkTiles';
@@ -26,6 +27,7 @@ export const SPRITE_GRIDS: Record<string, string[]> = {
   ...DOOR_GRIDS,
   ...DARK_TILE_GRIDS,
   ...DARK_PROP_GRIDS,
+  ...ARCHIVE_SPRITE_GRIDS,
   ...WORKSHOP_GRIDS,
 };
 
