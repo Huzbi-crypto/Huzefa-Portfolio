@@ -103,6 +103,9 @@ export default function Navbar() {
 
   const currentThemeMeta = THEME_OPTIONS.find((t) => t.id === theme) || THEME_OPTIONS[0];
 
+  // The home page is the game: it carries no website chrome.
+  if (pathname === '/') return null;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-bg/90 backdrop-blur-md transition-colors duration-200">
       <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 h-14 flex items-center justify-between gap-3">
