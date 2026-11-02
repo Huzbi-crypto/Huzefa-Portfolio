@@ -1,6 +1,8 @@
 import { decodeSprite, type Sprite } from '../render/sprite';
 import { PALETTES } from './palette';
 import { CAT_GRIDS } from './sprites/cat';
+import { DARK_PROP_GRIDS } from './sprites/darkProps';
+import { DARK_TILE_GRIDS } from './sprites/darkTiles';
 import { DOOR_GRIDS } from './sprites/door';
 import { FURNITURE_GRIDS } from './sprites/furniture';
 import { SHELF_GRIDS } from './sprites/shelf';
@@ -21,6 +23,8 @@ export const SPRITE_GRIDS: Record<string, string[]> = {
   ...FURNITURE_GRIDS,
   ...SHELF_GRIDS,
   ...DOOR_GRIDS,
+  ...DARK_TILE_GRIDS,
+  ...DARK_PROP_GRIDS,
 };
 
 /** Animation sequences: frame sprite names in play order. Frames share a size. */
