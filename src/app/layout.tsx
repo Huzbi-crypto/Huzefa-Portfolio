@@ -1,9 +1,17 @@
 import type { Metadata, Viewport } from 'next';
+import localFont from 'next/font/local';
 import '../styles/globals.css';
 import { AppProvider } from '@/context/AppContext';
 import Navbar from '@/components/navigation/Navbar';
 import TerminalModal from '@/components/terminal/TerminalModal';
 import CrtOverlay from '@/components/effects/CrtOverlay';
+
+const pixelFont = localFont({
+  src: '../../public/fonts/PixelifySans.ttf',
+  variable: '--font-pixel-face',
+  weight: '400 700',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://huzefa.vercel.app'),
@@ -51,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="cozy-crt" suppressHydrationWarning>
+    <html lang="en" data-theme="cozy-crt" className={pixelFont.variable} suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="dark" />
         {/* Prevent theme flash by restoring theme before DOM renders */}
