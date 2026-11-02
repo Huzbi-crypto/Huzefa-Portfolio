@@ -110,7 +110,7 @@ export const copy = {
     exit: {
       label: 'Back to the room',
       lines: [
-        'The door you came through. A strip of warm light shows under it.',
+        'The door you came through, still open and spilling warm light.',
         'Cold mug, cat, 2 AM. The good place.',
       ],
       backLabel: 'GO BACK',
