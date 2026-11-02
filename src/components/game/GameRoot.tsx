@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useApp } from '@/context/AppContext';
 import { copy } from '@/game/content/copy';
 import { createGame, type Game, type GameHint } from '@/game/game';
+import { createDarkScene } from '@/game/scene/dark';
 import { createRoomScene } from '@/game/scene/room';
 import { createStore, type GameStore } from '@/game/state/store';
 import { DialogueBox } from './DialogueBox';
@@ -61,11 +62,10 @@ export default function GameRoot() {
     if (!stage || !canvas) return;
 
     const gameStore = createStore(browserStorage());
-    const scene = createRoomScene(gameStore);
     const game: Game = createGame({
       canvas,
       store: gameStore,
-      scenes: [scene],
+      scenes: [createRoomScene(gameStore), createDarkScene(gameStore)],
       openTerminal: () => openTerminalRef.current(),
       isBlocked: () => gameStore.getState().dialogue !== null || terminalOpenRef.current,
       onHint: setHint,
