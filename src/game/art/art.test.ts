@@ -83,4 +83,15 @@ describe('sprites', () => {
       expect(sprite.pixels.some((p) => p !== null), name).toBe(true);
     }
   });
+
+  it('floor_tiles_read_as_calm_boards', () => {
+    for (const name of ['floor', 'floorAlt']) {
+      const px = SPRITES[name].pixels;
+      const counts = new Map<string | null, number>();
+      for (const p of px) counts.set(p, (counts.get(p) ?? 0) + 1);
+      const top = Math.max(...counts.values());
+      expect(counts.size, name).toBeLessThanOrEqual(3);
+      expect(top / px.length, name).toBeGreaterThanOrEqual(0.7);
+    }
+  });
 });
