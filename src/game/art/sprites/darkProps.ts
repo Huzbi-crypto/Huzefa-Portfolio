@@ -241,7 +241,10 @@ const EXIT = (() => {
   return rows(cv);
 })();
 
-/** The warm room beyond the door, drawn bright because it makes its own light. */
+/**
+ * The warm room beyond the door, drawn bright because it makes its own light:
+ * wall, a little window with stars, a baseboard and lit floorboards.
+ */
 const EXIT_GLOW = (() => {
   const w = 16;
   const h = 35;
@@ -250,14 +253,41 @@ const EXIT_GLOW = (() => {
     for (let x = 0; x < w; x += 1) {
       const d = Math.abs(x - 7.5);
       const check = (x + y) % 2 === 0;
+      const wall = y < 14;
       let c: string;
-      if (d < 2) c = 's';
-      else if (d < 4) c = check ? 's' : 'r';
-      else if (d < 6) c = 'r';
-      else if (d < 7) c = check ? 'r' : 'i';
-      else c = 'i';
-      if (y % 7 === 6) c = d < 4 ? 'r' : 'h'; // the joints between boards
+      if (wall) c = d < 4 ? (check ? 'h' : 'g') : 'g';
+      else if (y === 14) c = 'i';
+      else {
+        const board = Math.floor((y - 15) / 5) % 2 === 0;
+        c = d < 2 ? 's' : d < 4 ? (check ? 's' : 'r') : board ? 'r' : check ? 'r' : 'i';
+        if ((y - 15) % 5 === 4) c = d < 3 ? 'r' : 'h'; // the joints between boards
+      }
+      // The doorway's own depth: the sides fall away into shadow.
+      if (x < 1 || x > 14) c = wall ? 'f' : 'g';
       cv[y][x] = c;
+    }
+  }
+  rect(cv, 5, 3, 6, 7, 'i');
+  rect(cv, 6, 4, 4, 5, 'D');
+  plot(cv, 7, 5, 'C');
+  plot(cv, 9, 7, 'C');
+  rect(cv, 7, 3, 2, 7, 'i'); // the window's cross
+  rect(cv, 5, 6, 6, 1, 'i');
+  return rows(cv);
+})();
+
+/** Light spilling out of the doorway onto the dark floor, in dithered steps. */
+const EXIT_SPILL = (() => {
+  const w = 24;
+  const h = 12;
+  const cv = blank(w, h);
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const inset = Math.floor(y / 2); // the cone widens as it falls
+      if (x < 2 - inset / 2 + 0 && false) continue;
+      const level = y < 3 ? 2 : y < 6 ? 3 : y < 9 ? 4 : 6;
+      const keep = ((x + y * 3) % level === 0) || (level === 2 && (x + y) % 2 === 0);
+      if (keep && x >= 2 && x < w - 2) cv[y][x] = y < 6 ? 'r' : 'h';
     }
   }
   return rows(cv);
@@ -270,6 +300,7 @@ const AJAR = DOOR_GRIDS.doorClosed.map(
 export const DARK_PROP_GRIDS: Record<string, string[]> = {
   darkExit: EXIT,
   darkExitGlow: EXIT_GLOW,
+  darkExitSpill: EXIT_SPILL,
   darkDoorAjar: AJAR,
   darkMonitor: MONITOR,
   darkEyeCenter: eye(6),

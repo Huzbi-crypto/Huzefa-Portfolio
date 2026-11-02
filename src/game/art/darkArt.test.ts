@@ -4,7 +4,7 @@ import { CHALK_GLYPHS, chalkPixels } from './sprites/darkGlyphs';
 
 const NAMES = [
   'darkFloor', 'darkFloorAlt', 'darkWall', 'darkWallBase',
-  'darkExit', 'darkExitGlow', 'darkDoorAjar',
+  'darkExit', 'darkExitGlow', 'darkExitSpill', 'darkDoorAjar',
   'darkMonitor', 'darkEyeCenter', 'darkEyeLeft', 'darkEyeRight', 'darkEyeBlink',
   'darkNote0', 'darkNote1', 'darkRouter', 'darkArch',
 ];
@@ -12,6 +12,26 @@ const NAMES = [
 describe('dark art', () => {
   it('has_every_dark_sprite', () => {
     for (const name of NAMES) expect(SPRITES[name], name).toBeDefined();
+  });
+
+  it('the_doorway_glow_shows_a_lit_room_not_a_flat_bar', () => {
+    const colors = new Set(SPRITES.darkExitGlow.pixels.filter((p) => p !== null));
+    expect(colors.size).toBeGreaterThanOrEqual(5);
+    expect(SPRITES.darkExitSpill.w).toBe(24);
+  });
+
+  it('floor_is_warm_and_walls_are_cool_so_they_never_blur_together', () => {
+    const mean = (name: string) => {
+      const px = SPRITES[name].pixels.filter((p): p is string => p !== null);
+      let r = 0;
+      let b = 0;
+      for (const p of px) {
+        r += parseInt(p.slice(1, 3), 16);
+        b += parseInt(p.slice(5, 7), 16);
+      }
+      return (r - b) / px.length;
+    };
+    expect(mean('darkFloor')).toBeGreaterThan(mean('darkWall') + 20);
   });
 
   it('tiles_are_16_by_16', () => {
