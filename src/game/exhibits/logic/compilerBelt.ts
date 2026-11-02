@@ -88,11 +88,14 @@ function tokenize(src: string): { tokens: Token[]; error?: string } {
       continue;
     }
 
-    if (character === '(' || character === ')') {
-      tokens.push({
-        kind: character === '(' ? 'lparen' : 'rparen',
-        value: character,
-      });
+    if (character === '(') {
+      tokens.push({ kind: 'lparen', value: '(' });
+      index += 1;
+      continue;
+    }
+
+    if (character === ')') {
+      tokens.push({ kind: 'rparen', value: ')' });
       index += 1;
       continue;
     }
