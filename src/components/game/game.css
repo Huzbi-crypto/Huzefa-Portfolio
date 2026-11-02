@@ -119,6 +119,47 @@ body {
   }
 }
 
+/* Sound toggle: the same hard-edged panel as the star counter, on the other side. */
+
+.sound-toggle {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: var(--g-gutter);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 14px 6px 10px;
+  border: 0;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.sound-toggle[data-on='true'] {
+  color: var(--g-amber-hi);
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  background: var(--g-panel-hi);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.sound-toggle:active {
+  background: var(--g-line);
+  color: var(--g-ink);
+}
+
+.sound-icon {
+  display: block;
+  fill: currentColor;
+}
+
 /* Dialogue */
 
 .dialogue {

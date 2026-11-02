@@ -15,6 +15,10 @@ export const copy = {
     useVerbTap: 'Tap',
     continue: 'Continue',
     speaker: 'Room',
+    soundOn: 'SOUND ON',
+    soundOff: 'SOUND OFF',
+    soundOnLabel: 'Sound is on. Turn sound off.',
+    soundOffLabel: 'Sound is off. Turn sound on.',
   },
 
   note: {
