@@ -1,0 +1,99 @@
+import { SPRITES } from '@/game/art';
+import { copy } from '@/game/content/copy';
+import type { Exhibit } from '@/game/exhibits/types';
+import type { Light } from '@/game/render/lighting';
+import { drawSprite } from '@/game/render/sprite';
+import type { GameStore } from '@/game/state/store';
+import { TILE } from '@/game/world/grid';
+import { createDarkSpace, type SpaceDef } from './space';
+import type { Scene } from './types';
+
+const WORLD_W = 384;
+const WORLD_H = 224;
+const WALL_BOTTOM = 48; // rows 0..2 are wall, the floor starts at y = 48
+
+/** Where the fixed things stand, in world pixels. */
+export const WORKSHOP_AT = {
+  ladder: { x: 26, y: 4 },
+  pegboardOne: { x: 78, y: 12 },
+  jarsOne: { x: 150, y: 14 },
+  blueprintOne: { x: 206, y: 18 },
+  pegboardTwo: { x: 258, y: 12 },
+  jarsTwo: { x: 324, y: 14 },
+} as const;
+
+function sprite(name: string) {
+  const found = SPRITES[name];
+  if (!found) throw new Error(`Missing sprite: ${name}`);
+  return found;
+}
+
+const ladderLight: Light = { x: 0, y: 0, radius: 22, tint: 'cool' };
+ladderLight.x = WORKSHOP_AT.ladder.x + 10;
+ladderLight.y = WORKSHOP_AT.ladder.y + 10;
+const LIGHTS: Light[] = [ladderLight];
+
+function buildExhibits(): Exhibit[] {
+  return [];
+}
+
+function drawShell(g: CanvasRenderingContext2D): void {
+  for (let y = 0; y < WORLD_H; y += TILE) {
+    for (let x = 0; x < WORLD_W; x += TILE) {
+      let name: string;
+      if (y < 32) name = 'workshopWall';
+      else if (y === 32) name = 'workshopWallBase';
+      else name = ((x / TILE) * 5 + (y / TILE) * 3) % 7 === 0 ? 'workshopFloorAlt' : 'workshopFloor';
+      drawSprite(g, sprite(name), x, y);
+    }
+  }
+  // The same inky border the hall has, so every dark space ends the same way.
+  g.fillStyle = '#1b1428';
+  g.fillRect(0, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
+  g.fillRect(WORLD_W - TILE, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
+  g.fillRect(0, WORLD_H - TILE, WORLD_W, TILE);
+}
+
+function drawBackdrop(g: CanvasRenderingContext2D): void {
+  drawShell(g);
+  const at = WORKSHOP_AT;
+  drawSprite(g, sprite('workshopLadder'), at.ladder.x, at.ladder.y);
+  drawSprite(g, sprite('workshopPegboard'), at.pegboardOne.x, at.pegboardOne.y);
+  drawSprite(g, sprite('workshopJars'), at.jarsOne.x, at.jarsOne.y);
+  drawSprite(g, sprite('workshopBlueprint'), at.blueprintOne.x, at.blueprintOne.y);
+  drawSprite(g, sprite('workshopPegboard'), at.pegboardTwo.x, at.pegboardTwo.y);
+  drawSprite(g, sprite('workshopJars'), at.jarsTwo.x, at.jarsTwo.y);
+}
+
+function buildSpaceDef(): SpaceDef {
+  return {
+    id: 'workshop',
+    worldW: WORLD_W,
+    worldH: WORLD_H,
+    solids: [{ x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM }],
+    spawn: { x: 5, y: 7 },
+    entries: { fromHall: { x: 5, y: 7 } },
+    exits: [
+      {
+        id: 'exit',
+        rect: { x: WORKSHOP_AT.ladder.x - 2, y: WORKSHOP_AT.ladder.y, w: 24, h: 44 },
+        stand: { x: 4, y: 6 },
+        label: copy.workshop.exit.label,
+        to: 'dark',
+        entry: 'fromWorkshop',
+        lines: copy.workshop.exit.lines,
+        goLabel: copy.workshop.exit.backLabel,
+        stayLabel: copy.workshop.exit.stayLabel,
+        stayReply: copy.workshop.exit.stayReply,
+      },
+    ],
+    props: [],
+    exhibits: buildExhibits(),
+    lights: LIGHTS,
+    drawBackdrop,
+  };
+}
+
+export function createWorkshop(store: GameStore): Scene {
+  return createDarkSpace(buildSpaceDef(), store);
+}

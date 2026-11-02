@@ -301,4 +301,27 @@ export const copy = {
     demo: 'TRY THE LIVE DEMO',
     builtWith: 'Built with',
   },
+
+  /** The workshop under the hall: a cellar of half-finished machines. */
+  workshop: {
+    /** The open hatch in the hall's floor. */
+    hatch: {
+      label: 'Look down the hatch',
+      lines: [
+        'A hatch in the floor, propped open. Warm light and a smell of solder come up it.',
+        'There is a ladder. It is a very small ladder, but it is a ladder.',
+      ],
+      goLabel: 'CLIMB DOWN',
+      stayLabel: 'NOT YET',
+      stayReply: ['Sure. Hatches are patient. It is most of what they do.'],
+    },
+
+    exit: {
+      label: 'Climb back up',
+      lines: ['The ladder back up to the hall. The hall is dark, but it is a familiar sort of dark.'],
+      backLabel: 'CLIMB UP',
+      stayLabel: 'NOT YET',
+      stayReply: ['Stay and tinker. Nobody is timing you.'],
+    },
+  },
 } as const;
