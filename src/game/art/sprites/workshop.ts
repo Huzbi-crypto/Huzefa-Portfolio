@@ -286,8 +286,8 @@ const MACHINE = (() => {
   box(cv, 4, 42, 48, 18, 'e', 'g');
   rect(cv, 5, 43, 46, 1, 'h');
   for (const x of [16, 28, 40]) rect(cv, x, 44, 1, 15, 'f');
-  box(cv, 33, 47, 14, 9, 'e', 'i'); // a patch, nailed on
-  for (const [x, y] of [[35, 49], [44, 49], [35, 53], [44, 53]]) plot(cv, x, y, 'A');
+  box(cv, 41, 47, 9, 9, 'e', 'i'); // a patch, nailed on
+  for (const [x, y] of [[43, 49], [47, 49], [43, 53], [47, 53]]) plot(cv, x, y, 'A');
   for (const [x, y] of [[7, 46], [7, 56], [48, 46], [48, 56]]) plot(cv, x, y, 'B');
   // Rickety: the lower left corner has slipped.
   rect(cv, 4, 58, 3, 2, 'e');

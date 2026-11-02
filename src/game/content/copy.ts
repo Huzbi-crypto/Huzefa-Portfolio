@@ -335,5 +335,25 @@ export const copy = {
       stayLabel: 'NOT YET',
       stayReply: ['Stay and tinker. Nobody is timing you.'],
     },
+
+    /** `ai-anime`: the rickety machine. Facts come from the project data. */
+    aiAnime: {
+      label: "Pull the machine's lever",
+      pulled: 'The machine thinks about it, loudly, and then it makes something.',
+      portraits: {
+        'portrait-grin': 'A grinning face.',
+        'portrait-owl': 'An owl who has seen things.',
+        'portrait-cat': 'A cat, which is on brand.',
+      },
+      flaws: {
+        'six-fingers': 'It has given the hand six fingers. Nobody asked for the sixth.',
+        'three-eyes': 'There is a third eye on the forehead. It looks tired.',
+        'crooked-smile': 'The smile has slid off to one side, like it is trying to leave.',
+        'extra-ear': 'An extra ear on top. Very attentive, honestly.',
+        'backwards-hand': 'A hand on backwards. Fingers down, vibes intact.',
+      },
+      verdict: 'Close enough. The machine looks very pleased with itself.',
+      again: 'Another pull. The machine sighs, then gets on with it.',
+    },
   },
 } as const;

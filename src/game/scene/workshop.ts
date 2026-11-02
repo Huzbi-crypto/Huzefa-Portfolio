@@ -1,5 +1,6 @@
 import { SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
+import { createAiAnime } from '@/game/exhibits/aiAnime';
 import type { Exhibit } from '@/game/exhibits/types';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
@@ -20,6 +21,7 @@ export const WORKSHOP_AT = {
   blueprintOne: { x: 206, y: 18 },
   pegboardTwo: { x: 258, y: 12 },
   jarsTwo: { x: 324, y: 14 },
+  machine: { x: 40, y: 56 },
 } as const;
 
 function sprite(name: string) {
@@ -28,13 +30,19 @@ function sprite(name: string) {
   return found;
 }
 
-const ladderLight: Light = { x: 0, y: 0, radius: 22, tint: 'cool' };
-ladderLight.x = WORKSHOP_AT.ladder.x + 10;
-ladderLight.y = WORKSHOP_AT.ladder.y + 10;
-const LIGHTS: Light[] = [ladderLight];
-
-function buildExhibits(): Exhibit[] {
-  return [];
+/** Exhibits keep their own state, so every workshop gets its own set and its own lights. */
+function buildExhibits(): { exhibits: Exhibit[]; lights: Light[] } {
+  const ladderLight: Light = {
+    x: WORKSHOP_AT.ladder.x + 10,
+    y: WORKSHOP_AT.ladder.y + 10,
+    radius: 22,
+    tint: 'cool',
+  };
+  const aiAnime = createAiAnime(WORKSHOP_AT.machine, { x: 9, y: 16 });
+  return {
+    exhibits: [aiAnime.exhibit],
+    lights: [ladderLight, aiAnime.light],
+  };
 }
 
 function drawShell(g: CanvasRenderingContext2D): void {
@@ -66,11 +74,16 @@ function drawBackdrop(g: CanvasRenderingContext2D): void {
 }
 
 function buildSpaceDef(): SpaceDef {
+  const { exhibits, lights } = buildExhibits();
   return {
     id: 'workshop',
     worldW: WORLD_W,
     worldH: WORLD_H,
-    solids: [{ x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM }],
+    solids: [
+      { x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM },
+      // The machine's legs. Its body is raised on them, so the visitor can pass behind.
+      { x: WORKSHOP_AT.machine.x + 8, y: WORKSHOP_AT.machine.y + 62, w: 44, h: 10 },
+    ],
     spawn: { x: 5, y: 7 },
     entries: { fromHall: { x: 5, y: 7 } },
     exits: [
@@ -88,8 +101,8 @@ function buildSpaceDef(): SpaceDef {
       },
     ],
     props: [],
-    exhibits: buildExhibits(),
-    lights: LIGHTS,
+    exhibits,
+    lights,
     drawBackdrop,
   };
 }

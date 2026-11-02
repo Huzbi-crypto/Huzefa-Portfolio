@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PALETTES } from '@/game/art';
 import { projects } from '@/data/projects';
+import { copy } from '@/game/content/copy';
+import { projectStarId } from '@/game/content/stars';
 import type { Input } from '@/game/core/input';
 import { createStore } from '@/game/state/store';
 import { createEntity } from '@/game/world/entity';
@@ -203,4 +205,70 @@ describe('workshop art', () => {
   });
 });
 
-void projects;
+/** The four exhibits the workshop holds, and a choice that makes each one play. */
+const EXHIBITS: { id: string; choice?: string }[] = [{ id: 'ai-anime' }];
+
+describe('workshop exhibits', () => {
+  it('holds_exactly_its_exhibits_and_the_way_home', () => {
+    const { scene } = setup();
+    expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
+      ['exit', ...EXHIBITS.map((e) => e.id)].sort(),
+    );
+  });
+
+  it.each(EXHIBITS)('each_exhibit_awards_its_star_when_tried: $id', async ({ id, choice }) => {
+    const env = setup();
+    await interact(env, byId(env.scene, id), choice);
+    expect(env.store.getState().found).toContain(projectStarId(id));
+    expect(env.api.showProject).toHaveBeenCalledWith(id);
+  });
+
+  it.each(EXHIBITS)('reduced_motion_exhibit_still_awards: $id', async ({ id, choice }) => {
+    const env = setup(true);
+    env.tick(16);
+    let finished = false;
+    const run = Promise.resolve(byId(env.scene, id).onInteract(env.api)).then(() => {
+      finished = true;
+    });
+    // No more clock ticks: a calm visitor's exhibit must not wait on animation.
+    for (let guard = 0; !finished && guard < 200; guard += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (env.api.store.getState().dialogue) env.api.store.advance(choice);
+    }
+    await run;
+    expect(finished).toBe(true);
+    expect(env.store.getState().found).toContain(projectStarId(id));
+  });
+
+  it.each(EXHIBITS)('the_star_is_awarded_once_however_often_it_is_tried: $id', async ({ id, choice }) => {
+    const env = setup();
+    await interact(env, byId(env.scene, id), choice);
+    const once = env.store.getState().found.length;
+    await interact(env, byId(env.scene, id), choice);
+    expect(env.store.getState().found.length).toBe(once);
+    expect(env.api.showProject).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(EXHIBITS)('every_exhibit_belongs_to_a_real_project: $id', ({ id }) => {
+    expect(projects.some((p) => p.id === id)).toBe(true);
+  });
+});
+
+describe('ai-anime machine', () => {
+  it('says_what_the_machine_got_wrong_in_huzbis_words', async () => {
+    const env = setup();
+    const said = (await interact(env, byId(env.scene, 'ai-anime'))).join(' ');
+    const flaws = Object.values(copy.workshop.aiAnime.flaws);
+    expect(flaws.some((line) => said.includes(line))).toBe(true);
+  });
+
+  it('pulling_again_does_not_double_open_the_panel_when_interrupted', async () => {
+    const env = setup();
+    const hotspot = byId(env.scene, 'ai-anime');
+    const first = Promise.resolve(hotspot.onInteract(env.api));
+    const second = interact(env, hotspot);
+    await second;
+    await first;
+    expect(env.api.showProject).toHaveBeenCalledTimes(1);
+  });
+});
