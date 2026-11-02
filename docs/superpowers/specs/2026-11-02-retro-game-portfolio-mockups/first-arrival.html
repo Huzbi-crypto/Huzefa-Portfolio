@@ -1,0 +1,370 @@
+<h2>Three ways to arrive</h2>
+<p class="subtitle">Rough sketches of the first 30 seconds, drawn as real pixel art and animated. They're here to show you the feel, not the final art. Move your mouse over C.</p>
+
+<style>
+  .arrivals { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); gap: 18px; margin-top: 16px; }
+  .arrivals .card { margin: 0; }
+  .arrivals canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; background: #000; cursor: crosshair; }
+  .arrivals .card-image { padding: 0; height: auto; aspect-ratio: auto; min-height: 0; display: block; background: #000; }
+  .arrivals h3 { margin-bottom: 4px; }
+  .arrivals p { margin: 0 0 6px; }
+  .arrivals .like { font-size: 12px; opacity: .72; }
+</style>
+
+<div class="arrivals">
+  <div class="card" data-choice="a-night-walk" onclick="toggleSelect(this)">
+    <div class="card-image"><canvas id="a" width="200" height="112"></canvas></div>
+    <div class="card-body">
+      <h3>A. The Night Walk</h3>
+      <p>Side view. You're a small figure in a huge, quiet place, with one light on far ahead. Your projects and story are places you reach along the way.</p>
+      <p class="like">Closest to Hollow Knight's mood: small you, big world, nothing explained.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b-room" onclick="toggleSelect(this)">
+    <div class="card-image"><canvas id="b" width="160" height="90"></canvas></div>
+    <div class="card-body">
+      <h3>B. The Room With an Extra Door</h3>
+      <p>Top-down view. You start in your cozy 2 AM room, redrawn properly, and walk around it. It feels safe, except for a door that shouldn't be there.</p>
+      <p class="like">Keeps the room you already have. Closest to Skyrim's "what's behind that?" pull.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c-lights-out" onclick="toggleSelect(this)">
+    <div class="card-image"><canvas id="c" width="200" height="112"></canvas></div>
+    <div class="card-body">
+      <h3>C. Lights Out</h3>
+      <p>Your cursor is a lantern in a dark room. Only the monitor glows by itself. Whatever you shine the light on, you find: notes on the wall, a map, a door.</p>
+      <p class="like">The most mysterious, and instantly playable with no instructions.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var F = {A:'25755',B:'65656',C:'34443',D:'65556',E:'74647',F:'74644',G:'34553',H:'55755',I:'72227',J:'11152',K:'55655',L:'44447',M:'57755',N:'65555',O:'25552',P:'65644',Q:'25573',R:'65655',S:'34216',T:'72222',U:'55557',V:'55552',W:'55775',X:'55255',Y:'55222',Z:'71247','.':'00002',',':'00021',"'":'22000','?':'61202','!':'22202','>':'42124','-':'00700','2':'61247'};
+  function text(g, s, x, y, col) {
+    g.fillStyle = col;
+    for (var i = 0; i < s.length; i++) {
+      var d = F[s[i]];
+      if (d) for (var r = 0; r < 5; r++) { var b = +d[r];
+        if (b & 4) g.fillRect(x, y + r, 1, 1);
+        if (b & 2) g.fillRect(x + 1, y + r, 1, 1);
+        if (b & 1) g.fillRect(x + 2, y + r, 1, 1);
+      }
+      x += 4;
+    }
+  }
+  function rnd(seed) { return function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }; }
+  var BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  function bayer(x, y) { return (BAYER[(y & 3) * 4 + (x & 3)] + .5) / 16; }
+  function R(g, c, x, y, w, h) { g.fillStyle = c; g.fillRect(x | 0, y | 0, w, h); }
+  function run(id, fn) {
+    var cv = document.getElementById(id); if (!cv) return;
+    var g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+    (function loop(ms) { fn(g, (ms || 0) / 1000, cv); requestAnimationFrame(loop); })();
+  }
+
+  /* ---------- A. THE NIGHT WALK ---------- */
+  (function () {
+    var W = 200, H = 112, GY = 88;
+    var bg = document.createElement('canvas'); bg.width = W; bg.height = H;
+    var b = bg.getContext('2d');
+    var bands = ['#070a1c','#0a0f26','#0e1630','#13203e','#1a2c4e','#22395c'];
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var v = Math.pow(1 - Math.abs(y - 58) / 58, 1.5) * Math.pow(1 - Math.abs(x - 150) / 150, 1.1) * 5.3;
+      var i = Math.min(5, Math.max(0, Math.floor(v + bayer(x, y))));
+      R(b, bands[i], x, y, 1, 1);
+    }
+    function ruinLayer(seed, col, base, tall, w) {
+      var c = document.createElement('canvas'); c.width = w; c.height = H;
+      var g = c.getContext('2d'), r = rnd(seed); g.fillStyle = col;
+      var x = 0;
+      while (x < w) {
+        var pw = 6 + (r() * 9 | 0), ph = tall * (.45 + r() * .55) | 0;
+        g.fillRect(x, base - ph, pw, ph + 40);
+        g.fillRect(x - 1, base - ph, pw + 2, 2);
+        if (r() > .45) { // arch to next pillar
+          var span = 12 + (r() * 12 | 0), top = base - ph + 6;
+          for (var a = 0; a < span; a++) {
+            var f = a / span, d = Math.sin(f * Math.PI) * 7 | 0;
+            g.fillRect(x + pw + a, top, 1, 12 - d);
+          }
+          x += pw + span;
+        } else x += pw + 8 + (r() * 16 | 0);
+      }
+      return c;
+    }
+    var far = ruinLayer(41, '#16233f', 92, 62, 400);
+    var mid = ruinLayer(97, '#0d1630', 94, 48, 500);
+    var fg  = document.createElement('canvas'); fg.width = 300; fg.height = H;
+    (function () { var g = fg.getContext('2d'), r = rnd(13);
+      for (var x = 0; x < 300; x += 2 + (r() * 3 | 0)) {
+        var h = 2 + (r() * r() * 22 | 0);
+        R(g, '#04060f', x, 0, 2, h);
+        if (r() > .55) R(g, '#04060f', x + 1, h, 1, 3 + (r() * 3 | 0));
+      }
+      for (x = 0; x < 300; x += 26 + (r() * 60 | 0)) {
+        var bh = 3 + (r() * 5 | 0);
+        R(g, '#04060f', x, H - bh, 8 + (r() * 10 | 0), bh);
+      }
+    })();
+    var motes = []; var mr = rnd(7);
+    for (var m = 0; m < 26; m++) motes.push({ x: mr() * W, y: mr() * GY, s: .3 + mr() * .9, p: mr() * 6 });
+    function wrap(g, img, off) { var w = img.width, o = ((off % w) + w) % w; g.drawImage(img, -o, 0); g.drawImage(img, w - o, 0); }
+
+    run('a', function (g, t) {
+      var s = t * 13;
+      g.drawImage(bg, 0, 0);
+      wrap(g, far, s * .16);
+      // the one lit window, on a tower far ahead
+      var wx = 148, wy = 34, on = Math.sin(t * .7) > -.8;
+      R(g, '#0a1228', wx - 7, wy - 18, 15, 60); R(g, '#0a1228', wx - 9, wy - 19, 19, 2);
+      R(g, '#0a1228', wx - 3, wy - 26, 7, 8); R(g, '#0a1228', wx - 1, wy - 30, 3, 4);
+      if (on) {
+        for (var yy = -7; yy < 9; yy++) for (var xx = -7; xx < 9; xx++) {
+          var dd = Math.sqrt(xx * xx + yy * yy);
+          if (dd < 8 && bayer(xx + 40, yy + 40) > dd / 8 + .1) R(g, '#6e5a34', wx + xx, wy + yy, 1, 1);
+        }
+        R(g, '#ffd98a', wx, wy, 2, 3); R(g, '#fff3c4', wx, wy + 1, 1, 1);
+      }
+      wrap(g, mid, s * .42);
+
+      // ground
+      R(g, '#0a1022', 0, GY, W, H - GY);
+      R(g, '#31507c', 0, GY, W, 1);
+      R(g, '#172442', 0, GY + 1, W, 1);
+      for (var i = 0; i < 14; i++) {
+        var gx = ((i * 22 - s) % 308 + 308) % 308 - 20;
+        R(g, '#121c36', gx, GY + 4 + (i % 3) * 3, 12, 1);
+        R(g, '#0d1630', gx + 4, GY + 12 + (i % 2) * 4, 8, 1);
+      }
+
+      // figure
+      var fx = 54, step = Math.floor(t * 5) % 4, bob = (step === 1 || step === 3) ? 1 : 0;
+      var ty = GY - 14 + bob;
+      // lantern glow
+      var lx = fx + 11, ly = ty + 9, flick = 15 + Math.sin(t * 11) * .7 + Math.sin(t * 3.1) * .8;
+      for (var ay = -18; ay < 18; ay++) for (var ax = -18; ax < 18; ax++) {
+        var ad = Math.sqrt(ax * ax + ay * ay) / flick;
+        if (ad < 1 && bayer(ax + 64, ay + 64) > ad * ad + .34) R(g, ad < .5 ? '#8a6a35' : '#4d4630', lx + ax, ly + ay, 1, 1);
+      }
+      // legs
+      R(g, '#0a0d1c', fx + 2 + (step === 1 ? 1 : 0), GY - 3, 2, 3);
+      R(g, '#0a0d1c', fx + 5 - (step === 3 ? 1 : 0), GY - 3, 2, 3);
+      // cloak
+      R(g, '#3a5488', fx + 1, ty + 5, 8, 7);
+      R(g, '#5a7bb8', fx + 1, ty + 5, 2, 6);
+      R(g, '#3a5488', fx, ty + 9 + (step % 2), 2, 3);
+      // hood and face
+      R(g, '#4c6ba6', fx + 2, ty, 6, 6);
+      R(g, '#7c9ad0', fx + 2, ty, 2, 2);
+      R(g, '#090b15', fx + 4, ty + 2, 4, 3);
+      R(g, '#e8e6dd', fx + 6, ty + 3, 1, 1);
+      // scarf
+      R(g, '#e0694a', fx + 2, ty + 5, 6, 1);
+      R(g, '#e0694a', fx, ty + 5 + (step % 2), 2, 1);
+      // arm and lantern
+      R(g, '#2a3f6d', fx + 8, ty + 7, 2, 1);
+      R(g, '#594a2e', lx - 1, ly - 2, 3, 1);
+      R(g, '#ffd98a', lx - 1, ly - 1, 3, 3);
+      R(g, '#fff6d5', lx, ly, 1, 1);
+
+      // motes
+      motes.forEach(function (o) {
+        var mx = ((o.x - t * 10 * o.s) % W + W) % W, my = o.y + Math.sin(t * o.s + o.p) * 3;
+        if (Math.sin(t * 1.3 + o.p) > -.3) R(g, o.s > .8 ? '#8fb2d6' : '#4b6b96', mx, my, 1, 1);
+      });
+      wrap(g, fg, s * 1.5);
+
+      var cyc = t % 12;
+      if (cyc > 1.5 && cyc < 10) {
+        var msg = 'A LIGHT IS STILL ON UP AHEAD.', n = Math.min(msg.length, Math.floor((cyc - 1.5) * 16));
+        text(g, msg.slice(0, n), 42, 98, '#c9d6e8');
+      }
+    });
+  })();
+
+  /* ---------- B. THE ROOM WITH AN EXTRA DOOR ---------- */
+  (function () {
+    var W = 160, H = 90;
+    var rm = document.createElement('canvas'); rm.width = W; rm.height = H;
+    var g = rm.getContext('2d'), r = rnd(23);
+    // wall
+    R(g, '#2b2342', 0, 0, W, 26);
+    for (var y = 3; y < 24; y += 6) for (var x = (y % 4) * 3; x < W; x += 12) R(g, '#332a4e', x, y, 1, 1);
+    R(g, '#1a1529', 0, 26, W, 2);
+    R(g, '#5a4066', 0, 24, W, 2);
+    // floor
+    for (y = 28; y < H; y += 5) {
+      R(g, y % 10 === 3 ? '#4f3429' : '#57392c', 0, y, W, 5);
+      R(g, '#3a241d', 0, y + 4, W, 1);
+      for (x = (y * 7) % 31; x < W; x += 31) R(g, '#3a241d', x, y, 1, 4);
+    }
+    // window with moon
+    R(g, '#6b5a7e', 12, 4, 26, 18); R(g, '#141a38', 14, 6, 22, 14);
+    R(g, '#e9e3c4', 27, 8, 4, 4); R(g, '#141a38', 29, 8, 2, 2);
+    [[17,9],[21,14],[33,16],[24,7]].forEach(function (s) { R(g, '#c7d5f0', s[0], s[1], 1, 1); });
+    R(g, '#6b5a7e', 24, 6, 1, 14); R(g, '#6b5a7e', 14, 12, 22, 1);
+    // moonlight on floor
+    for (y = 28; y < 46; y++) for (x = 14; x < 36; x++) if (bayer(x, y) > .72 + (y - 28) * .012) R(g, '#79609a', x + (y - 28) / 2, y, 1, 1);
+    // bookshelf
+    R(g, '#3d2518', 96, 3, 34, 28); R(g, '#24150d', 98, 5, 30, 24);
+    [11, 20].forEach(function (sy) {
+      R(g, '#3d2518', 98, sy + 7, 30, 2);
+      var sx = 99;
+      while (sx < 126) { var bw = 2 + (r() * 2 | 0), bh = 5 + (r() * 3 | 0);
+        R(g, ['#c14f3f','#e0a14a','#4f8fb8','#7cae58','#a667b5','#e7dcc0'][r() * 6 | 0], sx, sy + 7 - bh, bw, bh); sx += bw + (r() > .8 ? 1 : 0); }
+    });
+    R(g, '#c14f3f', 100, 7, 2, 4); R(g, '#e0a14a', 103, 7, 2, 4);
+    // desk
+    R(g, '#6a4a31', 50, 22, 34, 11); R(g, '#83603f', 50, 22, 34, 2); R(g, '#3d2518', 52, 33, 3, 3); R(g, '#3d2518', 79, 33, 3, 3);
+    // bed
+    R(g, '#3a2c52', 4, 56, 28, 30); R(g, '#d8cfae', 7, 58, 22, 8); R(g, '#c0b690', 7, 64, 22, 2);
+    R(g, '#3f6f7f', 4, 67, 28, 19); R(g, '#508b9c', 4, 67, 28, 2);
+    // rug
+    R(g, '#8c3f3a', 54, 50, 50, 26); R(g, '#b2574a', 56, 52, 46, 22); R(g, '#8c3f3a', 60, 56, 38, 14);
+    for (x = 62; x < 96; x += 4) R(g, '#e0a14a', x, 62, 2, 2);
+    // door, in the right wall
+    R(g, '#1c1320', 138, 2, 18, 26); R(g, '#3b2c50', 140, 4, 14, 24);
+    R(g, '#2c2140', 142, 6, 10, 8); R(g, '#2c2140', 142, 16, 10, 10); R(g, '#e0a14a', 151, 17, 1, 2);
+    var floorEdge = 28;
+
+    var path = [[46, 52], [46, 40], [128, 40], [147, 34]];
+    var seg = [2.3, 4.2, 1.2];
+    var total = 2.3 + 4.2 + 1.2;
+    var msgs = ["THIS DOOR WASN'T HERE YESTERDAY.", ''];
+
+    run('b', function (c, t) {
+      c.drawImage(rm, 0, 0);
+      // light leaking under the door
+      var pulse = (Math.sin(t * 1.6) + 1) / 2;
+      R(c, '#9fffe0', 140, 27, 14, 1);
+      for (var ly = 28; ly < 50; ly++) for (var lx = 138; lx < 158; lx++) {
+        var fall = (ly - 28) / 22, wd = Math.abs(lx - 147) / (8 + (ly - 28) * .25);
+        if (wd < 1 && bayer(lx, ly) > .22 + fall * .8 + wd * .15 - pulse * .12) R(c, fall < .35 ? '#7fd9c0' : '#487a7a', lx, ly, 1, 1);
+      }
+      // monitor
+      R(c, '#1c1a24', 58, 11, 16, 12); R(c, '#2d2a38', 59, 12, 14, 10);
+      var fl = Math.sin(t * 31) > .85 ? '#7ccb7a' : '#a8d672';
+      R(c, '#0d1c12', 60, 13, 12, 8); R(c, fl, 61, 14, 6, 1); R(c, fl, 61, 16, 8, 1); R(c, fl, 61, 18, 3 + (Math.floor(t * 2) % 2) * 2, 1);
+      R(c, '#2d2a38', 64, 22, 4, 2);
+      // cat on the bed
+      R(c, '#d8d8d8', 12, 73, 9, 5); R(c, '#d8d8d8', 18, 71, 4, 4); R(c, '#d8d8d8', 18, 70, 1, 1); R(c, '#d8d8d8', 21, 70, 1, 1);
+      R(c, '#d8d8d8', 9 + (Math.floor(t * 1.2) % 2), 76, 4, 1);
+      // walker
+      var loop = t % (total + 5), px, py, step = Math.floor(t * 6) % 2, moving = true, acc = 0, done = false;
+      for (var i = 0; i < seg.length && !done; i++) {
+        if (loop < acc + seg[i]) {
+          var f = (loop - acc) / seg[i];
+          px = path[i][0] + (path[i + 1][0] - path[i][0]) * f;
+          py = path[i][1] + (path[i + 1][1] - path[i][1]) * f;
+          done = true;
+        }
+        acc += seg[i];
+      }
+      if (!done) { px = path[3][0]; py = path[3][1]; moving = false; step = 0; }
+      px |= 0; py |= 0;
+      R(c, '#00000055', px - 1, py + 12, 10, 2);
+      R(c, '#1b2438', px + 1 + (moving ? step : 0), py + 10, 2, 3); R(c, '#1b2438', px + 5 - (moving ? 1 - step : 0), py + 10, 2, 3);
+      R(c, '#4d6b9a', px, py + 5, 8, 6); R(c, '#5f82b8', px, py + 5, 2, 5);
+      R(c, '#f0c8a0', px + 1, py + 1, 6, 5); R(c, '#2a1d1a', px, py, 8, 3); R(c, '#2a1d1a', px, py, 1, 5); R(c, '#2a1d1a', px + 7, py, 1, 3);
+      R(c, '#14101a', px + 3, py + 3, 1, 1); R(c, '#14101a', px + 6, py + 3, 1, 1);
+      // dialogue
+      if (!moving || loop > 4) {
+        var a = 66;
+        R(c, '#0b0914', 4, a, 152, 21); R(c, '#e7dcc0', 5, a + 1, 150, 19); R(c, '#0f0c1c', 6, a + 2, 148, 17);
+        var msg = msgs[0], n = Math.min(msg.length, Math.floor((loop - 4) * 16));
+        text(c, msg.slice(0, Math.max(0, n)), 11, a + 5, '#f2ead4');
+        if (n >= msg.length) { text(c, '> OPEN IT', 11, a + 12, '#9fffe0'); text(c, 'STAY', 56, a + 12, '#8a8498'); }
+      }
+    });
+    void floorEdge;
+  })();
+
+  /* ---------- C. LIGHTS OUT ---------- */
+  (function () {
+    var W = 200, H = 112;
+    var rm = document.createElement('canvas'); rm.width = W; rm.height = H;
+    var g = rm.getContext('2d'), r = rnd(71), x, y;
+    // brick wall
+    R(g, '#3b3350', 0, 0, W, 86);
+    for (y = 0; y < 86; y += 6) {
+      R(g, '#2c2540', 0, y + 5, W, 1);
+      for (x = (y % 12 === 0 ? 0 : 7); x < W; x += 14) { R(g, '#2c2540', x, y, 1, 5); if (r() > .7) R(g, '#453c5e', x + 1, y, 12, 5); }
+    }
+    // floor
+    R(g, '#3f2c26', 0, 86, W, 26); R(g, '#23161a', 0, 86, W, 2);
+    for (y = 90; y < H; y += 5) { R(g, '#30201d', 0, y, W, 1); for (x = (y * 13) % 40; x < W; x += 40) R(g, '#30201d', x, y - 4, 1, 4); }
+    // shelf with manga
+    R(g, '#5b3a22', 8, 28, 44, 3); R(g, '#3e2616', 12, 31, 2, 4); R(g, '#3e2616', 46, 31, 2, 4);
+    var sx = 10; while (sx < 48) { var bw = 2 + (r() * 2 | 0), bh = 8 + (r() * 5 | 0); R(g, ['#c14f3f','#e0a14a','#4f8fb8','#7cae58','#e7dcc0','#a667b5'][r() * 6 | 0], sx, 28 - bh, bw, bh); sx += bw + (r() > .75 ? 2 : 0); }
+    text(g, 'READ THESE', 11, 37, '#d8d0b8');
+    // the map, with string
+    R(g, '#d9c897', 70, 8, 38, 26); R(g, '#b9a673', 70, 33, 38, 1);
+    for (var i = 0; i < 90; i++) { var mx = 72 + r() * 34 | 0, my = 10 + r() * 22 | 0; if (r() > .5) R(g, '#a6946a', mx, my, 2, 1); }
+    [[76,14,'#c14f3f'],[92,12,'#c14f3f'],[100,26,'#c14f3f'],[80,27,'#4f8fb8']].forEach(function (p) { R(g, p[2], p[0], p[1], 2, 2); });
+    g.strokeStyle = '#c14f3f'; g.lineWidth = 1;
+    [[77,15,93,13],[93,13,101,27]].forEach(function (l) {
+      var n = Math.max(Math.abs(l[2]-l[0]), Math.abs(l[3]-l[1]));
+      for (var s = 0; s <= n; s += 2) R(g, '#c14f3f', l[0] + (l[2]-l[0]) * s / n, l[1] + (l[3]-l[1]) * s / n, 1, 1);
+    });
+    text(g, 'THE MAP IS WRONG', 68, 37, '#e7dcc0');
+    // desk and dark monitor body
+    R(g, '#6a4a31', 118, 68, 50, 4); R(g, '#83603f', 118, 68, 50, 1); R(g, '#3d2518', 122, 72, 3, 16); R(g, '#3d2518', 160, 72, 3, 16);
+    R(g, '#2d2a38', 130, 50, 26, 18); R(g, '#1c1a24', 132, 52, 22, 13); R(g, '#2d2a38', 140, 68, 6, 1);
+    // manga stack
+    [['#c14f3f',82],['#e7dcc0',84],['#4f8fb8',86]].forEach(function (m, j) { R(g, m[0], 40 + j, m[1] + 4, 16, 2); });
+    // chalk notes
+    text(g, 'HE LEFT AT 2 AM', 8, 54, '#d8d0b8');
+    text(g, 'KEEP LOOKING', 72, 58, '#d8d0b8');
+    // door
+    R(g, '#1a1320', 176, 42, 20, 44); R(g, '#413255', 178, 44, 16, 42); R(g, '#2c2140', 180, 47, 12, 14); R(g, '#2c2140', 180, 64, 12, 18); R(g, '#e0a14a', 191, 66, 2, 2);
+    R(g, '#9fffe0', 183, 52, 6, 1); R(g, '#9fffe0', 186, 50, 1, 5);
+    // cat
+    R(g, '#b0b0b0', 90, 80, 14, 7); R(g, '#b0b0b0', 100, 75, 7, 7); R(g, '#b0b0b0', 100, 73, 2, 2); R(g, '#b0b0b0', 105, 73, 2, 2); R(g, '#b0b0b0', 86, 83, 5, 2);
+
+    var base = g.getImageData(0, 0, W, H).data;
+    var mouse = null;
+    var cv = document.getElementById('c');
+    function setMouse(e) { var b = cv.getBoundingClientRect(); mouse = { x: (e.clientX - b.left) / b.width * W, y: (e.clientY - b.top) / b.height * H }; }
+    cv.addEventListener('pointermove', setMouse);
+    cv.addEventListener('pointerleave', function () { mouse = null; });
+    var out = null;
+
+    run('c', function (c, t) {
+      if (!out) out = c.createImageData(W, H);
+      var lx = mouse ? mouse.x : 70 + Math.sin(t * .45) * 56 + Math.sin(t * 1.1) * 8;
+      var ly = mouse ? mouse.y : 44 + Math.sin(t * .7) * 20;
+      var rad = 42 + Math.sin(t * 9) * .7 + Math.sin(t * 2.7) * .9;
+      var d = out.data, tick = Math.sin(t * 31) > .9;
+      for (var y = 0, p = 0; y < H; y++) for (var x = 0; x < W; x++, p += 4) {
+        var dx = x - lx, dy = (y - ly) * 1.1;
+        var l = 1 - Math.sqrt(dx * dx + dy * dy) / rad;
+        var mdx = x - 143, mdy = (y - 58) * 1.2;
+        var ml = (1 - Math.sqrt(mdx * mdx + mdy * mdy) / 26) * (tick ? .55 : .62);
+        var bd = bayer(x, y) * .34;
+        var lit = Math.max(l, 0) * 1.5 + bd * (l > -.25 ? 1 : 0);
+        var mlit = Math.max(ml, 0) * 1.3;
+        var total = lit + mlit;
+        var lev = total > .8 ? 1 : total > .5 ? .72 : total > .26 ? .42 : total > .12 ? .18 : .035;
+        var warm = lit >= mlit;
+        d[p]     = base[p]     * lev * (warm ? 1.12 : .62);
+        d[p + 1] = base[p + 1] * lev * (warm ? .96 : 1.15);
+        d[p + 2] = base[p + 2] * lev * (warm ? .72 : .86);
+        d[p + 3] = 255;
+      }
+      c.putImageData(out, 0, 0);
+      // monitor screen, always glowing
+      var fl = tick ? '#6fb56a' : '#a8d672';
+      R(c, '#0d1c12', 133, 53, 20, 11);
+      R(c, fl, 135, 55, 10, 1); R(c, fl, 135, 57, 14, 1); R(c, fl, 135, 59, 6, 1);
+      if (Math.floor(t * 2) % 2) R(c, fl, 142, 59, 2, 1);
+      // cat's eyes, the only other thing watching
+      if (Math.sin(t * .9) > -.92) { R(c, '#e8e27a', 102, 77, 1, 1); R(c, '#e8e27a', 105, 77, 1, 1); }
+      // lantern dot
+      R(c, '#ffe9b0', lx | 0, ly | 0, 1, 1);
+    });
+  })();
+})();
+</script>
