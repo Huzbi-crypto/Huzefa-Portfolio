@@ -50,8 +50,10 @@ function StarsFromStore({ store }: { store: GameStore }) {
 }
 
 function SoundFromStore({ store, audio }: { store: GameStore; audio: GameAudio }) {
-  const ui = useSyncExternalStore(store.subscribe, store.getState, () => EMPTY_UI);
-  return <SoundToggle enabled={ui.sound} onToggle={() => audio.setEnabled(!ui.sound)} />;
+  // A boolean snapshot: the toggle re-renders only when the choice changes,
+  // not on every typed character of dialogue.
+  const enabled = useSyncExternalStore(store.subscribe, () => store.getState().sound);
+  return <SoundToggle enabled={enabled} onToggle={() => audio.setEnabled(!enabled)} />;
 }
 
 function UseHint({ hint }: { hint: GameHint }) {
