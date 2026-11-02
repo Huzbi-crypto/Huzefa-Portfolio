@@ -78,3 +78,14 @@ export function drawIris(
     g.fillRect(r.x, r.y, r.w, r.h);
   }
 }
+
+/**
+ * The extra door swinging open before the iris closes. The room already
+ * draws the door open by then, so this only paints the earlier frames over
+ * it: shut, then ajar, then nothing, which lets the open door show through.
+ */
+export function doorSwingFrame(progress: number): 'doorClosed' | 'darkDoorAjar' | null {
+  if (progress < 0.3) return 'doorClosed';
+  if (progress < 0.7) return 'darkDoorAjar';
+  return null;
+}

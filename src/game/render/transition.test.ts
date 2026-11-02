@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IRIS_BLOCK, irisMask, irisRuns } from './transition';
+import { doorSwingFrame, IRIS_BLOCK, irisMask, irisRuns } from './transition';
 
 const W = 342;
 const H = 192;
@@ -61,5 +61,14 @@ describe('irisRuns', () => {
       irisRuns(p, W / 2, H / 2, W, H).reduce((sum, r) => sum + r.w * r.h, 0);
     expect(area(0)).toBe(0);
     expect(area(1)).toBeGreaterThanOrEqual(W * H);
+  });
+});
+
+describe('doorSwingFrame', () => {
+  it('opens_in_order_closed_then_ajar_then_the_open_door_shows', () => {
+    expect(doorSwingFrame(0)).toBe('doorClosed');
+    expect(doorSwingFrame(0.45)).toBe('darkDoorAjar');
+    expect(doorSwingFrame(0.9)).toBeNull();
+    expect(doorSwingFrame(1)).toBeNull();
   });
 });
