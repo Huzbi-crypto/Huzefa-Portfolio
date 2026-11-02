@@ -7,6 +7,7 @@ import { createEntity } from '@/game/world/entity';
 import { findPath, TILE } from '@/game/world/grid';
 import { createLantern } from '@/game/exhibits/archiveKit';
 import { ASCII_REACH, litAsciiCells } from '@/game/exhibits/asciiArt';
+import { CALL_REACH, createCreativeCoding } from '@/game/exhibits/creativeCoding';
 import { createReadCookies } from '@/game/exhibits/readCookies';
 import { createTermExp } from '@/game/exhibits/termExp';
 import { createArchive, MONSTER_POSTER } from './archive';
@@ -79,6 +80,7 @@ const PICKS: Record<string, string[]> = {
   'term-exp': ['ls'],
   'read-cookies': ['unlock'],
   'ascii-art-tui': [],
+  'creative-coding': [],
 };
 const EXHIBITS = Object.keys(PICKS);
 
@@ -274,6 +276,43 @@ describe('createArchive', () => {
     const lantern = createLantern()(ctxFor({ player }));
 
     expect(litAsciiCells({ x: 240, y: 14 }, lantern).length).toBeGreaterThan(0);
+  });
+
+  it('particles_follow_the_lantern_and_rest_when_motion_is_off', () => {
+    const at = { x: 232, y: 96 };
+    const mouseCtx = (
+      pointer: { x: number; y: number },
+      over: Partial<SceneCtx> = {},
+    ): SceneCtx => {
+      const base = ctxFor({ scale: 1, ...over });
+      base.input = { ...base.input, mode: 'mouse', pointer };
+      return base;
+    };
+    const near = { x: 262, y: 106 };
+    const lantern = { x: 262 - (at.x + 4), y: 106 - (at.y + 3) }; // in the case's own space
+    const meanDistance = (dust: ReturnType<typeof createCreativeCoding>): number => {
+      const f = dust.field();
+      let total = 0;
+      for (let i = 0; i < f.n; i += 1) total += Math.hypot(f.x[i] - lantern.x, f.y[i] - lantern.y);
+      return total / f.n;
+    };
+
+    const following = createCreativeCoding(at);
+    const wandering = createCreativeCoding(at);
+    const before = meanDistance(following);
+    for (let i = 0; i < 120; i += 1) {
+      following.update(16, mouseCtx(near));
+      // The same case with the light kept far away only drifts.
+      wandering.update(16, mouseCtx({ x: 20, y: 190 }));
+    }
+    expect(meanDistance(following)).toBeLessThan(before - 4);
+    expect(meanDistance(following)).toBeLessThan(meanDistance(wandering) - 4);
+
+    const still = createCreativeCoding(at);
+    const frozen = Array.from(still.field().x);
+    for (let i = 0; i < 30; i += 1) still.update(16, mouseCtx(near, { reducedMotion: true }));
+    expect(Array.from(still.field().x)).toEqual(frozen);
+    expect(CALL_REACH).toBeGreaterThan(40);
   });
 
   it('monster_never_moves_toward_player', () => {

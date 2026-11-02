@@ -3,6 +3,7 @@ import { POSTER, POSTER_EYES, SHELF } from '@/game/art/sprites/archive';
 import { chalkPixels } from '@/game/art/sprites/darkGlyphs';
 import { copy } from '@/game/content/copy';
 import { createAsciiArt } from '@/game/exhibits/asciiArt';
+import { createCreativeCoding } from '@/game/exhibits/creativeCoding';
 import { createReadCookies } from '@/game/exhibits/readCookies';
 import { createTermExp } from '@/game/exhibits/termExp';
 import type { ArchiveExhibit } from '@/game/exhibits/archiveKit';
@@ -29,6 +30,7 @@ const AT = {
   term: { x: 56, y: 92 },
   cookies: { x: 152, y: 72 },
   frame: { x: 232, y: 8 },
+  dust: { x: 232, y: 96 },
   chalkBack: { x: 44, y: 24 },
   chalkShh: { x: 206, y: 26 },
   chalkArchive: { x: 292, y: 22 },
@@ -152,7 +154,12 @@ function drawBackdrop(g: CanvasRenderingContext2D): void {
 }
 
 function buildExhibits(): ArchiveExhibit[] {
-  return [createTermExp(AT.term), createReadCookies(AT.cookies), createAsciiArt(AT.frame)];
+  return [
+    createTermExp(AT.term),
+    createReadCookies(AT.cookies),
+    createAsciiArt(AT.frame),
+    createCreativeCoding(AT.dust),
+  ];
 }
 
 function buildSpaceDef(): SpaceDef {
