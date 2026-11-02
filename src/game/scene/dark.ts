@@ -8,6 +8,7 @@ import {
 } from '@/game/art/sprites/darkProps';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
+import { tryExhibit } from '@/game/exhibits/exhibit';
 import type { Exhibit } from '@/game/exhibits/types';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
@@ -111,8 +112,8 @@ async function sayOnce(
 }
 
 /**
- * The routing board keeps its phase-one dialogue. The star is still awarded
- * only once.
+ * The routing board keeps its phase-one dialogue, then opens the shared
+ * project panel. The star is still awarded only once.
  */
 async function inspectBoard(api: GameApi): Promise<void> {
   const project = routingProject();
@@ -124,6 +125,7 @@ async function inspectBoard(api: GameApi): Promise<void> {
     lines.push(`${copy.dark.routing.sourceLead} ${project.githubUrl.replace(/^https?:\/\//, '')}`);
   }
   await api.store.say(lines);
+  await tryExhibit(api, project.id);
 }
 
 function buildProps(): SpaceProp[] {

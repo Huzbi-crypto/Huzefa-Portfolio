@@ -242,6 +242,12 @@ describe('dark hotspots', () => {
     expect(again.join(' ')).toContain(copy.dark.routing.again);
   });
 
+  it('routing_board_opens_the_project_panel_after_its_dialogue', async () => {
+    const { scene, api } = setup();
+    await interact(byId(scene, 'routing-sim'), api);
+    expect(api.showProject).toHaveBeenCalledWith('routing-sim');
+  });
+
   it('notes_continue_the_story_and_can_be_reread', async () => {
     const { scene, api } = setup();
     const first = await interact(byId(scene, 'note-one'), api);
