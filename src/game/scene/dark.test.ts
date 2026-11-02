@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { projects } from '@/data/projects';
+import { SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { createStore } from '@/game/state/store';
 import { findPath, TILE } from '@/game/world/grid';
@@ -7,7 +8,126 @@ import type { Input } from '@/game/core/input';
 import { createDarkScene, darkLights, LANTERN_RADIUS } from './dark';
 import { navMap } from './nav';
 import type { GameApi, Hotspot, SceneCtx } from './types';
-import { createEntity } from '@/game/world/entity';
+import { createEntity, type Facing } from '@/game/world/entity';
+
+/**
+ * The scene draws every sprite through drawSprite. Recording those calls,
+ * plus the canvas blits used to keep the visitor in front of the glow, gives
+ * the exact paint order without needing a real rasteriser in Node.
+ */
+const recorder = vi.hoisted(() => ({
+  events: [] as Array<
+    | { kind: 'sprite'; sprite: { w: number; h: number }; x: number; y: number }
+    | { kind: 'image'; source: { width: number; height: number }; args: number[] }
+    | { kind: 'fill'; x: number; y: number; w: number; h: number; color: string }
+  >,
+}));
+
+vi.mock('@/game/render/sprite', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/game/render/sprite')>();
+  return {
+    ...actual,
+    drawSprite: (
+      _ctx: unknown,
+      sprite: { w: number; h: number },
+      x: number,
+      y: number,
+    ) => {
+      recorder.events.push({ kind: 'sprite', sprite, x, y });
+    },
+  };
+});
+
+type RecordedEvent = (typeof recorder.events)[number];
+
+type FakeCanvas = {
+  width: number;
+  height: number;
+  getContext: () => FakeContext;
+};
+
+type FakeContext = {
+  canvas: FakeCanvas;
+  imageSmoothingEnabled: boolean;
+  fillStyle: string;
+  globalCompositeOperation: string;
+  setTransform: (...args: number[]) => void;
+  fillRect: (x: number, y: number, w: number, h: number) => void;
+  drawImage: (source: { width: number; height: number }, ...args: number[]) => void;
+  getImageData: (x: number, y: number, w: number, h: number) => ImageData;
+  createImageData: (w: number, h: number) => ImageData;
+  putImageData: (...args: unknown[]) => void;
+  clearRect: (...args: number[]) => void;
+  save: () => void;
+  restore: () => void;
+  translate: (...args: number[]) => void;
+  scale: (...args: number[]) => void;
+};
+
+function imageData(width: number, height: number): ImageData {
+  return {
+    width,
+    height,
+    data: new Uint8ClampedArray(width * height * 4),
+  } as ImageData;
+}
+
+function fakeCanvas(): FakeCanvas {
+  let context: FakeContext;
+  const canvas: FakeCanvas = {
+    width: 0,
+    height: 0,
+    getContext: () => context,
+  };
+  context = {
+    canvas,
+    imageSmoothingEnabled: false,
+    fillStyle: '#000000',
+    globalCompositeOperation: 'source-over',
+    setTransform: () => undefined,
+    fillRect: (x, y, w, h) => {
+      recorder.events.push({
+        kind: 'fill',
+        x,
+        y,
+        w,
+        h,
+        color: String(context.fillStyle),
+      });
+    },
+    drawImage: (source, ...args) => {
+      recorder.events.push({ kind: 'image', source, args });
+    },
+    getImageData: (_x, _y, w, h) => imageData(w, h),
+    createImageData: (w, h) => imageData(w, h),
+    putImageData: () => undefined,
+    clearRect: () => undefined,
+    save: () => undefined,
+    restore: () => undefined,
+    translate: () => undefined,
+    scale: () => undefined,
+  };
+  return canvas;
+}
+
+let realDocument: Document | undefined;
+
+beforeAll(() => {
+  const globals = globalThis as unknown as { document?: Document };
+  realDocument = globals.document;
+  globals.document = {
+    createElement: (tag: string) => {
+      expect(tag).toBe('canvas');
+      return fakeCanvas();
+    },
+  } as unknown as Document;
+});
+
+afterAll(() => {
+  const globals = globalThis as unknown as { document?: Document };
+  if (realDocument === undefined) delete globals.document;
+  else globals.document = realDocument;
+});
 
 function setup() {
   const store = createStore(null);
@@ -207,5 +327,97 @@ describe('the lantern', () => {
     const lights = darkLights(ctxFor({ mode: 'keyboard' }));
     expect(lights.length).toBeGreaterThanOrEqual(3);
     expect(lights.some((l) => l.tint === 'cool')).toBe(true);
+  });
+});
+
+function drawDarkAt(x: number, y: number, facing: Facing = 'up', t = 0): RecordedEvent[] {
+  recorder.events.length = 0;
+  const scene = createDarkScene(createStore(null));
+  const player = createEntity(x, y);
+  player.facing = facing;
+  const ctx = ctxFor({ player, t });
+  const canvas = fakeCanvas();
+  scene.draw(canvas.getContext() as unknown as CanvasRenderingContext2D, ctx);
+  return [...recorder.events];
+}
+
+function spriteIndex(events: RecordedEvent[], sprite: { w: number; h: number }): number {
+  return events.findIndex((event) => event.kind === 'sprite' && event.sprite === sprite);
+}
+
+/** The blit of the lit visitor pixels back over any glow that is behind it. */
+function visitorRestoreIndex(events: RecordedEvent[]): number {
+  return events.findIndex(
+    (event) => event.kind === 'image' && event.source.width === 16 && event.source.height === 24,
+  );
+}
+
+function fillIndex(
+  events: RecordedEvent[],
+  x: number,
+  y: number,
+  w = 1,
+  h = 1,
+): number {
+  return events.findIndex(
+    (event) => event.kind === 'fill' && event.x === x && event.y === y && event.w === w && event.h === h,
+  );
+}
+
+describe('the dark paints the visitor in front of the things that glow', () => {
+  it('the_visitor_is_drawn_after_the_doorway_glow_when_standing_below_it', () => {
+    const events = drawDarkAt(36, 52, 'up');
+    const glow = spriteIndex(events, SPRITES.darkExitGlow);
+    const restore = visitorRestoreIndex(events);
+
+    expect(glow).toBeGreaterThanOrEqual(0);
+    expect(restore).toBeGreaterThanOrEqual(0);
+    expect(restore, 'the visitor must be painted after the doorway glow').toBeGreaterThan(glow);
+    expect(spriteIndex(events, SPRITES['visitor-up-0'])).toBeLessThan(glow);
+  });
+
+  it('the_monitor_eye_stays_behind_the_visitor_in_front_of_the_monitor', () => {
+    const events = drawDarkAt(156, 60, 'down', 1000);
+    const eye = spriteIndex(events, SPRITES.darkEyeCenter);
+    const restore = visitorRestoreIndex(events);
+
+    expect(eye).toBeGreaterThanOrEqual(0);
+    expect(restore).toBeGreaterThan(eye);
+  });
+
+  it('the_broken_link_and_packet_stay_behind_the_visitor_in_front_of_the_board', () => {
+    const events = drawDarkAt(236, 140, 'down');
+    const packet = fillIndex(events, 231, 100, 2, 2);
+    const brokenLink = fillIndex(events, 243, 104);
+    const restore = visitorRestoreIndex(events);
+
+    expect(packet).toBeGreaterThanOrEqual(0);
+    expect(brokenLink).toBeGreaterThanOrEqual(0);
+    expect(restore).toBeGreaterThan(packet);
+    expect(restore).toBeGreaterThan(brokenLink);
+  });
+
+  it('the_cat_eyes_stay_behind_the_visitor_in_front_of_the_cat', () => {
+    const events = drawDarkAt(36, 148, 'up', 1000);
+    const eyes = fillIndex(events, 42, 140);
+    const restore = visitorRestoreIndex(events);
+
+    expect(eyes).toBeGreaterThanOrEqual(0);
+    expect(restore).toBeGreaterThan(eyes);
+  });
+
+  it('the_visitor_still_passes_behind_the_routing_board_from_above', () => {
+    const events = drawDarkAt(236, 108, 'down');
+    expect(spriteIndex(events, SPRITES['visitor-down-0'])).toBeLessThan(
+      spriteIndex(events, SPRITES.darkRouter),
+    );
+  });
+
+  it('the_broken_link_and_cat_eyes_show_when_the_visitor_stands_behind_them', () => {
+    const behindBoard = drawDarkAt(220, 124, 'down');
+    expect(fillIndex(behindBoard, 243, 104)).toBeGreaterThan(visitorRestoreIndex(behindBoard));
+
+    const behindCat = drawDarkAt(36, 140, 'up', 1000);
+    expect(fillIndex(behindCat, 42, 140)).toBeGreaterThan(visitorRestoreIndex(behindCat));
   });
 });

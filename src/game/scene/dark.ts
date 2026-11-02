@@ -273,6 +273,16 @@ function frameOf(anim: string, index: number, frames: Record<string, string[]>):
   return list[index % list.length];
 }
 
+/** The visitor's current sprite name, before any lighting or composition. */
+function visitorFrame(ctx: SceneCtx, anims: Record<string, string[]>): string {
+  const walkFrame = Math.floor(ctx.player.walkMs / 130);
+  return ctx.player.moving
+    ? frameOf(`visitor-${ctx.player.facing}`, walkFrame, anims)
+    : `visitor-${ctx.player.facing}-0`;
+}
+
+type DrawPiece = { y: number; draw: () => void };
+
 type Layers = {
   canvas: HTMLCanvasElement;
   g: CanvasRenderingContext2D;
@@ -300,12 +310,13 @@ function makeLayers(w: number, h: number): Layers {
 export function createDarkScene(_store: GameStore): Scene {
   const map = buildCollision();
   let layers: Layers | null = null;
+  let visitorBlit: { canvas: HTMLCanvasElement; g: CanvasRenderingContext2D } | null = null;
 
   /** Pieces with height, sorted by the line they stand on, with the player among them. */
   function drawWorld(
     s: CanvasRenderingContext2D,
     ctx: SceneCtx,
-    anims: Record<string, string[]>,
+    playerName: string,
   ): void {
     drawShell(s);
 
@@ -319,12 +330,7 @@ export function createDarkScene(_store: GameStore): Scene {
     for (const x of [176, 188, 200]) drawChalk(s, '>', x, 108);
 
     const p = drawPos(ctx.player);
-    const walkFrame = Math.floor(ctx.player.walkMs / 130);
-    const playerName = ctx.player.moving
-      ? frameOf(`visitor-${ctx.player.facing}`, walkFrame, anims)
-      : `visitor-${ctx.player.facing}-0`;
-
-    const things: { y: number; draw: () => void }[] = [
+    const things: DrawPiece[] = [
       {
         y: AT.monitor.y + 32,
         draw: () => drawSprite(s, sprite('darkMonitor'), AT.monitor.x, AT.monitor.y),
@@ -346,10 +352,13 @@ export function createDarkScene(_store: GameStore): Scene {
     for (const thing of things) thing.draw();
   }
 
-  /** What makes its own light is drawn after the dark, at full brightness. */
-  function drawGlow(s: CanvasRenderingContext2D, ctx: SceneCtx, eyeAt: number): void {
+  /**
+   * What makes its own light is drawn after the dark, at full brightness. Each
+   * piece carries the foot line of the thing it belongs to, so it can be
+   * layered on the correct side of the visitor.
+   */
+  function glowPieces(s: CanvasRenderingContext2D, ctx: SceneCtx, eyeAt: number): DrawPiece[] {
     const { t, reducedMotion } = ctx;
-    drawSprite(s, sprite('darkExitGlow'), AT.exit.x + 4, AT.exit.y + 3);
 
     const eyeName =
       !reducedMotion && t % 3400 < 150
@@ -359,27 +368,93 @@ export function createDarkScene(_store: GameStore): Scene {
           : eyeAt > 22
             ? 'darkEyeRight'
             : 'darkEyeCenter';
-    drawSprite(s, sprite(eyeName), AT.monitor.x + MONITOR_SCREEN.x, AT.monitor.y + MONITOR_SCREEN.y);
 
-    // The packet, and the link that is down.
     const packet = packetAt(t, reducedMotion);
-    s.fillStyle = SOLID_COLORS.C;
-    s.fillRect(packet.x, packet.y, 2, 2);
-    if (reducedMotion || Math.floor(t / 600) % 2 === 0) {
-      s.fillStyle = SOLID_COLORS.k;
-      const fx = AT.router.x + ROUTER_FAILED_LINK.x;
-      const fy = AT.router.y + ROUTER_FAILED_LINK.y;
-      for (const [dx, dy] of [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]) {
-        s.fillRect(fx + dx, fy + dy, 1, 1);
-      }
+    const pieces: DrawPiece[] = [
+      {
+        y: AT.exit.y + 40,
+        draw: () => drawSprite(s, sprite('darkExitGlow'), AT.exit.x + 4, AT.exit.y + 3),
+      },
+      {
+        y: AT.monitor.y + 32,
+        draw: () =>
+          drawSprite(
+            s,
+            sprite(eyeName),
+            AT.monitor.x + MONITOR_SCREEN.x,
+            AT.monitor.y + MONITOR_SCREEN.y,
+          ),
+      },
+      {
+        y: AT.router.y + 36,
+        draw: () => {
+          // The packet, and the link that is down.
+          s.fillStyle = SOLID_COLORS.C;
+          s.fillRect(packet.x, packet.y, 2, 2);
+          if (reducedMotion || Math.floor(t / 600) % 2 === 0) {
+            s.fillStyle = SOLID_COLORS.k;
+            const fx = AT.router.x + ROUTER_FAILED_LINK.x;
+            const fy = AT.router.y + ROUTER_FAILED_LINK.y;
+            for (const [dx, dy] of [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]) {
+              s.fillRect(fx + dx, fy + dy, 1, 1);
+            }
+          }
+        },
+      },
+      {
+        y: AT.cat.y + 14,
+        draw: () => {
+          // Two amber eyes in the corner.
+          if (reducedMotion || t % 4100 > 200) {
+            s.fillStyle = SOLID_COLORS.s;
+            s.fillRect(AT.cat.x + 2, AT.cat.y + 4, 1, 1);
+            s.fillRect(AT.cat.x + 8, AT.cat.y + 4, 1, 1);
+          }
+        },
+      },
+    ];
+
+    return pieces.sort((a, b) => a.y - b.y);
+  }
+
+  /**
+   * Copy the already-lit visitor pixels out of the lit layer, keeping only the
+   * sprite's opaque pixels. Glow pieces behind the visitor are drawn, this is
+   * blitted back over them, then the glow pieces in front are drawn.
+   */
+  function visitorSlice(
+    l: Layers,
+    ctx: SceneCtx,
+    playerName: string,
+    x: number,
+    y: number,
+  ): HTMLCanvasElement {
+    const card = sprite(playerName);
+    if (
+      !visitorBlit ||
+      visitorBlit.canvas.width !== card.w ||
+      visitorBlit.canvas.height !== card.h
+    ) {
+      const canvas = document.createElement('canvas');
+      canvas.width = card.w;
+      canvas.height = card.h;
+      const g = canvas.getContext('2d');
+      if (!g) throw new Error('2D canvas is not available');
+      g.imageSmoothingEnabled = false;
+      visitorBlit = { canvas, g };
     }
 
-    // Two amber eyes in the corner.
-    if (reducedMotion || t % 4100 > 200) {
-      s.fillStyle = SOLID_COLORS.s;
-      s.fillRect(AT.cat.x + 2, AT.cat.y + 4, 1, 1);
-      s.fillRect(AT.cat.x + 8, AT.cat.y + 4, 1, 1);
-    }
+    const blit = visitorBlit;
+    const viewX = Math.round(x - ctx.camera.x);
+    const viewY = Math.round(y - ctx.camera.y);
+    blit.g.setTransform(1, 0, 0, 1, 0, 0);
+    blit.g.globalCompositeOperation = 'source-over';
+    blit.g.clearRect(0, 0, card.w, card.h);
+    blit.g.drawImage(l.canvas, viewX, viewY, card.w, card.h, 0, 0, card.w, card.h);
+    blit.g.globalCompositeOperation = 'destination-in';
+    drawSprite(blit.g, card, 0, 0);
+    blit.g.globalCompositeOperation = 'source-over';
+    return blit.canvas;
   }
 
   return {
@@ -402,12 +477,18 @@ export function createDarkScene(_store: GameStore): Scene {
       const l = layers;
       const s = l.g;
 
+      const p = drawPos(ctx.player);
+      const playerName = visitorFrame(ctx, ANIMS);
+      const playerX = p.x - 8;
+      const playerY = p.y + 3 - 24;
+      const playerFoot = p.y + 3;
+
       // 1. The world, unlit, into a scratch canvas the size of the view.
       s.setTransform(1, 0, 0, 1, 0, 0);
       s.fillStyle = INK;
       s.fillRect(0, 0, viewW, viewH);
       s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
-      drawWorld(s, ctx, ANIMS);
+      drawWorld(s, ctx, playerName);
 
       // 2. Light it in hard, dithered steps.
       const lights = darkLights(ctx);
@@ -423,12 +504,29 @@ export function createDarkScene(_store: GameStore): Scene {
       applyLighting(l.src, l.dst, l.viewLights);
       s.putImageData(l.dst, 0, 0);
 
-      // 3. What glows by itself, at full brightness.
+      // 3. What glows by itself, at full brightness, with the visitor layered
+      // in by foot line so the doorway never paints over their head.
+      const glows = glowPieces(
+        s,
+        ctx,
+        lights[0].x - (AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2),
+      );
+      const behind = glows.filter((piece) => piece.y <= playerFoot);
+      const inFront = glows.filter((piece) => piece.y > playerFoot);
+
+      const visitor = visitorSlice(l, ctx, playerName, playerX, playerY);
+
       s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
-      drawGlow(s, ctx, lights[0].x - (AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2));
+      for (const piece of behind) piece.draw();
+
       s.setTransform(1, 0, 0, 1, 0, 0);
+      s.drawImage(visitor, Math.round(playerX - camera.x), Math.round(playerY - camera.y));
+
+      s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
+      for (const piece of inFront) piece.draw();
 
       // 4. Onto the game canvas, which is already translated by the camera.
+      s.setTransform(1, 0, 0, 1, 0, 0);
       g.drawImage(l.canvas, camera.x, camera.y);
     },
   };
