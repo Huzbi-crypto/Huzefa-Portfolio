@@ -310,6 +310,7 @@ export function createDarkScene(_store: GameStore): Scene {
     drawShell(s);
 
     drawSprite(s, sprite('darkExit'), AT.exit.x, AT.exit.y);
+    drawSprite(s, sprite('darkExitSpill'), AT.exit.x, WALL_BOTTOM);
     drawSprite(s, sprite('darkArch'), AT.arch.x, AT.arch.y);
     drawChalk(s, copy.dark.chalk[0], AT.chalkOne.x, AT.chalkOne.y);
     drawChalk(s, copy.dark.chalk[1], AT.chalkTwo.x, AT.chalkTwo.y);
