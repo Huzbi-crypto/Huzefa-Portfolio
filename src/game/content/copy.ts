@@ -77,6 +77,16 @@ export const copy = {
     all: ['Every star is out. Okay, you win. Show-off.'],
   },
 
+  /** Shared wording for leaving one dark space for another. */
+  spaces: {
+    exit: {
+      lines: ['The way out. Same dark, different corner.'],
+      goLabel: 'GO BACK',
+      stayLabel: 'NOT YET',
+      stayReply: ['Fair enough. Stay a while.'],
+    },
+  },
+
   door: {
     lines: ['There is a door in the wall.', 'This door was not here yesterday.'],
     again: ['The door is open. It is very dark in there.'],
@@ -174,5 +184,15 @@ export const copy = {
       again: 'The packet is still taking the long way round. Respect.',
       sourceLead: 'Source:',
     },
+  },
+
+  /** The project panel: real facts from `src/data/projects.ts`, labels here. */
+  projectPanel: {
+    label: 'Project details',
+    close: 'CLOSE',
+    closeLabel: 'Close project details',
+    repo: 'OPEN THE REPO',
+    demo: 'TRY THE LIVE DEMO',
+    builtWith: 'Built with',
   },
 } as const;

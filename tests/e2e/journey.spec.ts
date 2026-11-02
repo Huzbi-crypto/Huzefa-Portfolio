@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { copy } from '../../src/game/content/copy';
+import type { SceneId } from '../../src/game/scene/types';
 
 const STAGE = '.game-stage';
 const DIALOGUE = '.dialogue';
@@ -12,7 +13,7 @@ const FIX_DIR = path.join('test-results', 'fix');
 const TOTAL_STARS = 26;
 
 type Snapshot = {
-  sceneId: 'room' | 'dark';
+  sceneId: SceneId;
   x: number;
   y: number;
   path: number;

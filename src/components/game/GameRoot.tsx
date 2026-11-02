@@ -8,10 +8,17 @@ import { createDarkScene } from '@/game/scene/dark';
 import { createRoomScene } from '@/game/scene/room';
 import { createStore, type GameStore } from '@/game/state/store';
 import { DialogueBox } from './DialogueBox';
+import { ProjectPanel } from './ProjectPanel';
 import { StarCounter } from './StarCounter';
 import './game.css';
 
-const EMPTY_UI = { dialogue: null, found: [], total: 0, doorOpened: false } as const;
+const EMPTY_UI = {
+  dialogue: null,
+  found: [],
+  total: 0,
+  doorOpened: false,
+  project: null,
+} as const;
 
 function browserStorage(): Storage | null {
   try {
@@ -67,7 +74,10 @@ export default function GameRoot() {
       store: gameStore,
       scenes: [createRoomScene(gameStore), createDarkScene(gameStore)],
       openTerminal: () => openTerminalRef.current(),
-      isBlocked: () => gameStore.getState().dialogue !== null || terminalOpenRef.current,
+      isBlocked: () => {
+        const state = gameStore.getState();
+        return state.dialogue !== null || state.project !== null || terminalOpenRef.current;
+      },
       onHint: setHint,
     });
 
@@ -140,6 +150,7 @@ export default function GameRoot() {
 
       {store ? <UseHint hint={hint} /> : null}
       {store ? <DialogueBox store={store} /> : null}
+      {store ? <ProjectPanel store={store} /> : null}
     </div>
   );
 }

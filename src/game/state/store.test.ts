@@ -136,6 +136,24 @@ describe('createStore', () => {
     expect(createStore(storage).getState().doorOpened).toBe(true);
   });
 
+  it('old_save_keeps_found_stars_when_total_grows', () => {
+    const storage = memoryStorage({
+      [PROGRESS_KEY]: JSON.stringify({
+        version: 1,
+        found: ['silly:read-note', 'project:routing-sim'],
+        doorOpened: true,
+        sound: false,
+        counters: {},
+      }),
+    });
+    const store = createStore(storage);
+    const state = store.getState();
+
+    expect(state.found).toEqual(['silly:read-note', 'project:routing-sim']);
+    expect(state.total).toBe(starTotal());
+    expect(state.total).toBeGreaterThan(state.found.length);
+  });
+
   it('tick_advances_typing_and_notifies', () => {
     const store = createStore(null);
     void store.say(['Hello there']);

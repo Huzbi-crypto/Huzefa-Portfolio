@@ -1,5 +1,5 @@
 import { projects } from '@/data/projects';
-import { ANIMS, PALETTES, SPRITES } from '@/game/art';
+import { PALETTES, SPRITES } from '@/game/art';
 import { chalkPixels } from '@/game/art/sprites/darkGlyphs';
 import {
   MONITOR_SCREEN,
@@ -8,27 +8,25 @@ import {
 } from '@/game/art/sprites/darkProps';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
-import {
-  applyLighting,
-  lanternPosition,
-  type Light,
-} from '@/game/render/lighting';
+import type { Exhibit } from '@/game/exhibits/types';
+import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
 import type { GameStore } from '@/game/state/store';
-import { drawPos } from '@/game/world/entity';
-import { parseCollision, TILE } from '@/game/world/grid';
-import type { GameApi, Hotspot, Scene, SceneCtx } from './types';
+import { TILE } from '@/game/world/grid';
+import {
+  createDarkSpace,
+  createSpaceLights,
+  LANTERN_RADIUS,
+  type SpaceDef,
+  type SpaceProp,
+} from './space';
+import type { GameApi, Scene, SceneCtx } from './types';
+
+export { LANTERN_RADIUS };
 
 const WORLD_W = 320;
 const WORLD_H = 192;
-const COLS = WORLD_W / TILE;
-const ROWS = WORLD_H / TILE;
 const WALL_BOTTOM = 48; // rows 0..5 are wall, floor starts at y = 48
-
-export const LANTERN_RADIUS = 46;
-/** A gentle shimmer in whole pixels, one step at a time. */
-const FLICKER = [0, 1, 0, -1, 0, 1, 1, 0, -1, 0] as const;
-const FLICKER_MS = 160;
 
 const INK = PALETTES['cozy-crt'].a;
 const CHALK = PALETTES['cozy-crt'].q;
@@ -55,35 +53,12 @@ function sprite(name: string) {
   return found;
 }
 
-function buildCollision() {
-  const grid: string[][] = Array.from({ length: ROWS }, () =>
-    Array.from({ length: COLS }, () => '.'),
-  );
-  const solid = (x0: number, y0: number, x1: number, y1: number): void => {
-    for (let y = y0; y <= y1; y += 1) {
-      for (let x = x0; x <= x1; x += 1) grid[y][x] = '#';
-    }
-  };
-  solid(0, 0, COLS - 1, WALL_BOTTOM / TILE - 1);
-  solid(0, 0, 0, ROWS - 1);
-  solid(COLS - 1, 0, COLS - 1, ROWS - 1);
-  solid(0, ROWS - 1, COLS - 1, ROWS - 1);
-  solid(17, 6, 20, 6); // the crate under the monitor
-  solid(28, ROUTER_FEET_ROW, 31, ROUTER_FEET_ROW + 1); // the routing board's feet
-  return parseCollision(grid.map((row) => row.join('')));
-}
+// --- lights ----------------------------------------------------------------
 
-// --- the lantern -----------------------------------------------------------
-
-const lantern: Light = { x: 0, y: 0, radius: LANTERN_RADIUS, tint: 'warm' };
 const monitorLight: Light = { x: 0, y: 0, radius: 34, tint: 'cool' };
 const doorLight: Light = { x: 0, y: 0, radius: 30, tint: 'warm' };
 const packetLight: Light = { x: 0, y: 0, radius: 13, tint: 'cool' };
-const LIGHTS: Light[] = [lantern, monitorLight, doorLight, packetLight];
-
-const pointerWorld = { x: 0, y: 0 };
-const dragWorld = { x: 0, y: 0 };
-const bodyPoint = { x: 0, y: 0 };
+const LIGHTS: Light[] = [monitorLight, doorLight, packetLight];
 
 monitorLight.x = AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2;
 monitorLight.y = AT.monitor.y + MONITOR_SCREEN.y + MONITOR_SCREEN.h / 2;
@@ -103,45 +78,20 @@ function packetAt(t: number, reducedMotion: boolean): { x: number; y: number } {
   return { x: AT.router.x + at.x, y: AT.router.y + at.y };
 }
 
-/**
- * Every light in the dark, in world pixels: the lantern first, then the
- * things that glow on their own. The array and its lights are reused, so a
- * frame allocates nothing.
- */
-export function darkLights(ctx: SceneCtx): Light[] {
-  const { input, player, camera, scale, drag, t, reducedMotion } = ctx;
-
-  const pointer = input.pointer;
-  if (pointer) {
-    pointerWorld.x = Math.floor(pointer.x / scale + camera.x);
-    pointerWorld.y = Math.floor(pointer.y / scale + camera.y);
-  }
-  if (drag) {
-    dragWorld.x = Math.floor(drag.x / scale + camera.x);
-    dragWorld.y = Math.floor(drag.y / scale + camera.y);
-  }
-  // The flame sits around the chest, not the feet.
-  bodyPoint.x = Math.floor(player.x);
-  bodyPoint.y = Math.floor(player.y) - 10;
-
-  const at = lanternPosition(
-    input.mode,
-    pointer ? pointerWorld : null,
-    bodyPoint,
-    drag ? dragWorld : null,
-  );
-  lantern.x = at.x;
-  lantern.y = at.y;
-  lantern.radius =
-    LANTERN_RADIUS + (reducedMotion ? 0 : FLICKER[Math.floor(t / FLICKER_MS) % FLICKER.length]);
-
-  const packet = packetAt(t, reducedMotion);
+{
+  const packet = packetAt(0, false);
   packetLight.x = packet.x;
   packetLight.y = packet.y;
-  return LIGHTS;
 }
 
-// --- hotspots --------------------------------------------------------------
+const spaceLights = createSpaceLights(LIGHTS);
+
+/** Every light in the dark: the lantern first, then the things that glow. */
+export function darkLights(ctx: SceneCtx): Light[] {
+  return spaceLights(ctx);
+}
+
+// --- props and exhibits ----------------------------------------------------
 
 function routingProject() {
   const found = projects.find((p) => p.id === 'routing-sim');
@@ -160,19 +110,10 @@ async function sayOnce(
   await api.store.say([...(seen === 0 ? first : again)]);
 }
 
-async function leave(api: GameApi): Promise<void> {
-  const { store } = api;
-  const choice = await store.say([...copy.dark.exit.lines], [
-    { id: 'back', label: copy.dark.exit.backLabel },
-    { id: 'stay', label: copy.dark.exit.stayLabel },
-  ]);
-  if (choice === 'back') {
-    api.goTo('room');
-    return;
-  }
-  await store.say([...copy.dark.exit.stayReply]);
-}
-
+/**
+ * The routing board keeps its phase-one dialogue. The star is still awarded
+ * only once.
+ */
 async function inspectBoard(api: GameApi): Promise<void> {
   const project = routingProject();
   const first = api.store.award(projectStarId(project.id));
@@ -185,58 +126,129 @@ async function inspectBoard(api: GameApi): Promise<void> {
   await api.store.say(lines);
 }
 
-function buildHotspots(): Hotspot[] {
+function buildProps(): SpaceProp[] {
   return [
     {
-      id: 'exit',
-      rect: { x: AT.exit.x, y: AT.exit.y, w: 24, h: 40 },
-      stand: { x: 4, y: 6 },
-      label: copy.dark.exit.label,
-      onInteract: leave,
+      id: 'exit-glow',
+      footY: AT.exit.y + 40,
+      glow: (g) => drawSprite(g, sprite('darkExitGlow'), AT.exit.x + 4, AT.exit.y + 3),
     },
     {
       id: 'note-one',
-      rect: { x: AT.noteOne.x - 4, y: 20, w: 18, h: 30 },
-      stand: { x: 13, y: 6 },
-      label: copy.dark.noteOne.label,
-      onInteract: (api) => sayOnce(api, 'dark-note-one', copy.dark.noteOne.lines, copy.dark.noteOne.again),
-    },
-    {
-      id: 'eye',
-      rect: { x: AT.monitor.x, y: AT.monitor.y, w: 32, h: 40 },
-      stand: { x: 19, y: 7 },
-      label: copy.dark.monitor.label,
-      onInteract: (api) => sayOnce(api, 'dark-eye', copy.dark.monitor.lines, copy.dark.monitor.again),
-    },
-    {
-      id: 'note-two',
-      rect: { x: AT.noteTwo.x - 6, y: 20, w: 22, h: 30 },
-      stand: { x: 24, y: 6 },
-      label: copy.dark.noteTwo.label,
-      onInteract: (api) => sayOnce(api, 'dark-note-two', copy.dark.noteTwo.lines, copy.dark.noteTwo.again),
-    },
-    {
-      id: 'arch',
-      rect: { x: AT.arch.x, y: AT.arch.y, w: 24, h: 40 },
-      stand: { x: 35, y: 6 },
-      label: copy.dark.arch.label,
-      async onInteract(api) {
-        await api.store.say([...copy.dark.arch.lines]);
+      footY: WALL_BOTTOM,
+      interact: {
+        rect: { x: AT.noteOne.x - 4, y: 20, w: 18, h: 30 },
+        stand: { x: 13, y: 6 },
+        label: copy.dark.noteOne.label,
+        use: (api) => sayOnce(api, 'dark-note-one', copy.dark.noteOne.lines, copy.dark.noteOne.again),
       },
     },
     {
-      id: 'routing-sim',
-      rect: { x: AT.router.x, y: AT.router.y, w: 32, h: 36 },
-      stand: { x: 29, y: 16 },
-      label: copy.dark.routing.label,
-      onInteract: inspectBoard,
+      id: 'eye',
+      footY: AT.monitor.y + 32,
+      draw: (g) => drawSprite(g, sprite('darkMonitor'), AT.monitor.x, AT.monitor.y),
+      glow: (g, ctx) => {
+        const lantern = darkLights(ctx)[0];
+        const eyeAt =
+          lantern.x - (AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2);
+        const eyeName =
+          !ctx.reducedMotion && ctx.t % 3400 < 150
+            ? 'darkEyeBlink'
+            : eyeAt < -22
+              ? 'darkEyeLeft'
+              : eyeAt > 22
+                ? 'darkEyeRight'
+                : 'darkEyeCenter';
+        drawSprite(
+          g,
+          sprite(eyeName),
+          AT.monitor.x + MONITOR_SCREEN.x,
+          AT.monitor.y + MONITOR_SCREEN.y,
+        );
+      },
+      interact: {
+        rect: { x: AT.monitor.x, y: AT.monitor.y, w: 32, h: 40 },
+        stand: { x: 19, y: 7 },
+        label: copy.dark.monitor.label,
+        use: (api) => sayOnce(api, 'dark-eye', copy.dark.monitor.lines, copy.dark.monitor.again),
+      },
+    },
+    {
+      id: 'note-two',
+      footY: WALL_BOTTOM,
+      interact: {
+        rect: { x: AT.noteTwo.x - 6, y: 20, w: 22, h: 30 },
+        stand: { x: 24, y: 6 },
+        label: copy.dark.noteTwo.label,
+        use: (api) => sayOnce(api, 'dark-note-two', copy.dark.noteTwo.lines, copy.dark.noteTwo.again),
+      },
+    },
+    {
+      id: 'arch',
+      footY: WALL_BOTTOM,
+      interact: {
+        rect: { x: AT.arch.x, y: AT.arch.y, w: 24, h: 40 },
+        stand: { x: 35, y: 6 },
+        label: copy.dark.arch.label,
+        use: async (api) => {
+          await api.store.say([...copy.dark.arch.lines]);
+        },
+      },
     },
     {
       id: 'cat',
-      rect: { x: AT.cat.x, y: AT.cat.y, w: 16, h: 14 },
-      stand: { x: 4, y: 17 },
-      label: copy.dark.cat.label,
-      onInteract: (api) => sayOnce(api, 'dark-cat', copy.dark.cat.lines, copy.dark.cat.again),
+      footY: AT.cat.y + 14,
+      draw: (g) => drawSprite(g, sprite('cat-sitting'), AT.cat.x, AT.cat.y),
+      glow: (g, ctx) => {
+        // Two amber eyes in the corner.
+        if (ctx.reducedMotion || ctx.t % 4100 > 200) {
+          g.fillStyle = SOLID_COLORS.s;
+          g.fillRect(AT.cat.x + 2, AT.cat.y + 4, 1, 1);
+          g.fillRect(AT.cat.x + 8, AT.cat.y + 4, 1, 1);
+        }
+      },
+      interact: {
+        rect: { x: AT.cat.x, y: AT.cat.y, w: 16, h: 14 },
+        stand: { x: 4, y: 17 },
+        label: copy.dark.cat.label,
+        use: (api) => sayOnce(api, 'dark-cat', copy.dark.cat.lines, copy.dark.cat.again),
+      },
+    },
+  ];
+}
+
+function buildExhibits(): Exhibit[] {
+  return [
+    {
+      id: 'routing-sim',
+      projectId: 'routing-sim',
+      rect: { x: AT.router.x, y: AT.router.y, w: 32, h: 36 },
+      stand: { x: 29, y: 16 },
+      footY: AT.router.y + 36,
+      label: copy.dark.routing.label,
+      update(_ms, ctx) {
+        const packet = packetAt(ctx.t, ctx.reducedMotion);
+        packetLight.x = packet.x;
+        packetLight.y = packet.y;
+      },
+      draw(g) {
+        drawSprite(g, sprite('darkRouter'), AT.router.x, AT.router.y);
+      },
+      glow(g, ctx) {
+        // The packet, and the link that is down.
+        const packet = packetAt(ctx.t, ctx.reducedMotion);
+        g.fillStyle = SOLID_COLORS.C;
+        g.fillRect(packet.x, packet.y, 2, 2);
+        if (ctx.reducedMotion || Math.floor(ctx.t / 600) % 2 === 0) {
+          g.fillStyle = SOLID_COLORS.k;
+          const fx = AT.router.x + ROUTER_FAILED_LINK.x;
+          const fy = AT.router.y + ROUTER_FAILED_LINK.y;
+          for (const [dx, dy] of [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]) {
+            g.fillRect(fx + dx, fy + dy, 1, 1);
+          }
+        }
+      },
+      use: inspectBoard,
     },
   ];
 }
@@ -268,266 +280,54 @@ function drawShell(g: CanvasRenderingContext2D): void {
   g.fillRect(0, WORLD_H - TILE, WORLD_W, TILE);
 }
 
-function frameOf(anim: string, index: number, frames: Record<string, string[]>): string {
-  const list = frames[anim];
-  return list[index % list.length];
+function drawBackdrop(g: CanvasRenderingContext2D): void {
+  drawShell(g);
+
+  drawSprite(g, sprite('darkExit'), AT.exit.x, AT.exit.y);
+  drawSprite(g, sprite('darkExitSpill'), AT.exit.x, WALL_BOTTOM);
+  drawSprite(g, sprite('darkArch'), AT.arch.x, AT.arch.y);
+  drawChalk(g, copy.dark.chalk[0], AT.chalkOne.x, AT.chalkOne.y);
+  drawChalk(g, copy.dark.chalk[1], AT.chalkTwo.x, AT.chalkTwo.y);
+  drawSprite(g, sprite('darkNote0'), AT.noteOne.x, AT.noteOne.y);
+  drawSprite(g, sprite('darkNote1'), AT.noteTwo.x, AT.noteTwo.y);
+  for (const x of [176, 188, 200]) drawChalk(g, '>', x, 108);
 }
 
-/** The visitor's current sprite name, before any lighting or composition. */
-function visitorFrame(ctx: SceneCtx, anims: Record<string, string[]>): string {
-  const walkFrame = Math.floor(ctx.player.walkMs / 130);
-  return ctx.player.moving
-    ? frameOf(`visitor-${ctx.player.facing}`, walkFrame, anims)
-    : `visitor-${ctx.player.facing}-0`;
-}
-
-type DrawPiece = { y: number; draw: () => void };
-
-type Layers = {
-  canvas: HTMLCanvasElement;
-  g: CanvasRenderingContext2D;
-  src: ImageData;
-  dst: ImageData;
-  viewLights: Light[];
-};
-
-function makeLayers(w: number, h: number): Layers {
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const g = canvas.getContext('2d', { willReadFrequently: true });
-  if (!g) throw new Error('2D canvas is not available');
-  g.imageSmoothingEnabled = false;
-  return {
-    canvas,
-    g,
-    src: g.createImageData(w, h),
-    dst: g.createImageData(w, h),
-    viewLights: LIGHTS.map((l) => ({ ...l })),
-  };
-}
-
-export function createDarkScene(_store: GameStore): Scene {
-  const map = buildCollision();
-  let layers: Layers | null = null;
-  let visitorBlit: { canvas: HTMLCanvasElement; g: CanvasRenderingContext2D } | null = null;
-
-  /** Pieces with height, sorted by the line they stand on, with the player among them. */
-  function drawWorld(
-    s: CanvasRenderingContext2D,
-    ctx: SceneCtx,
-    playerName: string,
-  ): void {
-    drawShell(s);
-
-    drawSprite(s, sprite('darkExit'), AT.exit.x, AT.exit.y);
-    drawSprite(s, sprite('darkExitSpill'), AT.exit.x, WALL_BOTTOM);
-    drawSprite(s, sprite('darkArch'), AT.arch.x, AT.arch.y);
-    drawChalk(s, copy.dark.chalk[0], AT.chalkOne.x, AT.chalkOne.y);
-    drawChalk(s, copy.dark.chalk[1], AT.chalkTwo.x, AT.chalkTwo.y);
-    drawSprite(s, sprite('darkNote0'), AT.noteOne.x, AT.noteOne.y);
-    drawSprite(s, sprite('darkNote1'), AT.noteTwo.x, AT.noteTwo.y);
-    for (const x of [176, 188, 200]) drawChalk(s, '>', x, 108);
-
-    const p = drawPos(ctx.player);
-    const things: DrawPiece[] = [
-      {
-        y: AT.monitor.y + 32,
-        draw: () => drawSprite(s, sprite('darkMonitor'), AT.monitor.x, AT.monitor.y),
-      },
-      {
-        y: AT.router.y + 36,
-        draw: () => drawSprite(s, sprite('darkRouter'), AT.router.x, AT.router.y),
-      },
-      {
-        y: AT.cat.y + 14,
-        draw: () => drawSprite(s, sprite('cat-sitting'), AT.cat.x, AT.cat.y),
-      },
-      {
-        y: p.y + 3,
-        draw: () => drawSprite(s, sprite(playerName), p.x - 8, p.y + 3 - 24),
-      },
-    ];
-    things.sort((a, b) => a.y - b.y);
-    for (const thing of things) thing.draw();
-  }
-
-  /**
-   * What makes its own light is drawn after the dark, at full brightness. Each
-   * piece carries the foot line of the thing it belongs to, so it can be
-   * layered on the correct side of the visitor.
-   */
-  function glowPieces(s: CanvasRenderingContext2D, ctx: SceneCtx, eyeAt: number): DrawPiece[] {
-    const { t, reducedMotion } = ctx;
-
-    const eyeName =
-      !reducedMotion && t % 3400 < 150
-        ? 'darkEyeBlink'
-        : eyeAt < -22
-          ? 'darkEyeLeft'
-          : eyeAt > 22
-            ? 'darkEyeRight'
-            : 'darkEyeCenter';
-
-    const packet = packetAt(t, reducedMotion);
-    const pieces: DrawPiece[] = [
-      {
-        y: AT.exit.y + 40,
-        draw: () => drawSprite(s, sprite('darkExitGlow'), AT.exit.x + 4, AT.exit.y + 3),
-      },
-      {
-        y: AT.monitor.y + 32,
-        draw: () =>
-          drawSprite(
-            s,
-            sprite(eyeName),
-            AT.monitor.x + MONITOR_SCREEN.x,
-            AT.monitor.y + MONITOR_SCREEN.y,
-          ),
-      },
-      {
-        y: AT.router.y + 36,
-        draw: () => {
-          // The packet, and the link that is down.
-          s.fillStyle = SOLID_COLORS.C;
-          s.fillRect(packet.x, packet.y, 2, 2);
-          if (reducedMotion || Math.floor(t / 600) % 2 === 0) {
-            s.fillStyle = SOLID_COLORS.k;
-            const fx = AT.router.x + ROUTER_FAILED_LINK.x;
-            const fy = AT.router.y + ROUTER_FAILED_LINK.y;
-            for (const [dx, dy] of [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]) {
-              s.fillRect(fx + dx, fy + dy, 1, 1);
-            }
-          }
-        },
-      },
-      {
-        y: AT.cat.y + 14,
-        draw: () => {
-          // Two amber eyes in the corner.
-          if (reducedMotion || t % 4100 > 200) {
-            s.fillStyle = SOLID_COLORS.s;
-            s.fillRect(AT.cat.x + 2, AT.cat.y + 4, 1, 1);
-            s.fillRect(AT.cat.x + 8, AT.cat.y + 4, 1, 1);
-          }
-        },
-      },
-    ];
-
-    return pieces.sort((a, b) => a.y - b.y);
-  }
-
-  /**
-   * Copy the already-lit visitor pixels out of the lit layer, keeping only the
-   * sprite's opaque pixels. Glow pieces behind the visitor are drawn, this is
-   * blitted back over them, then the glow pieces in front are drawn.
-   */
-  function visitorSlice(
-    l: Layers,
-    ctx: SceneCtx,
-    playerName: string,
-    x: number,
-    y: number,
-  ): HTMLCanvasElement {
-    const card = sprite(playerName);
-    if (
-      !visitorBlit ||
-      visitorBlit.canvas.width !== card.w ||
-      visitorBlit.canvas.height !== card.h
-    ) {
-      const canvas = document.createElement('canvas');
-      canvas.width = card.w;
-      canvas.height = card.h;
-      const g = canvas.getContext('2d');
-      if (!g) throw new Error('2D canvas is not available');
-      g.imageSmoothingEnabled = false;
-      visitorBlit = { canvas, g };
-    }
-
-    const blit = visitorBlit;
-    const viewX = Math.round(x - ctx.camera.x);
-    const viewY = Math.round(y - ctx.camera.y);
-    blit.g.setTransform(1, 0, 0, 1, 0, 0);
-    blit.g.globalCompositeOperation = 'source-over';
-    blit.g.clearRect(0, 0, card.w, card.h);
-    blit.g.drawImage(l.canvas, viewX, viewY, card.w, card.h, 0, 0, card.w, card.h);
-    blit.g.globalCompositeOperation = 'destination-in';
-    drawSprite(blit.g, card, 0, 0);
-    blit.g.globalCompositeOperation = 'source-over';
-    return blit.canvas;
-  }
-
+function buildSpaceDef(): SpaceDef {
   return {
     id: 'dark',
     worldW: WORLD_W,
     worldH: WORLD_H,
-    map,
+    solids: [
+      { x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM },
+      { x: 17 * TILE, y: 6 * TILE, w: 4 * TILE, h: TILE },
+      { x: 28 * TILE, y: ROUTER_FEET_ROW * TILE, w: 4 * TILE, h: 2 * TILE },
+    ],
     spawn: { x: 4, y: 7 },
-    hotspots: buildHotspots(),
-
-    update() {
-      // Motion is drawn from ctx.t; the lantern reads the input at draw time.
-    },
-
-    draw(g, ctx) {
-      const { viewW, viewH, camera } = ctx;
-      if (!layers || layers.canvas.width !== viewW || layers.canvas.height !== viewH) {
-        layers = makeLayers(viewW, viewH);
-      }
-      const l = layers;
-      const s = l.g;
-
-      const p = drawPos(ctx.player);
-      const playerName = visitorFrame(ctx, ANIMS);
-      const playerX = p.x - 8;
-      const playerY = p.y + 3 - 24;
-      const playerFoot = p.y + 3;
-
-      // 1. The world, unlit, into a scratch canvas the size of the view.
-      s.setTransform(1, 0, 0, 1, 0, 0);
-      s.fillStyle = INK;
-      s.fillRect(0, 0, viewW, viewH);
-      s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
-      drawWorld(s, ctx, playerName);
-
-      // 2. Light it in hard, dithered steps.
-      const lights = darkLights(ctx);
-      for (let i = 0; i < lights.length; i += 1) {
-        const v = l.viewLights[i];
-        v.x = lights[i].x - camera.x;
-        v.y = lights[i].y - camera.y;
-        v.radius = lights[i].radius;
-        v.tint = lights[i].tint;
-      }
-      s.setTransform(1, 0, 0, 1, 0, 0);
-      l.src = s.getImageData(0, 0, viewW, viewH);
-      applyLighting(l.src, l.dst, l.viewLights);
-      s.putImageData(l.dst, 0, 0);
-
-      // 3. What glows by itself, at full brightness, with the visitor layered
-      // in by foot line so the doorway never paints over their head.
-      const glows = glowPieces(
-        s,
-        ctx,
-        lights[0].x - (AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2),
-      );
-      const behind = glows.filter((piece) => piece.y <= playerFoot);
-      const inFront = glows.filter((piece) => piece.y > playerFoot);
-
-      const visitor = visitorSlice(l, ctx, playerName, playerX, playerY);
-
-      s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
-      for (const piece of behind) piece.draw();
-
-      s.setTransform(1, 0, 0, 1, 0, 0);
-      s.drawImage(visitor, Math.round(playerX - camera.x), Math.round(playerY - camera.y));
-
-      s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
-      for (const piece of inFront) piece.draw();
-
-      // 4. Onto the game canvas, which is already translated by the camera.
-      s.setTransform(1, 0, 0, 1, 0, 0);
-      g.drawImage(l.canvas, camera.x, camera.y);
-    },
+    entries: { fromRoom: { x: 4, y: 7 } },
+    exits: [
+      {
+        id: 'exit',
+        rect: { x: AT.exit.x, y: AT.exit.y, w: 24, h: 40 },
+        stand: { x: 4, y: 6 },
+        label: copy.dark.exit.label,
+        to: 'room',
+        entry: '',
+        lines: copy.dark.exit.lines,
+        goLabel: copy.dark.exit.backLabel,
+        stayLabel: copy.dark.exit.stayLabel,
+        stayReply: copy.dark.exit.stayReply,
+      },
+    ],
+    props: buildProps(),
+    exhibits: buildExhibits(),
+    lights: LIGHTS,
+    drawBackdrop,
   };
+}
+
+const SPACE = buildSpaceDef();
+
+export function createDarkScene(_store: GameStore): Scene {
+  return createDarkSpace(SPACE, _store);
 }

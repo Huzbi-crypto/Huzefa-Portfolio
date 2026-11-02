@@ -132,7 +132,12 @@ afterAll(() => {
 function setup() {
   const store = createStore(null);
   const scene = createDarkScene(store);
-  const api: GameApi = { store, goTo: vi.fn(), openTerminal: vi.fn() };
+  const api: GameApi = {
+    store,
+    goTo: vi.fn(),
+    openTerminal: vi.fn(),
+    showProject: vi.fn(async () => undefined),
+  };
   return { store, scene, api };
 }
 

@@ -21,6 +21,7 @@ function setup() {
     store,
     goTo: vi.fn(),
     openTerminal: vi.fn(),
+    showProject: vi.fn(async () => undefined),
   };
   return { store, scene, api };
 }

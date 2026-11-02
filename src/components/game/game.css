@@ -294,6 +294,124 @@ body {
   white-space: nowrap;
 }
 
+/* Project details: real text over the game, hard edged like the HUD. */
+
+.project-panel-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(27, 20, 40, 0.82);
+}
+
+.project-panel {
+  width: min(100%, 640px);
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 24px 24px 20px;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.project-panel-title {
+  margin: 0 104px 8px 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.project-panel-tagline {
+  margin: 0 0 12px;
+  color: var(--g-amber-hi);
+}
+
+.project-panel-body {
+  margin: 0 0 16px;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+
+.project-panel-stack {
+  margin: 0 0 20px;
+  color: var(--g-dim);
+  font-size: 18px;
+}
+
+.project-panel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.project-panel-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--g-ink);
+  color: var(--g-text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: inset 0 0 0 3px var(--g-amber);
+}
+
+.project-panel-link:hover,
+.project-panel-link:focus-visible {
+  background: var(--g-amber);
+  color: var(--g-ink);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.project-panel-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  background: var(--g-ink);
+  color: var(--g-text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px var(--g-line);
+}
+
+.project-panel-close:hover,
+.project-panel-close:focus-visible {
+  background: var(--g-amber);
+  color: var(--g-ink);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .project-panel {
+    padding: 20px 16px 16px;
+    font-size: 18px;
+  }
+
+  .project-panel-title {
+    margin-right: 0;
+    padding-right: 0;
+    font-size: 24px;
+  }
+
+  .project-panel-close {
+    position: static;
+    margin: 0 0 12px auto;
+    display: block;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .star-counter[data-bump='true'],
   .dialogue-more {

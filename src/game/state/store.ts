@@ -18,6 +18,8 @@ export type GameUiState = {
   found: readonly string[];
   total: number;
   doorOpened: boolean;
+  /** The project whose panel is open, or null. */
+  project: string | null;
 };
 
 export type GameStore = {
@@ -34,6 +36,9 @@ export type GameStore = {
   increment(id: string): void;
   setDoorOpened(): void;
   setReducedMotion(v: boolean): void;
+  /** Opens the project panel; resolves when it closes. */
+  showProject(projectId: string): Promise<void>;
+  closeProject(): void;
 };
 
 /**
@@ -46,13 +51,16 @@ export function createStore(storage: Storage | null): GameStore {
   const subscribers = new Set<() => void>();
   let dialogue: DialogueState | null = null;
   let reducedMotion = false;
+  let project: string | null = null;
   let settleSay: ((value: string | undefined) => void) | null = null;
+  let settleProject: (() => void) | null = null;
 
   const buildSnapshot = (): GameUiState => ({
     dialogue,
     found: [...progress.found],
     total: starTotal(),
     doorOpened: progress.doorOpened,
+    project,
   });
   let state = buildSnapshot();
 
@@ -69,6 +77,16 @@ export function createStore(storage: Storage | null): GameStore {
     const resolve = settleSay;
     settleSay = null;
     if (resolve) resolve(value);
+  };
+
+  const closeProject = (): void => {
+    if (project === null) return;
+
+    project = null;
+    notify();
+    const resolve = settleProject;
+    settleProject = null;
+    if (resolve) resolve();
   };
 
   return {
@@ -155,5 +173,17 @@ export function createStore(storage: Storage | null): GameStore {
       };
       notify();
     },
+
+    showProject(projectId: string): Promise<void> {
+      closeProject();
+      project = projectId;
+      notify();
+
+      return new Promise<void>((resolve) => {
+        settleProject = resolve;
+      });
+    },
+
+    closeProject,
   };
 }

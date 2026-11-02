@@ -5,7 +5,7 @@ import { createInput, DRAG_SLOP, type Input } from '@/game/core/input';
 import { createLoop } from '@/game/core/loop';
 import { drawSprite } from '@/game/render/sprite';
 import { doorSwingFrame, drawIris } from '@/game/render/transition';
-import type { GameApi, Hotspot, Scene, SceneCtx } from '@/game/scene/types';
+import type { GameApi, Hotspot, Scene, SceneCtx, SceneId } from '@/game/scene/types';
 import type { GameStore } from '@/game/state/store';
 import { computeCamera } from '@/game/world/camera';
 import {
@@ -30,7 +30,9 @@ const CLOSE_MS = 520;
 const OPEN_MS = 520;
 
 type Transition = {
-  to: Scene['id'];
+  to: SceneId;
+  /** Named arrival tile in the target scene, if it asked for one. */
+  entry?: string;
   phase: 'hold' | 'close' | 'open';
   elapsed: number;
   /** Where the iris closes or opens, in game pixels of the view. */
@@ -62,7 +64,7 @@ export type Game = {
   start(): void;
   stop(): void;
   resize(cssW: number, cssH: number): void;
-  goTo(id: Scene['id']): void;
+  goTo(id: SceneId, entry?: string): void;
   setReducedMotion(v: boolean): void;
 };
 
@@ -106,8 +108,8 @@ function tileCenter(tile: { x: number; y: number }): { x: number; y: number } {
  */
 export function createGameController(opts: ControllerOptions) {
   const { store, input } = opts;
-  const scenes = new Map<Scene['id'], Scene>(opts.scenes.map((s) => [s.id, s]));
-  const navs = new Map<Scene['id'], TileMap>(
+  const scenes = new Map<SceneId, Scene>(opts.scenes.map((s) => [s.id, s]));
+  const navs = new Map<SceneId, TileMap>(
     opts.scenes.map((s) => [s.id, navMap(s.map)]),
   );
   let scene: Scene = opts.scenes[0];
@@ -126,17 +128,22 @@ export function createGameController(opts: ControllerOptions) {
 
   const api: GameApi = {
     store,
-    goTo: (id) => goTo(id),
+    goTo: (id, entry) => goTo(id, entry),
     openTerminal: () => opts.openTerminal(),
+    showProject: (projectId) => store.showProject(projectId),
   };
 
-  function placeAtSpawn(): void {
-    const c = tileCenter(scene.spawn);
+  function placeAt(tile: { x: number; y: number }): void {
+    const c = tileCenter(tile);
     player.x = c.x;
     player.y = c.y;
     player.path.length = 0;
     player.moving = false;
     pending = null;
+  }
+
+  function placeAtSpawn(): void {
+    placeAt(scene.spawn);
   }
 
   function updateCamera(): void {
@@ -239,20 +246,19 @@ export function createGameController(opts: ControllerOptions) {
     return { x: Math.round(x - camera.x), y: Math.round(y - camera.y) };
   }
 
-  function swapScene(id: Scene['id']): void {
+  function swapScene(id: SceneId, entry?: string): void {
     const from = scene.id;
     scene = scenes.get(id) ?? scene;
+    const named = entry ? scene.entries?.[entry] : undefined;
     placeAtSpawn();
-    // Coming back through the door puts the visitor just in front of it.
-    const door = from === 'dark' ? scene.hotspots.find((h) => h.id === 'door') : undefined;
-    if (door) {
-      const c = tileCenter({ x: door.stand.x, y: door.stand.y + 1 });
-      player.x = c.x;
-      player.y = c.y;
-      player.facing = 'down';
-    } else {
-      player.facing = 'down';
+    const door = !named && from === 'dark' ? scene.hotspots.find((h) => h.id === 'door') : undefined;
+    if (named) {
+      placeAt(named);
+    } else if (door) {
+      // Coming back through the door puts the visitor just in front of it.
+      placeAt({ x: door.stand.x, y: door.stand.y + 1 });
     }
+    player.facing = 'down';
     lightDrag = null;
     touchOrigin = null;
     dragged = false;
@@ -260,13 +266,13 @@ export function createGameController(opts: ControllerOptions) {
   }
 
   /** First time in the dark: one short line on how the light works. */
-  function greetIfNew(id: Scene['id']): void {
+  function greetIfNew(id: SceneId): void {
     if (id !== 'dark' || store.count('dark-arrival') > 0) return;
     store.increment('dark-arrival');
     void store.say([...copy.dark.arrival[input.mode]]);
   }
 
-  function goTo(id: Scene['id']): void {
+  function goTo(id: SceneId, entry?: string): void {
     const target = scenes.get(id);
     if (!target) {
       void store.say([...copy.door.notReady]);
@@ -275,7 +281,7 @@ export function createGameController(opts: ControllerOptions) {
     if (transition || target === scene) return;
 
     if (reducedMotion) {
-      swapScene(id);
+      swapScene(id, entry);
       greetIfNew(id);
       return;
     }
@@ -289,6 +295,7 @@ export function createGameController(opts: ControllerOptions) {
     pending = null;
     transition = {
       to: id,
+      entry,
       phase: door ? 'hold' : 'close',
       elapsed: 0,
       cx: centre.x,
@@ -305,7 +312,7 @@ export function createGameController(opts: ControllerOptions) {
       tr.elapsed = 0;
     }
     if (tr.phase === 'close' && tr.elapsed >= CLOSE_MS) {
-      swapScene(tr.to);
+      swapScene(tr.to, tr.entry);
       const centre = viewPoint(player.x, player.y - 10);
       tr.phase = 'open';
       tr.elapsed = 0;
@@ -332,7 +339,7 @@ export function createGameController(opts: ControllerOptions) {
 
   /** Track whether a touch is dragging the light, so a drag never counts as a tap. */
   function watchDrag(): void {
-    if (scene.id !== 'dark' || input.mode !== 'touch') return;
+    if (!scene.dark || input.mode !== 'touch') return;
     const p = input.pointer;
     if (!p) {
       // The finger lifted: the next touch starts fresh.
@@ -528,7 +535,7 @@ export function createGame(opts: GameOptions): Game {
       g.imageSmoothingEnabled = false;
       controller.render(g);
     },
-    goTo: (id) => controller.goTo(id),
+    goTo: (id, entry) => controller.goTo(id, entry),
     setReducedMotion: (v) => controller.setReducedMotion(v),
   };
 }

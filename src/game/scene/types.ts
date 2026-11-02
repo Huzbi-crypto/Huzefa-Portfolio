@@ -5,6 +5,9 @@ import type { Tile, TileMap } from '@/game/world/grid';
 
 export type Rect = { x: number; y: number; w: number; h: number };
 
+/** Every place in the dark reaches the same engine, with a stable id for saves. */
+export type SceneId = 'room' | 'dark' | 'workshop' | 'archive' | 'observatory' | 'nap';
+
 /** Something in a scene the visitor can walk to and inspect. */
 export type Hotspot = {
   id: string;
@@ -18,8 +21,10 @@ export type Hotspot = {
 
 export type GameApi = {
   store: GameStore;
-  goTo(sceneId: 'room' | 'dark'): void;
+  goTo(sceneId: SceneId, entry?: string): void;
   openTerminal(): void;
+  /** Opens the real project panel and resolves when it closes. */
+  showProject(projectId: string): Promise<void>;
 };
 
 export type SceneCtx = {
@@ -38,11 +43,15 @@ export type SceneCtx = {
 };
 
 export type Scene = {
-  id: 'room' | 'dark';
+  id: SceneId;
   worldW: number;
   worldH: number;
   map: TileMap;
   spawn: Tile;
+  /** Named arrival tiles, used by an exit that says where it leads. */
+  entries?: Record<string, Tile>;
+  /** Dark spaces follow the lantern with a touch drag. */
+  dark?: boolean;
   hotspots: Hotspot[];
   update(ms: number, ctx: SceneCtx): void;
   draw(g: CanvasRenderingContext2D, ctx: SceneCtx): void;

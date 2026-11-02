@@ -306,7 +306,14 @@ describe('the door and the dark', () => {
     const { game, store } = setup({ dark: true, storage });
     game.setReducedMotion(true);
     const door = game.snapshot().hotspots.find((h) => h.id === 'door')!;
-    const done = Promise.resolve(door.onInteract({ store, goTo: game.goTo, openTerminal: () => undefined }));
+    const done = Promise.resolve(
+      door.onInteract({
+        store,
+        goTo: game.goTo,
+        openTerminal: () => undefined,
+        showProject: async () => undefined,
+      }),
+    );
     for (let i = 0; i < 20 && store.getState().dialogue; i += 1) {
       await new Promise((r) => setTimeout(r, 0));
       clickThrough(store, 'open');
