@@ -1,4 +1,5 @@
 import { SPRITES } from '@/game/art';
+import type { GameAudio } from '@/game/audio/audio';
 import { copy } from '@/game/content/copy';
 import { computeViewport } from '@/game/core/viewport';
 import { createInput, DRAG_SLOP, type Input } from '@/game/core/input';
@@ -26,6 +27,8 @@ const TAP_SLOP = 3;
 const BACKDROP = '#1b1428';
 /** A walk that makes no progress for this long is abandoned. */
 const STALL_MS = 400;
+/** Space between footsteps, so a walk sounds like feet and not a rattle. */
+const STEP_SFX_MS = 280;
 /** The door swings, the iris closes on it, then opens on the other side. */
 const HOLD_MS = 420;
 const CLOSE_MS = 520;
@@ -58,6 +61,8 @@ export type GameOptions = {
   scenes: Scene[];
   openTerminal(): void;
   isBlocked(): boolean;
+  /** The game's sound. Optional so the controller stays testable in silence. */
+  audio?: Pick<GameAudio, 'setScene' | 'playSfx'>;
   /** Called when the thing the visitor could use right now changes. */
   onHint?(hint: GameHint): void;
   /** Called with a clue hotspot id when an idle visitor could use a nudge. */
@@ -88,6 +93,7 @@ type ControllerOptions = {
   input: Input;
   openTerminal(): void;
   isBlocked(): boolean;
+  audio?: Pick<GameAudio, 'setScene' | 'playSfx'>;
   onHint?(hint: GameHint): void;
   onNudge?(target: string | null): void;
 };
@@ -132,6 +138,7 @@ export function createGameController(opts: ControllerOptions) {
   let transition: Transition | null = null;
   let idleMs = 0;
   let nudge: string | null = null;
+  let stepSfxMs = 0;
 
   const api: GameApi = {
     store,
@@ -272,6 +279,7 @@ export function createGameController(opts: ControllerOptions) {
     idleMs = 0;
     clearNudge();
     updateCamera();
+    opts.audio?.setScene(id);
   }
 
   /** First time in the dark: one short line on how the light works. */
@@ -288,6 +296,8 @@ export function createGameController(opts: ControllerOptions) {
       return;
     }
     if (transition || target === scene) return;
+
+    opts.audio?.playSfx('door');
 
     if (reducedMotion) {
       swapScene(id, entry);
@@ -408,6 +418,7 @@ export function createGameController(opts: ControllerOptions) {
 
   placeAtSpawn();
   updateCamera();
+  opts.audio?.setScene(scene.id);
 
   return {
     step(ms: number): void {
@@ -444,6 +455,17 @@ export function createGameController(opts: ControllerOptions) {
       const beforeX = player.x;
       const beforeY = player.y;
       stepEntity(player, move, scene.map, ms);
+
+      const walked = player.x !== beforeX || player.y !== beforeY;
+      if (walked) {
+        stepSfxMs += ms;
+        if (stepSfxMs >= STEP_SFX_MS) {
+          stepSfxMs = 0;
+          opts.audio?.playSfx('step');
+        }
+      } else {
+        stepSfxMs = 0;
+      }
 
       // A path the feet cannot follow (a pinched tile, a door shut mid-walk)
       // must never leave the visitor "walking" forever.
