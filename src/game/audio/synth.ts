@@ -34,6 +34,8 @@ export type OscillatorLike = AudioNodeLike & {
   frequency: AudioParamLike;
   start(when?: number): void;
   stop(when?: number): void;
+  /** Fired when the note ends, so finished notes are not kept in memory. */
+  onended: ((event: Event) => void) | null;
 };
 
 export type AudioContextLike = {
@@ -137,6 +139,10 @@ export function createSynth(ctx: AudioContextLike): Synth {
 
     oscillator.connect(envelope);
     envelope.connect(target);
+    oscillator.onended = () => {
+      const index = notes.indexOf(oscillator);
+      if (index >= 0) notes.splice(index, 1);
+    };
     oscillator.start(when);
     oscillator.stop(when + length + 0.03);
     notes.push(oscillator);
@@ -194,14 +200,16 @@ export function createSynth(ctx: AudioContextLike): Synth {
     }
 
     const stopAt = now + (immediate ? 0.01 : FADE_SECONDS);
-    for (const note of notes) {
+    const stopping = notes;
+    notes = [];
+    for (const note of stopping) {
+      note.onended = null;
       try {
         note.stop(stopAt);
       } catch {
         // Already stopped by its own scheduled end.
       }
     }
-    notes = [];
     musicGain = null;
   }
 
@@ -223,6 +231,10 @@ export function createSynth(ctx: AudioContextLike): Synth {
           envelope.gain.linearRampToValueAtTime(0.0001, when + step.len);
           oscillator.connect(envelope);
           if (master) envelope.connect(master);
+          oscillator.onended = () => {
+            const index = notes.indexOf(oscillator);
+            if (index >= 0) notes.splice(index, 1);
+          };
           oscillator.start(when);
           oscillator.stop(when + step.len + 0.03);
           notes.push(oscillator);

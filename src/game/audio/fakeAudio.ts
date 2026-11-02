@@ -64,6 +64,7 @@ export class FakeOscillator extends FakeNode implements OscillatorLike {
   frequency = new FakeParam();
   startedAt: number[] = [];
   stoppedAt: number[] = [];
+  onended: ((event: Event) => void) | null = null;
 
   start(when = 0): void {
     this.startedAt.push(when);
