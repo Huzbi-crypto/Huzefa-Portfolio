@@ -68,6 +68,16 @@ export type Game = {
   setReducedMotion(v: boolean): void;
 };
 
+declare global {
+  interface Window {
+    /**
+     * Test-only handle to the running controller. Present only when the URL
+     * carries `?e2e=1`, and never read by the game itself.
+     */
+    __huzbiGame?: ReturnType<typeof createGameController>;
+  }
+}
+
 type ControllerOptions = {
   store: GameStore;
   scenes: Scene[];
@@ -490,6 +500,12 @@ export function createGame(opts: GameOptions): Game {
   });
   const controller = createGameController({ ...opts, input });
 
+  // The browser journey tests read the controller through this handle. It is
+  // absent unless the URL explicitly asks for it, so play is untouched.
+  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('e2e') === '1') {
+    window.__huzbiGame = controller;
+  }
+
   const loop = createLoop({
     step: (ms) => controller.step(ms),
     render: () => controller.render(g),
@@ -500,6 +516,9 @@ export function createGame(opts: GameOptions): Game {
     stop() {
       loop.stop();
       input.dispose();
+      if (typeof window !== 'undefined' && window.__huzbiGame === controller) {
+        delete window.__huzbiGame;
+      }
     },
     resize(cssW, cssH) {
       controller.resize(cssW, cssH);
