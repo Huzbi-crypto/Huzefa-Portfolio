@@ -96,6 +96,30 @@ Each section keeps its normal URL (`/projects/`, `/projects/[slug]/`, `/about/`,
 - **The CRT overlay toggle stays.**
 - **A pixel version of Huzbi** exists for the ending (Huzbi's decision): a human in a hoodie and headphones with messy dark hair, as in the current `src/components/world/Character.tsx`. The monster artwork at `public/assets/cwnilmm1twqb1.jpeg` is not a likeness. It is the source for the poster in the monster gag and remains the social share image.
 
+## Project exhibits (Huzbi's decision, after playing Checkpoint 1)
+
+Huzbi liked how the routing board shows a broken network link and leads to the repo, and asked for the same treatment for every project: **you see the idea working before you read about it.**
+
+| Project id | Exhibit | What the visitor does | The payoff |
+|---|---|---|---|
+| `routing-sim` | Board of tiny routers (built) | Inspects it | A link is broken, so a packet takes the long way round |
+| `ai-anime` | Rickety machine with a canvas | Pulls the lever; dithered noise resolves into a pixel portrait | Every roll comes out slightly wrong, like six fingers |
+| `lang-projects` | Tiny robots passing notes around a flow chart | Hands one a note and watches it travel | One robot is stuck in a loop, consulting itself |
+| `speech-translator` | Two tin cans on a string | Speaks into one; sound bars travel down the string and a bubble comes out in other words | Something is always lost in translation |
+| `term-exp` | Tiny terminal on a stool | Types at a small working prompt | It's rude about the visitor's commands |
+| `read-cookies` | Cookie jar with a padlock | Unlocks it; cookies are labeled like browser sessions | "Please stop eating the evidence" |
+| `ascii-art-tui` | Framed picture of the cat | The lantern turns whatever it lights into ASCII characters | Only the lit part converts |
+| `creative-coding` | Field of drifting particles | They're pulled toward the lantern and swirl | Pure toy; links to the live demo |
+| `3d-renderer` | Old screen with a spinning wireframe shape | Grabs it to spin it, using real 3D math | Parts occasionally pop through each other |
+| `compiler-project` | Small factory conveyor belt | Drops in a line of code; it passes through stations and comes out as assembly | One station jams now and then with a fussy error |
+
+Every exhibit:
+
+- Takes a few seconds to try and can't be failed.
+- Earns the project's star when tried, then shows a short description in Huzbi's voice and a link to the repo, plus a live demo where `demoUrl` exists.
+- Is a playful illustration of the idea, not a claim about what the project does. Factual text comes from `src/data/projects.ts`, and unconfirmed claims go to Huzbi's writing review.
+- Works by keyboard, mouse and touch, and has a calm version under reduced motion that still earns the star.
+
 ## Content
 
 Real content is the existing data and must stay accurate:
