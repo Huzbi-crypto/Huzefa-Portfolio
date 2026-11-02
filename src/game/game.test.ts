@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { Input, InputEvent } from '@/game/core/input';
 import { createGameController } from './game';
+import { createDarkScene } from './scene/dark';
 import { createRoomScene } from './scene/room';
+import { copy } from './content/copy';
 import { createStore } from './state/store';
 import { TILE } from './world/grid';
 
 const STEP = 1000 / 60;
 
-function setup(opts: { blocked?: () => boolean } = {}) {
-  const store = createStore(null);
+function setup(opts: { blocked?: () => boolean; dark?: boolean; storage?: Storage | null } = {}) {
+  const store = createStore(opts.storage ?? null);
   const queue: InputEvent[] = [];
   const input: Input = {
     move: { x: 0, y: 0 },
@@ -20,7 +22,7 @@ function setup(opts: { blocked?: () => boolean } = {}) {
   const openTerminalCalls: number[] = [];
   const game = createGameController({
     store,
-    scenes: [createRoomScene(store)],
+    scenes: opts.dark ? [createRoomScene(store), createDarkScene(store)] : [createRoomScene(store)],
     input,
     openTerminal: () => openTerminalCalls.push(1),
     isBlocked: opts.blocked ?? (() => store.getState().dialogue !== null),
@@ -191,5 +193,191 @@ describe('game controller', () => {
         expect(snap.camera.y + snap.viewH).toBeLessThanOrEqual(room.h);
       }
     }
+  });
+});
+
+function memoryStorage(): Storage {
+  const data = new Map<string, string>();
+  return {
+    get length() {
+      return data.size;
+    },
+    clear: () => data.clear(),
+    getItem: (k) => data.get(k) ?? null,
+    key: (i) => [...data.keys()][i] ?? null,
+    removeItem: (k) => void data.delete(k),
+    setItem: (k, v) => void data.set(k, v),
+  };
+}
+
+/** Click through every open dialogue, picking `choice` where there is one. */
+function clickThrough(store: Ctx['store'], choice?: string): void {
+  for (let guard = 0; store.getState().dialogue && guard < 50; guard += 1) store.advance(choice);
+}
+
+describe('the door and the dark', () => {
+  it('reduced_motion_cuts_without_iris', () => {
+    const { game } = setup({ dark: true });
+    game.setReducedMotion(true);
+    game.goTo('dark');
+    expect(game.snapshot().sceneId).toBe('dark');
+    expect(game.snapshot().transition).toBeNull();
+  });
+
+  it('the_iris_closes_on_the_room_then_opens_on_the_dark', () => {
+    const { game } = setup({ dark: true });
+    game.goTo('dark');
+    expect(game.snapshot().sceneId).toBe('room'); // still looking at the door
+    expect(game.snapshot().transition?.phase).toBe('hold');
+
+    const seen = new Set<string>();
+    for (let i = 0; i < 300; i += 1) {
+      game.step(STEP);
+      const tr = game.snapshot().transition;
+      if (tr) seen.add(`${game.snapshot().sceneId}:${tr.phase}`);
+    }
+    expect([...seen]).toEqual(
+      expect.arrayContaining(['room:hold', 'room:close', 'dark:open']),
+    );
+    expect(game.snapshot().sceneId).toBe('dark');
+    expect(game.snapshot().transition).toBeNull();
+  });
+
+  it('the_scene_swaps_only_once_the_iris_has_fully_closed', () => {
+    const { game } = setup({ dark: true });
+    game.goTo('dark');
+    let swappedAt: number | null = null;
+    let last = 0;
+    for (let i = 0; i < 300 && swappedAt === null; i += 1) {
+      game.step(STEP);
+      const tr = game.snapshot().transition;
+      if (tr?.phase === 'close') last = tr.progress;
+      if (game.snapshot().sceneId === 'dark') swappedAt = last;
+    }
+    expect(swappedAt).toBeGreaterThan(0.9);
+  });
+
+  it('the_visitor_cannot_walk_or_tap_through_the_transition', () => {
+    const { game, input, queue } = setup({ dark: true });
+    game.goTo('dark');
+    const before = { ...game.snapshot().player };
+    input.move.x = 1;
+    queue.push({ type: 'tap', x: 300, y: 300 });
+    run(game, 20);
+    const { player } = game.snapshot();
+    expect(player.x).toBe(before.x);
+    expect(player.y).toBe(before.y);
+    expect(player.path).toHaveLength(0);
+  });
+
+  it('a_second_goTo_during_a_transition_is_ignored', () => {
+    const { game } = setup({ dark: true });
+    game.goTo('dark');
+    game.goTo('room');
+    run(game, 300);
+    expect(game.snapshot().sceneId).toBe('dark');
+  });
+
+  it('arriving_in_the_dark_puts_the_visitor_at_its_spawn', () => {
+    const { game } = setup({ dark: true });
+    game.setReducedMotion(true);
+    game.goTo('dark');
+    const snap = game.snapshot();
+    const spawn = snap.sceneId === 'dark' ? { x: 4, y: 7 } : null;
+    expect(Math.floor(snap.player.x / TILE)).toBe(spawn!.x);
+    expect(Math.floor(snap.player.y / TILE)).toBe(spawn!.y);
+  });
+
+  it('going_back_to_the_room_arrives_at_the_door_not_the_start', () => {
+    const { game } = setup({ dark: true });
+    game.setReducedMotion(true);
+    game.goTo('dark');
+    game.goTo('room');
+    const snap = game.snapshot();
+    const door = snap.hotspots.find((h) => h.id === 'door')!;
+    expect(snap.sceneId).toBe('room');
+    expect(Math.floor(snap.player.x / TILE)).toBe(door.stand.x);
+    expect(snap.player.y / TILE).toBeGreaterThan(door.stand.y);
+    expect(snap.player.facing).toBe('down');
+  });
+
+  it('door_opened_is_remembered', async () => {
+    const storage = memoryStorage();
+    const { game, store } = setup({ dark: true, storage });
+    game.setReducedMotion(true);
+    const door = game.snapshot().hotspots.find((h) => h.id === 'door')!;
+    const done = Promise.resolve(door.onInteract({ store, goTo: game.goTo, openTerminal: () => undefined }));
+    for (let i = 0; i < 20 && store.getState().dialogue; i += 1) {
+      await new Promise((r) => setTimeout(r, 0));
+      clickThrough(store, 'open');
+    }
+    await done;
+    expect(store.getState().doorOpened).toBe(true);
+    expect(game.snapshot().sceneId).toBe('dark');
+
+    const reloaded = createStore(storage);
+    expect(reloaded.getState().doorOpened).toBe(true);
+  });
+
+  it('the_first_arrival_in_the_dark_says_how_to_hold_the_lantern_once', () => {
+    const { game, store, input } = setup({ dark: true });
+    game.setReducedMotion(true);
+    input.mode = 'touch';
+    game.goTo('dark');
+    run(game, 5);
+    expect(store.getState().dialogue?.lines).toEqual([...copy.dark.arrival.touch]);
+    clickThrough(store);
+    game.goTo('room');
+    game.goTo('dark');
+    run(game, 5);
+    expect(store.getState().dialogue).toBeNull();
+  });
+});
+
+describe('dragging the light on touch', () => {
+  function inDark() {
+    const s = setup({ dark: true });
+    s.game.setReducedMotion(true);
+    s.game.goTo('dark');
+    s.input.mode = 'touch';
+    run(s.game, 3);
+    clickThrough(s.store); // the arrival line
+    run(s.game, 3);
+    return s;
+  }
+
+  it('a_drag_moves_the_light_and_is_not_a_tap_to_walk', () => {
+    const { game, input, queue } = inDark();
+    const before = { ...game.snapshot().player };
+    input.pointer = { x: 100, y: 100 };
+    run(game, 2);
+    input.pointer = { x: 220, y: 160 };
+    run(game, 2);
+    queue.push({ type: 'tap', x: 220, y: 160 });
+    run(game, 60);
+    const snap = game.snapshot();
+    expect(snap.drag).toEqual({ x: 220, y: 160 });
+    expect(snap.player.x).toBe(before.x);
+    expect(snap.player.y).toBe(before.y);
+  });
+
+  it('a_plain_tap_walks_and_hands_the_light_back_to_the_player', () => {
+    const { game, input, queue } = inDark();
+    input.pointer = { x: 100, y: 100 };
+    run(game, 2);
+    input.pointer = { x: 220, y: 160 };
+    run(game, 2);
+    queue.push({ type: 'tap', x: 220, y: 160 });
+    run(game, 2); // the drag ends
+    input.pointer = null;
+    run(game, 2);
+
+    input.pointer = { x: 500, y: 500 };
+    queue.push({ type: 'tap', x: 500, y: 500 });
+    run(game, 2);
+    input.pointer = null;
+    run(game, 2);
+    expect(game.snapshot().drag).toBeNull();
+    expect(game.snapshot().player.path.length + (game.snapshot().player.moving ? 1 : 0)).toBeGreaterThan(0);
   });
 });

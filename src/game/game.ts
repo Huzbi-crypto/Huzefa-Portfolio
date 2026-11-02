@@ -1,7 +1,10 @@
+import { SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { computeViewport } from '@/game/core/viewport';
 import { createInput, type Input } from '@/game/core/input';
 import { createLoop } from '@/game/core/loop';
+import { drawSprite } from '@/game/render/sprite';
+import { doorSwingFrame, drawIris } from '@/game/render/transition';
 import type { GameApi, Hotspot, Scene, SceneCtx } from '@/game/scene/types';
 import type { GameStore } from '@/game/state/store';
 import { computeCamera } from '@/game/world/camera';
@@ -21,6 +24,29 @@ const TAP_SLOP = 3;
 const BACKDROP = '#1b1428';
 /** A walk that makes no progress for this long is abandoned. */
 const STALL_MS = 400;
+/** The door swings, the iris closes on it, then opens on the other side. */
+const HOLD_MS = 420;
+const CLOSE_MS = 520;
+const OPEN_MS = 520;
+/** A touch that travels further than this is dragging the light, not tapping. */
+const DRAG_SLOP = 8;
+
+type Transition = {
+  to: Scene['id'];
+  phase: 'hold' | 'close' | 'open';
+  elapsed: number;
+  /** Where the iris closes or opens, in game pixels of the view. */
+  cx: number;
+  cy: number;
+};
+
+export type TransitionView = {
+  phase: Transition['phase'];
+  /** 0 is fully open, 1 fully closed. During the door swing this is the swing's own progress. */
+  progress: number;
+  cx: number;
+  cy: number;
+};
 
 export type GameHint = { label: string; via: 'key' | 'click' | 'tap' } | null;
 
@@ -86,6 +112,9 @@ export function createGameController(opts: ControllerOptions) {
   let lastHint: GameHint = null;
   let stalledMs = 0;
   let lightDrag: { x: number; y: number } | null = null;
+  let touchOrigin: { x: number; y: number } | null = null;
+  let dragged = false;
+  let transition: Transition | null = null;
 
   const api: GameApi = {
     store,
@@ -198,15 +227,116 @@ export function createGameController(opts: ControllerOptions) {
     opts.onHint(hint);
   }
 
+  function viewPoint(x: number, y: number): { x: number; y: number } {
+    return { x: Math.round(x - camera.x), y: Math.round(y - camera.y) };
+  }
+
+  function swapScene(id: Scene['id']): void {
+    const from = scene.id;
+    scene = scenes.get(id) ?? scene;
+    placeAtSpawn();
+    // Coming back through the door puts the visitor just in front of it.
+    const door = from === 'dark' ? scene.hotspots.find((h) => h.id === 'door') : undefined;
+    if (door) {
+      const c = tileCenter({ x: door.stand.x, y: door.stand.y + 1 });
+      player.x = c.x;
+      player.y = c.y;
+      player.facing = 'down';
+    } else {
+      player.facing = 'down';
+    }
+    lightDrag = null;
+    touchOrigin = null;
+    dragged = false;
+    updateCamera();
+  }
+
+  /** First time in the dark: one short line on how the light works. */
+  function greetIfNew(id: Scene['id']): void {
+    if (id !== 'dark' || store.count('dark-arrival') > 0) return;
+    store.increment('dark-arrival');
+    void store.say([...copy.dark.arrival[input.mode]]);
+  }
+
   function goTo(id: Scene['id']): void {
     const target = scenes.get(id);
     if (!target) {
       void store.say([...copy.door.notReady]);
       return;
     }
-    scene = target;
-    placeAtSpawn();
-    updateCamera();
+    if (transition || target === scene) return;
+
+    if (reducedMotion) {
+      swapScene(id);
+      greetIfNew(id);
+      return;
+    }
+
+    const door = scene.id === 'room' && id === 'dark' ? scene.hotspots.find((h) => h.id === 'door') : undefined;
+    const centre = door
+      ? viewPoint(door.rect.x + door.rect.w / 2, door.rect.y + door.rect.h / 2)
+      : viewPoint(player.x, player.y - 10);
+    player.path.length = 0;
+    player.moving = false;
+    pending = null;
+    transition = {
+      to: id,
+      phase: door ? 'hold' : 'close',
+      elapsed: 0,
+      cx: centre.x,
+      cy: centre.y,
+    };
+  }
+
+  function stepTransition(ms: number): void {
+    const tr = transition;
+    if (!tr) return;
+    tr.elapsed += ms;
+    if (tr.phase === 'hold' && tr.elapsed >= HOLD_MS) {
+      tr.phase = 'close';
+      tr.elapsed = 0;
+    }
+    if (tr.phase === 'close' && tr.elapsed >= CLOSE_MS) {
+      swapScene(tr.to);
+      const centre = viewPoint(player.x, player.y - 10);
+      tr.phase = 'open';
+      tr.elapsed = 0;
+      tr.cx = centre.x;
+      tr.cy = centre.y;
+    }
+    if (tr.phase === 'open' && tr.elapsed >= OPEN_MS) {
+      transition = null;
+      greetIfNew(scene.id);
+    }
+  }
+
+  function transitionView(): TransitionView | null {
+    const tr = transition;
+    if (!tr) return null;
+    const progress =
+      tr.phase === 'hold'
+        ? Math.min(1, tr.elapsed / HOLD_MS)
+        : tr.phase === 'close'
+          ? Math.min(1, tr.elapsed / CLOSE_MS)
+          : Math.max(0, 1 - tr.elapsed / OPEN_MS);
+    return { phase: tr.phase, progress, cx: tr.cx, cy: tr.cy };
+  }
+
+  /** Track whether a touch is dragging the light, so a drag never counts as a tap. */
+  function watchDrag(): void {
+    if (scene.id !== 'dark' || input.mode !== 'touch') return;
+    const p = input.pointer;
+    if (!p) {
+      // The finger lifted: the next touch starts fresh.
+      touchOrigin = null;
+      dragged = false;
+      return;
+    }
+    if (!touchOrigin) touchOrigin = { x: p.x, y: p.y };
+    else if (!dragged && Math.hypot(p.x - touchOrigin.x, p.y - touchOrigin.y) > DRAG_SLOP) {
+      dragged = true;
+    }
+    if (dragged) lightDrag = { x: p.x, y: p.y };
   }
 
   function ctx(): SceneCtx {
@@ -232,12 +362,21 @@ export function createGameController(opts: ControllerOptions) {
       t += ms;
       store.tick(ms);
 
-      const blocked = opts.isBlocked();
+      const covered = transition !== null;
+      const blocked = covered || opts.isBlocked();
       const events = input.drain();
+      if (!blocked) watchDrag();
 
       if (!blocked) {
         for (const event of events) {
-          if (event.type === 'tap') handleTap(event.x, event.y);
+          if (event.type === 'tap') {
+            const wasDrag = dragged;
+            touchOrigin = null;
+            dragged = false;
+            if (wasDrag) continue; // the finger was moving the light
+            lightDrag = null;
+            handleTap(event.x, event.y);
+          }
           else if (event.type === 'interact') {
             const h = nearestInRange();
             if (h) use(h);
@@ -275,6 +414,7 @@ export function createGameController(opts: ControllerOptions) {
 
       scene.update(ms, ctx());
       updateCamera();
+      stepTransition(ms);
       emitHint(blocked);
     },
 
@@ -286,7 +426,16 @@ export function createGameController(opts: ControllerOptions) {
       g.save();
       g.translate(-camera.x, -camera.y);
       scene.draw(g, ctx());
+      if (transition?.phase === 'hold') {
+        const door = scene.hotspots.find((h) => h.id === 'door');
+        const frame = door ? doorSwingFrame(transitionView()?.progress ?? 1) : null;
+        if (door && frame) drawSprite(g, SPRITES[frame], door.rect.x, door.rect.y);
+      }
       g.restore();
+      const tv = transitionView();
+      if (tv && tv.phase !== 'hold') {
+        drawIris(g, tv.progress, tv.cx, tv.cy, view.viewW, view.viewH, BACKDROP);
+      }
     },
 
     resize(cssW: number, cssH: number): void {
@@ -323,6 +472,8 @@ export function createGameController(opts: ControllerOptions) {
         viewH: view.viewH,
         world: { w: scene.worldW, h: scene.worldH },
         hotspots: scene.hotspots,
+        transition: transitionView(),
+        drag: lightDrag,
       };
     },
   };
