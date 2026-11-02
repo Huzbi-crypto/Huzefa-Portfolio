@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useApp } from '@/context/AppContext';
+import { createAudio, type GameAudio } from '@/game/audio/audio';
+import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
 import { createGame, type Game, type GameHint } from '@/game/game';
 import { createDarkScene } from '@/game/scene/dark';
@@ -9,6 +11,7 @@ import { createRoomScene } from '@/game/scene/room';
 import { createStore, type GameStore } from '@/game/state/store';
 import { DialogueBox } from './DialogueBox';
 import { ProjectPanel } from './ProjectPanel';
+import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
 import './game.css';
 
@@ -29,9 +32,26 @@ function browserStorage(): Storage | null {
   }
 }
 
+/** Web Audio, or nothing at all on a browser that will not give it to us. */
+function browserAudioContext(): AudioContextLike | null {
+  try {
+    const Candidate =
+      window.AudioContext ??
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    return Candidate ? new Candidate() : null;
+  } catch {
+    return null;
+  }
+}
+
 function StarsFromStore({ store }: { store: GameStore }) {
   const ui = useSyncExternalStore(store.subscribe, store.getState, () => EMPTY_UI);
   return <StarCounter found={ui.found.length} total={ui.total} />;
+}
+
+function SoundFromStore({ store, audio }: { store: GameStore; audio: GameAudio }) {
+  const ui = useSyncExternalStore(store.subscribe, store.getState, () => EMPTY_UI);
+  return <SoundToggle enabled={ui.sound} onToggle={() => audio.setEnabled(!ui.sound)} />;
 }
 
 function UseHint({ hint }: { hint: GameHint }) {
@@ -57,6 +77,7 @@ export default function GameRoot() {
   const terminalOpenRef = useRef(false);
   const openTerminalRef = useRef(openTerminal);
   const [store, setStore] = useState<GameStore | null>(null);
+  const [audio, setAudio] = useState<GameAudio | null>(null);
   const [hint, setHint] = useState<GameHint>(null);
   const [coarse, setCoarse] = useState(false);
   const [started, setStarted] = useState(false);
@@ -70,10 +91,12 @@ export default function GameRoot() {
     if (!stage || !canvas) return;
 
     const gameStore = createStore(browserStorage());
+    const gameAudio = createAudio(browserAudioContext, gameStore);
     const game: Game = createGame({
       canvas,
       store: gameStore,
       scenes: [createRoomScene(gameStore), createDarkScene(gameStore)],
+      audio: gameAudio,
       openTerminal: () => openTerminalRef.current(),
       isBlocked: () => {
         const state = gameStore.getState();
@@ -94,6 +117,7 @@ export default function GameRoot() {
 
     setCoarse(window.matchMedia('(pointer: coarse)').matches);
     setStore(gameStore);
+    setAudio(gameAudio);
     game.start();
     stage.focus({ preventScroll: true });
 
@@ -110,6 +134,7 @@ export default function GameRoot() {
       motion.removeEventListener('change', applyMotion);
       observer.disconnect();
       game.stop();
+      gameAudio.dispose();
     };
   }, []);
 
@@ -136,6 +161,7 @@ export default function GameRoot() {
       <canvas ref={canvasRef} className="game-canvas" aria-hidden="true" />
 
       {store ? <StarsFromStore store={store} /> : null}
+      {store && audio ? <SoundFromStore store={store} audio={audio} /> : null}
 
       <div className="controls-hint px-panel" data-gone={started} aria-hidden="true">
         {coarse ? (
