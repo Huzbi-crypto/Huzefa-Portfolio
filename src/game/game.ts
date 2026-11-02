@@ -85,6 +85,7 @@ export function createGameController(opts: ControllerOptions) {
   let pending: Hotspot | null = null;
   let lastHint: GameHint = null;
   let stalledMs = 0;
+  let lightDrag: { x: number; y: number } | null = null;
 
   const api: GameApi = {
     store,
@@ -216,6 +217,8 @@ export function createGameController(opts: ControllerOptions) {
       camera,
       viewW: view.viewW,
       viewH: view.viewH,
+      scale: view.scale,
+      drag: lightDrag,
       reducedMotion,
       found: store.getState().found,
     };

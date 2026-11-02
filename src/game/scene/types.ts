@@ -29,6 +29,10 @@ export type SceneCtx = {
   camera: { x: number; y: number };
   viewW: number;
   viewH: number;
+  /** Whole-number CSS pixels per game pixel, to turn pointer positions into game pixels. */
+  scale: number;
+  /** Where a finger last dragged the light (CSS pixels), or null once the visitor taps to walk. */
+  drag: { x: number; y: number } | null;
   reducedMotion: boolean;
   found: readonly string[];
 };
