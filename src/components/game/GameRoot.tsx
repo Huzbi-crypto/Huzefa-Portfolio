@@ -6,6 +6,7 @@ import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
 import { createGame, type Game, type GameHint } from '@/game/game';
+import { createArchive } from '@/game/scene/archive';
 import { createDarkScene } from '@/game/scene/dark';
 import { createWorkshop } from '@/game/scene/workshop';
 import { createRoomScene } from '@/game/scene/room';
@@ -98,7 +99,12 @@ export default function GameRoot() {
     const game: Game = createGame({
       canvas,
       store: gameStore,
-      scenes: [createRoomScene(gameStore), createDarkScene(gameStore), createWorkshop(gameStore)],
+      scenes: [
+        createRoomScene(gameStore),
+        createDarkScene(gameStore),
+        createWorkshop(gameStore),
+        createArchive(gameStore),
+      ],
       audio: gameAudio,
       openTerminal: () => openTerminalRef.current(),
       isBlocked: () => {
