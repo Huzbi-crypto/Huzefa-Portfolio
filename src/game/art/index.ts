@@ -8,6 +8,7 @@ import { FURNITURE_GRIDS } from './sprites/furniture';
 import { SHELF_GRIDS } from './sprites/shelf';
 import { TILE_GRIDS } from './sprites/tiles';
 import { VISITOR_GRIDS } from './sprites/visitor';
+import { WORKSHOP_GRIDS } from './sprites/workshop';
 
 export { PALETTES };
 
@@ -25,6 +26,7 @@ export const SPRITE_GRIDS: Record<string, string[]> = {
   ...DOOR_GRIDS,
   ...DARK_TILE_GRIDS,
   ...DARK_PROP_GRIDS,
+  ...WORKSHOP_GRIDS,
 };
 
 /** Animation sequences: frame sprite names in play order. Frames share a size. */
