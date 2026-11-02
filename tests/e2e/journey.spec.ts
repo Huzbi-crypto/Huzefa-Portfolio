@@ -8,6 +8,7 @@ const DIALOGUE = '.dialogue';
 const CHOICE = '.dialogue-choice';
 const COUNTER = '.star-counter';
 const CHECKPOINT_DIR = path.join('test-results', 'checkpoint-1');
+const FIX_DIR = path.join('test-results', 'fix');
 const TOTAL_STARS = 26;
 
 type Snapshot = {
@@ -156,6 +157,20 @@ async function screenshot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: path.join(CHECKPOINT_DIR, name) });
 }
 
+/** RGB sum of one canvas pixel, for checking what is actually on top. */
+async function canvasPixel(page: Page, x: number, y: number): Promise<number> {
+  return page.evaluate(
+    ({ x: px, y: py }) => {
+      const canvas = document.querySelector<HTMLCanvasElement>('canvas');
+      const context = canvas?.getContext('2d');
+      if (!canvas || !context) throw new Error('The game canvas is missing');
+      const data = context.getImageData(Math.round(px), Math.round(py), 1, 1).data;
+      return data[0] + data[1] + data[2];
+    },
+    { x, y },
+  );
+}
+
 /** Average RGB of a small canvas-pixel patch, for judging the lantern. */
 async function canvasBrightness(page: Page, x: number, y: number): Promise<number> {
   return page.evaluate(
@@ -268,6 +283,24 @@ test.describe('desktop journey at 1366 by 768', () => {
     expect(saved?.found).toContain('silly:read-note');
   });
 
+  test('both_windows_open_the_star_dialogue', async ({ page }) => {
+    await openGame(page);
+
+    // The left window.
+    await clickWorld(page, 40, 20);
+    await expect(page.locator(DIALOGUE)).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.dialogue-text')).toContainText(copy.window.none[0]);
+    await dismissDialogue(page);
+
+    // The right window, walking across the room from the left one.
+    await clickWorld(page, 248, 20);
+    await expect(page.locator(DIALOGUE)).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.dialogue-text')).toContainText(copy.window.none[0]);
+    await dismissDialogue(page);
+
+    await expect(page.locator(COUNTER)).toContainText(`0/${TOTAL_STARS}`);
+  });
+
   test('open_door_enters_dark', async ({ page }) => {
     await openGame(page);
 
@@ -280,6 +313,30 @@ test.describe('desktop journey at 1366 by 768', () => {
     await page.mouse.move(600, 400);
     await page.waitForTimeout(150);
     await screenshot(page, 'dark-desktop.png');
+  });
+
+  test('doorway_keeps_the_whole_head_visible', async ({ page }) => {
+    await openGame(page);
+    await enterDarkByDoor(page);
+
+    // Stand exactly on the exit's stand tile, facing the lit doorway.
+    await page.evaluate(() => {
+      window.__huzbiGame!.teleport(36, 52, 'up');
+    });
+    await page.waitForTimeout(150);
+
+    const state = await snapshot(page);
+    expect(state.sceneId).toBe('dark');
+    expect(state.x).toBe(36);
+    expect(state.y).toBe(52);
+
+    fs.mkdirSync(FIX_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(FIX_DIR, 'doorway.png') });
+
+    // The top row of the visitor's head is ink. If the doorway glow paints
+    // over it, this pixel is the glow's bright amber instead.
+    const headTop = await canvasPixel(page, 35 - state.camera.x, 31 - state.camera.y);
+    expect(headTop, 'the top of the visitor head must be visible').toBeLessThan(150);
   });
 
   test('cursor_moves_light', async ({ page }) => {
