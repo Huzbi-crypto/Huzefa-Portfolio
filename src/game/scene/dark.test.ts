@@ -182,7 +182,7 @@ describe('dark layout', () => {
   it('has_the_first_dark_space_and_nothing_from_phase_two', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['arch', 'cat', 'exit', 'eye', 'note-one', 'note-two', 'routing-sim', 'workshop-hatch'],
+      ['arch', 'archive-door', 'cat', 'exit', 'eye', 'note-one', 'note-two', 'routing-sim', 'workshop-hatch'],
     );
   });
 

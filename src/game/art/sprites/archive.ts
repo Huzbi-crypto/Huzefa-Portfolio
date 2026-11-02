@@ -405,6 +405,74 @@ const MONSTER_POSTER_ART = (() => {
   return rows(cv);
 })();
 
+
+// --- the door that stands on its own ------------------------------------------
+
+export const DOOR = { w: 24, h: 40 } as const;
+/** The opening, where the glow is drawn over the frame. */
+export const DOOR_OPENING = { x: 4, y: 5, w: 16, h: 33 } as const;
+
+/** A doorframe standing on the floor with nothing attached: the way into the Archive. */
+const FREE_DOOR = (() => {
+  const cv = blank(DOOR.w, DOOR.h);
+  rect(cv, 0, 0, 24, 40, 'e');
+  rect(cv, 1, 1, 22, 38, 'g');
+  rect(cv, 1, 1, 22, 2, 'i');
+  rect(cv, 1, 3, 22, 1, 'h');
+  rect(cv, 1, 1, 2, 38, 'h');
+  rect(cv, 21, 1, 2, 38, 'f');
+  // The opening, left ink: the glow arrives by itself.
+  rect(cv, DOOR_OPENING.x - 1, DOOR_OPENING.y - 1, DOOR_OPENING.w + 2, DOOR_OPENING.h + 1, 'e');
+  rect(cv, DOOR_OPENING.x, DOOR_OPENING.y, DOOR_OPENING.w, DOOR_OPENING.h, 'a');
+  // A brass plate on the lintel, and a hinge or two.
+  rect(cv, 9, 1, 6, 2, 'r');
+  rect(cv, 9, 3, 6, 1, 'e');
+  for (const y of [10, 28]) {
+    rect(cv, 1, y, 2, 3, 'r');
+    rect(cv, 1, y + 3, 2, 1, 'e');
+  }
+  // Two stubby feet, so it can stand without a wall.
+  rect(cv, 0, 37, 7, 3, 'e');
+  rect(cv, 17, 37, 7, 3, 'e');
+  rect(cv, 1, 37, 5, 1, 'g');
+  rect(cv, 18, 37, 5, 1, 'g');
+  return rows(cv);
+})();
+
+/** What can be seen through it: warm shelves of files, drawn bright because they light themselves. */
+const FREE_DOOR_GLOW = (() => {
+  const cv = blank(DOOR_OPENING.w, DOOR_OPENING.h);
+  rect(cv, 0, 0, DOOR_OPENING.w, DOOR_OPENING.h, 'g');
+  for (let x = 0; x < DOOR_OPENING.w; x += 1) {
+    const centre = Math.abs(x - 7.5);
+    if (centre < 4) rect(cv, x, 0, 1, DOOR_OPENING.h, 'h');
+    else if (centre > 6) rect(cv, x, 0, 1, DOOR_OPENING.h, 'f');
+  }
+  for (const top of [2, 10, 18]) {
+    let x = 1;
+    let n = 0;
+    while (x < DOOR_OPENING.w - 2) {
+      const r = hash(top, n);
+      n += 1;
+      const w = 2 + (r % 2);
+      const h = 4 + ((r >>> 4) % 3);
+      const [face, light] = BOX_TONES[(r >>> 8) % BOX_TONES.length];
+      rect(cv, x, top + 6 - h, w, h, face);
+      rect(cv, x, top + 6 - h, w, 1, light);
+      x += w + 1;
+    }
+    rect(cv, 0, top + 6, DOOR_OPENING.w, 1, 'e');
+    rect(cv, 0, top + 7, DOOR_OPENING.w, 1, 'f');
+  }
+  // Light pooling on the floor inside.
+  for (let y = 26; y < DOOR_OPENING.h; y += 1) {
+    for (let x = 0; x < DOOR_OPENING.w; x += 1) {
+      cv[y][x] = (x + y) % 2 === 0 ? 's' : y > 29 ? 'r' : 'i';
+    }
+  }
+  return rows(cv);
+})();
+
 export const ARCHIVE_SPRITE_GRIDS: Record<string, string[]> = {
   archShelf0: shelf(1),
   archShelf1: shelf(2),
@@ -416,4 +484,6 @@ export const ARCHIVE_SPRITE_GRIDS: Record<string, string[]> = {
   archDustCase: DUST_CASE,
   archVector: VECTOR_DISPLAY,
   archPoster: MONSTER_POSTER_ART,
+  archDoor: FREE_DOOR,
+  archDoorGlow: FREE_DOOR_GLOW,
 };

@@ -45,6 +45,7 @@ const AT = {
   chalkOne: { x: 56, y: 24 },
   chalkTwo: { x: 216, y: 24 },
   hatch: { x: 112, y: 140 },
+  archiveDoor: { x: 268, y: 128 },
 } as const;
 
 const ROUTER_FEET_ROW = 14;
@@ -61,7 +62,8 @@ const monitorLight: Light = { x: 0, y: 0, radius: 34, tint: 'cool' };
 const doorLight: Light = { x: 0, y: 0, radius: 30, tint: 'warm' };
 const packetLight: Light = { x: 0, y: 0, radius: 13, tint: 'cool' };
 const hatchLight: Light = { x: AT.hatch.x + 16, y: AT.hatch.y + 11, radius: 22, tint: 'warm' };
-const LIGHTS: Light[] = [monitorLight, doorLight, packetLight, hatchLight];
+const archiveLight: Light = { x: AT.archiveDoor.x + 12, y: AT.archiveDoor.y + 24, radius: 26, tint: 'warm' };
+const LIGHTS: Light[] = [monitorLight, doorLight, packetLight, hatchLight, archiveLight];
 
 monitorLight.x = AT.monitor.x + MONITOR_SCREEN.x + MONITOR_SCREEN.w / 2;
 monitorLight.y = AT.monitor.y + MONITOR_SCREEN.y + MONITOR_SCREEN.h / 2;
@@ -142,6 +144,12 @@ function buildProps(): SpaceProp[] {
       // Flat on the floor: everything standing on it is drawn over it.
       footY: AT.hatch.y,
       draw: (g) => drawSprite(g, sprite('workshopHatch'), AT.hatch.x, AT.hatch.y),
+    },
+    {
+      id: 'archive-door-art',
+      footY: AT.archiveDoor.y + 40,
+      draw: (g) => drawSprite(g, sprite('archDoor'), AT.archiveDoor.x, AT.archiveDoor.y),
+      glow: (g) => drawSprite(g, sprite('archDoorGlow'), AT.archiveDoor.x + 4, AT.archiveDoor.y + 5),
     },
     {
       id: 'note-one',
@@ -312,9 +320,10 @@ function buildSpaceDef(): SpaceDef {
       { x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM },
       { x: 17 * TILE, y: 6 * TILE, w: 4 * TILE, h: TILE },
       { x: 28 * TILE, y: ROUTER_FEET_ROW * TILE, w: 4 * TILE, h: 2 * TILE },
+      { x: AT.archiveDoor.x, y: AT.archiveDoor.y + 24, w: 24, h: 16 },
     ],
     spawn: { x: 4, y: 7 },
-    entries: { fromRoom: { x: 4, y: 7 }, fromWorkshop: { x: 16, y: 21 } },
+    entries: { fromRoom: { x: 4, y: 7 }, fromWorkshop: { x: 16, y: 21 }, fromArchive: { x: 35, y: 21 } },
     exits: [
       {
         id: 'exit',
@@ -339,6 +348,18 @@ function buildSpaceDef(): SpaceDef {
         goLabel: copy.workshop.hatch.goLabel,
         stayLabel: copy.workshop.hatch.stayLabel,
         stayReply: copy.workshop.hatch.stayReply,
+      },
+      {
+        id: 'archive-door',
+        rect: { x: AT.archiveDoor.x, y: AT.archiveDoor.y, w: 24, h: 40 },
+        stand: { x: 35, y: 21 },
+        label: copy.archive.door.label,
+        to: 'archive',
+        entry: 'fromHall',
+        lines: copy.archive.door.lines,
+        goLabel: copy.archive.door.goLabel,
+        stayLabel: copy.archive.door.stayLabel,
+        stayReply: copy.archive.door.stayReply,
       },
     ],
     props: buildProps(),

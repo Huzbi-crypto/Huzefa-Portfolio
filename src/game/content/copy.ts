@@ -195,6 +195,18 @@ export const copy = {
     /** Painted on the wall in chalk, capitals only. */
     chalk: ['ARCHIVE', 'SHH', 'BACK'],
 
+    /** The door that stands on its own in the hall. */
+    door: {
+      label: 'Open the door on its own',
+      lines: [
+        'A door standing in the middle of the floor, attached to nothing.',
+        'A brass plate says ARCHIVE. Through it: boxes, shelves and a smell of old paper.',
+      ],
+      goLabel: 'GO IN',
+      stayLabel: 'NOT YET',
+      stayReply: ['Fair. It is not going anywhere. It has no walls to go with.'],
+    },
+
     exit: {
       label: 'Back to the hall',
       lines: [
