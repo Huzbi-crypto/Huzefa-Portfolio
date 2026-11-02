@@ -86,4 +86,93 @@ export const copy = {
     stayReply: ['Yeah. Probably fine. Probably.'],
     notReady: ['It opens onto dark, then thinks better of it. Come back soon.'],
   },
+
+  /** The first dark space. Notes are written as Huzbi's, for Huzbi to edit. */
+  dark: {
+    arrival: {
+      mouse: [
+        'It is very dark in here.',
+        'Your cursor is the lantern. Wave it about.',
+      ],
+      keyboard: [
+        'It is very dark in here.',
+        'The lantern stays with you. Walk, and look.',
+      ],
+      touch: [
+        'It is very dark in here.',
+        'Drag a finger to move the light. Tap to walk.',
+      ],
+    },
+
+    /** Painted on the walls with the tiny chalk font, capitals only. */
+    chalk: ['READ THESE', 'KEEP LOOKING'],
+
+    exit: {
+      label: 'Back to the room',
+      lines: [
+        'The door you came through. A strip of warm light shows under it.',
+        'Cold mug, cat, 2 AM. The good place.',
+      ],
+      backLabel: 'GO BACK',
+      stayLabel: 'NOT YET',
+      stayReply: ['Brave. Keep the lantern up.'],
+    },
+
+    monitor: {
+      label: 'Look at the monitor',
+      lines: [
+        'A monitor, on by itself, in a place with no sockets.',
+        'The screen is one big eye. It follows your light. Then it looks at you. Then your light again.',
+        'It blinks, slowly. You decide to call that friendly.',
+      ],
+      again: ['The eye finds you again. Still friendly. Probably.'],
+    },
+
+    noteOne: {
+      label: 'Read the page',
+      lines: [
+        'A page pinned to the wall, written in a hurry:',
+        '"If you can read this, the door worked. Sorry about the dark."',
+        '"The bulb went and I put off fixing it. Typical."',
+      ],
+      again: ['"Sorry about the dark." You are, by now, mostly used to it.'],
+    },
+
+    noteTwo: {
+      label: 'Read the page',
+      lines: [
+        'Another page, more crumpled than the first:',
+        '"I left a few things lying around in here. Mind the cat. I did not put the cat here."',
+        '"The monitor is not mine. It keeps looking at me."',
+      ],
+      again: ['"I did not put the cat here." Noted, twice now.'],
+    },
+
+    arch: {
+      label: 'Peer down the passage',
+      lines: [
+        'A passage. After the first few steps it is just black.',
+        'Even the lantern gives up. A draft smells faintly of toast.',
+        'Not today. Maybe after a snack.',
+      ],
+    },
+
+    cat: {
+      label: 'Say hello',
+      lines: [
+        'Two amber eyes. Then a tail flick.',
+        'It is the cat. You are fairly sure you left it in the room.',
+        'It blinks slowly. It knew about this place already.',
+      ],
+      again: ['The cat is busy pretending it was always here.'],
+    },
+
+    routing: {
+      label: 'Inspect the board',
+      /** Said first, before the facts that come from `src/data/projects.ts`. */
+      flavour: 'A board of tiny routers. One link is broken, so a green packet takes the long way round.',
+      again: 'The packet is still taking the long way round. Respect.',
+      sourceLead: 'Source:',
+    },
+  },
 } as const;
