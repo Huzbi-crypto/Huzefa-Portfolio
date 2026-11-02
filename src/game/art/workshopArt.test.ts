@@ -3,6 +3,7 @@ import { SPRITES } from './index';
 import {
   AI_CANVAS,
   BELT_STATIONS,
+  CAN_KNOT,
   CAN_MOUTH,
   FLOW_BOARD_ORIGIN,
   WORKSHOP_NAMES,
@@ -49,6 +50,16 @@ describe('workshop art', () => {
     const can = SPRITES.workshopCan;
     expect(CAN_MOUTH.x).toBeLessThan(can.w);
     expect(CAN_MOUTH.y).toBeLessThan(can.h);
+    expect(CAN_KNOT.x).toBeLessThan(can.w);
+    expect(CAN_KNOT.y).toBeLessThan(can.h);
+    // The other can is the same tin turned round, so one string ties both.
+    const flip = SPRITES.workshopCanFlip;
+    expect([flip.w, flip.h]).toEqual([can.w, can.h]);
+    for (let y = 0; y < can.h; y += 1) {
+      for (let x = 0; x < can.w; x += 1) {
+        expect(flip.pixels[y * can.w + x]).toBe(can.pixels[y * can.w + (can.w - 1 - x)]);
+      }
+    }
   });
 
   it('the_belt_has_four_stations_that_fit_along_it', () => {

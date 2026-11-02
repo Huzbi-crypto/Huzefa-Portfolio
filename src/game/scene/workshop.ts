@@ -2,6 +2,7 @@ import { SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { createAiAnime } from '@/game/exhibits/aiAnime';
 import { createLangProjects } from '@/game/exhibits/langProjects';
+import { createSpeechTranslator } from '@/game/exhibits/speechTranslator';
 import type { Exhibit } from '@/game/exhibits/types';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
@@ -24,6 +25,7 @@ export const WORKSHOP_AT = {
   jarsTwo: { x: 324, y: 14 },
   machine: { x: 40, y: 56 },
   board: { x: 136, y: 70 },
+  cans: { x: 30, y: 176 },
 } as const;
 
 function sprite(name: string) {
@@ -42,9 +44,10 @@ function buildExhibits(): { exhibits: Exhibit[]; lights: Light[] } {
   };
   const aiAnime = createAiAnime(WORKSHOP_AT.machine, { x: 9, y: 16 });
   const lang = createLangProjects(WORKSHOP_AT.board, { x: 26, y: 17 });
+  const speech = createSpeechTranslator(WORKSHOP_AT.cans, { x: 4, y: 24 });
   return {
-    exhibits: [aiAnime.exhibit, lang.exhibit],
-    lights: [ladderLight, aiAnime.light, lang.light],
+    exhibits: [aiAnime.exhibit, lang.exhibit, speech.exhibit],
+    lights: [ladderLight, aiAnime.light, lang.light, speech.light],
   };
 }
 
@@ -86,6 +89,9 @@ function buildSpaceDef(): SpaceDef {
       { x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM },
       // The machine's legs. Its body is raised on them, so the visitor can pass behind.
       { x: WORKSHOP_AT.machine.x + 8, y: WORKSHOP_AT.machine.y + 62, w: 44, h: 10 },
+      // Two crates for the tin cans to stand on.
+      { x: WORKSHOP_AT.cans.x, y: WORKSHOP_AT.cans.y + 2, w: 26, h: 14 },
+      { x: WORKSHOP_AT.cans.x + 140, y: WORKSHOP_AT.cans.y + 2, w: 26, h: 14 },
       // The drafting table's legs and front; robots stand on top and can be passed behind.
       { x: WORKSHOP_AT.board.x + 4, y: WORKSHOP_AT.board.y + 46, w: 144, h: 16 },
     ],

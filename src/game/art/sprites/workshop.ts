@@ -457,32 +457,45 @@ export const FLOW_PADS = [
 // --- the tin cans ----------------------------------------------------------
 
 /** Where the open end of a can is, in sprite pixels. */
-export const CAN_MOUTH = { x: 9, y: 9 } as const;
+export const CAN_MOUTH = { x: 3, y: 7 } as const;
 /** Where the string is tied, in sprite pixels. */
-export const CAN_KNOT = { x: 4, y: 22 } as const;
+export const CAN_KNOT = { x: 23, y: 7 } as const;
 
+/** A tin lying on its side, mouth to the left, closed end to the right where the string is tied. */
 const CAN = (() => {
-  const cv = blank(20, 26);
-  // The tin: ribbed side, a label and an open end facing the visitor.
-  box(cv, 2, 8, 16, 16, 'a', 'A');
-  rect(cv, 3, 9, 14, 1, 'C');
-  rect(cv, 3, 9, 2, 13, 'C');
-  rect(cv, 15, 10, 2, 13, 'B');
-  rect(cv, 3, 14, 14, 5, 'k');
-  rect(cv, 3, 14, 14, 1, 'l');
-  rect(cv, 3, 18, 14, 1, 'j');
-  rect(cv, 6, 15, 8, 2, 'p'); // the label
-  for (const y of [11, 22]) rect(cv, 3, y, 14, 1, 'B');
-  // The mouth.
-  rect(cv, 3, 3, 14, 7, 'a');
-  rect(cv, 4, 2, 12, 9, 'a');
-  rect(cv, 5, 3, 10, 7, 'B');
-  rect(cv, 6, 4, 8, 5, 'a');
-  rect(cv, 5, 3, 10, 1, 'A');
-  // A knot at the back for the string.
-  rect(cv, 3, 21, 2, 3, 'p');
+  const cv = blank(24, 16);
+  // The tin's side: ink outline, silver body with a bright top and a dark underside.
+  rect(cv, 6, 1, 16, 14, 'a');
+  rect(cv, 7, 2, 14, 12, 'A');
+  rect(cv, 7, 3, 14, 1, 'C');
+  rect(cv, 7, 2, 14, 1, 'p');
+  rect(cv, 7, 11, 14, 2, 'B');
+  for (const x of [9, 19]) rect(cv, x, 2, 1, 12, 'B');
+  // A red label band, because even a tin has branding.
+  rect(cv, 11, 4, 7, 8, 'k');
+  rect(cv, 11, 4, 7, 1, 'l');
+  rect(cv, 11, 11, 7, 1, 'j');
+  rect(cv, 12, 6, 5, 3, 'p');
+  rect(cv, 13, 7, 3, 1, 'k');
+  // The open end: a ring, then the dark inside.
+  for (let y = 0; y < 16; y += 1) {
+    for (let x = 0; x < 10; x += 1) {
+      const d = Math.hypot((x - 5) / 3.6, (y - 7.5) / 6.8);
+      if (d <= 1) cv[y][x] = d <= 0.62 ? 'a' : 'A';
+      if (d <= 1 && d > 0.9) cv[y][x] = 'a';
+    }
+  }
+  rect(cv, 4, 3, 2, 9, 'a');
+  rect(cv, 3, 4, 1, 7, 'B');
+  rect(cv, 6, 4, 1, 7, 'a');
+  // The closed end and the knot of string.
+  rect(cv, 21, 2, 2, 12, 'B');
+  rect(cv, 22, 1, 1, 14, 'a');
+  rect(cv, 22, 7, 2, 2, 'p');
   return rows(cv);
 })();
+
+const mirror = (grid: string[]): string[] => grid.map((row) => [...row].reverse().join(''));
 
 /** A crate to stand a can on. */
 const CAN_CRATE = (() => {
@@ -601,6 +614,7 @@ export const WORKSHOP_GRIDS: Record<string, string[]> = {
   workshopRobot: ROBOT,
   workshopFlowBoard: FLOW_BOARD,
   workshopCan: CAN,
+  workshopCanFlip: mirror(CAN),
   workshopCanCrate: CAN_CRATE,
   workshopBelt0: belt(0),
   workshopBelt1: belt(3),

@@ -206,7 +206,9 @@ describe('workshop art', () => {
 });
 
 /** The four exhibits the workshop holds, and a choice that makes each one play. */
-const EXHIBITS: { id: string; choice?: string }[] = [{ id: 'ai-anime' }, { id: 'lang-projects' }];
+const EXHIBITS: { id: string; choice?: string }[] = [{ id: 'ai-anime' }, { id: 'lang-projects' },
+  { id: 'speech-translator', choice: 'hello' },
+];
 
 describe('workshop exhibits', () => {
   it('holds_exactly_its_exhibits_and_the_way_home', () => {
@@ -260,6 +262,17 @@ describe('lang-projects robots', () => {
     const said = (await interact(env, byId(env.scene, 'lang-projects'))).join(' ');
     expect(said).toContain(copy.workshop.lang.passed);
     expect(said).toContain(copy.workshop.lang.loopBefore);
+  });
+});
+
+describe('speech-translator cans', () => {
+  it('the_other_can_never_says_the_same_thing_back', async () => {
+    const env = setup();
+    const said = (await interact(env, byId(env.scene, 'speech-translator'), 'hello')).join(' ');
+    expect(said).toContain(copy.workshop.speech.heard);
+    expect(said).toContain(copy.workshop.speech.lost);
+    const heard = said.split(copy.workshop.speech.heard)[1] ?? '';
+    expect(heard.toLowerCase()).not.toContain(copy.workshop.speech.phrases[0].text.toLowerCase());
   });
 });
 
