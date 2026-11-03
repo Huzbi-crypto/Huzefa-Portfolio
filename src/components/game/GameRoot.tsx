@@ -12,6 +12,7 @@ import { createWorkshop } from '@/game/scene/workshop';
 import { createRoomScene } from '@/game/scene/room';
 import { createStore, type GameStore } from '@/game/state/store';
 import { DialogueBox } from './DialogueBox';
+import { Journal } from './Journal';
 import { ProjectPanel } from './ProjectPanel';
 import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
@@ -79,12 +80,14 @@ export default function GameRoot() {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const terminalOpenRef = useRef(false);
+  const journalOpenRef = useRef(false);
   const openTerminalRef = useRef(openTerminal);
   const [store, setStore] = useState<GameStore | null>(null);
   const [audio, setAudio] = useState<GameAudio | null>(null);
   const [hint, setHint] = useState<GameHint>(null);
   const [coarse, setCoarse] = useState(false);
   const [started, setStarted] = useState(false);
+  const [nudge, setNudge] = useState<string | null>(null);
 
   terminalOpenRef.current = isTerminalOpen;
   openTerminalRef.current = openTerminal;
@@ -109,9 +112,15 @@ export default function GameRoot() {
       openTerminal: () => openTerminalRef.current(),
       isBlocked: () => {
         const state = gameStore.getState();
-        return state.dialogue !== null || state.project !== null || terminalOpenRef.current;
+        return (
+          state.dialogue !== null ||
+          state.project !== null ||
+          terminalOpenRef.current ||
+          journalOpenRef.current
+        );
       },
       onHint: setHint,
+      onNudge: setNudge,
     });
 
     const fit = (): void => game.resize(stage.clientWidth, stage.clientHeight);
@@ -153,6 +162,10 @@ export default function GameRoot() {
   }, [isTerminalOpen]);
 
   const begin = (): void => setStarted(true);
+  const blocked = (): boolean => {
+    const state = store?.getState();
+    return Boolean(state && (state.dialogue || state.project)) || terminalOpenRef.current;
+  };
 
   return (
     <div
@@ -184,6 +197,22 @@ export default function GameRoot() {
         )}
       </div>
 
+      {store ? (
+        <Journal
+          store={store}
+          isBlocked={blocked}
+          onOpenChange={(open) => {
+            journalOpenRef.current = open;
+            if (!open) stageRef.current?.focus({ preventScroll: true });
+          }}
+        />
+      ) : null}
+
+      {store && nudge ? (
+        <div className="nudge-hint px-panel" role="status">
+          {copy.ui.nudge}
+        </div>
+      ) : null}
       {store ? <UseHint hint={hint} /> : null}
       {store ? <DialogueBox store={store} /> : null}
       {store ? <ProjectPanel store={store} /> : null}

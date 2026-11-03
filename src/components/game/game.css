@@ -686,3 +686,30 @@ body {
     padding: 8px 10px;
   }
 }
+
+/* A friendly pointer for a visitor who has gone quiet. */
+
+.nudge-hint {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 19;
+  max-width: min(calc(100% - 320px), 420px);
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  color: var(--g-amber-hi);
+  font-size: 18px;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .nudge-hint {
+    top: calc(max(12px, env(safe-area-inset-top)) + 112px);
+    left: var(--g-gutter);
+    max-width: calc(100% - 24px);
+    transform: none;
+    text-align: left;
+  }
+}
