@@ -18,6 +18,7 @@ import { ProjectPanel } from './ProjectPanel';
 import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
 import { TermPrompt } from './TermPrompt';
+import { hasSavedWalk, hasWalked, noteWalked } from './controlsHint';
 import './game.css';
 
 const EMPTY_UI = {
@@ -88,7 +89,7 @@ export default function GameRoot() {
   const [audio, setAudio] = useState<GameAudio | null>(null);
   const [hint, setHint] = useState<GameHint>(null);
   const [coarse, setCoarse] = useState(false);
-  const [walked, setWalked] = useState(false);
+  const [walked, setWalked] = useState(() => hasSavedWalk(browserStorage()));
   const [nudge, setNudge] = useState<string | null>(null);
 
   terminalOpenRef.current = isTerminalOpen;
@@ -101,6 +102,7 @@ export default function GameRoot() {
 
     const gameStore = createStore(browserStorage());
     const gameAudio = createAudio(browserAudioContext, gameStore);
+    setWalked(hasWalked(gameStore));
     const game: Game = createGame({
       canvas,
       store: gameStore,
@@ -164,7 +166,10 @@ export default function GameRoot() {
     if (!isTerminalOpen) stageRef.current?.focus({ preventScroll: true });
   }, [isTerminalOpen]);
 
-  const begin = (): void => setWalked(true);
+  const begin = (): void => {
+    if (store) noteWalked(store);
+    setWalked(true);
+  };
   const blocked = (): boolean => {
     const state = store?.getState();
     return (
