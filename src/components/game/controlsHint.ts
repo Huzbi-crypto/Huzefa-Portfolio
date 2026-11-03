@@ -1,5 +1,4 @@
 import type { GameStore } from '@/game/state/store';
-import { loadProgress } from '@/game/state/progress';
 
 /**
  * The first-visit controls hint used to live in React state alone, so every
@@ -16,9 +15,4 @@ export function hasWalked(store: GameStore): boolean {
 export function noteWalked(store: GameStore): void {
   if (hasWalked(store)) return;
   store.increment(WALKED_COUNTER);
-}
-
-/** Read the saved mark before the game store exists, so a reload paints no hint. */
-export function hasSavedWalk(storage: Storage | null): boolean {
-  return (loadProgress(storage).counters[WALKED_COUNTER] ?? 0) > 0;
 }

@@ -18,7 +18,7 @@ import { ProjectPanel } from './ProjectPanel';
 import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
 import { TermPrompt } from './TermPrompt';
-import { hasSavedWalk, hasWalked, noteWalked } from './controlsHint';
+import { hasWalked, noteWalked } from './controlsHint';
 import './game.css';
 
 const EMPTY_UI = {
@@ -89,7 +89,9 @@ export default function GameRoot() {
   const [audio, setAudio] = useState<GameAudio | null>(null);
   const [hint, setHint] = useState<GameHint>(null);
   const [coarse, setCoarse] = useState(false);
-  const [walked, setWalked] = useState(() => hasSavedWalk(browserStorage()));
+  // Null until the saved progress has been read on the client: no hint on the
+  // server render, and none flashed before we know whether it was dismissed.
+  const [walked, setWalked] = useState<boolean | null>(null);
   const [nudge, setNudge] = useState<string | null>(null);
 
   terminalOpenRef.current = isTerminalOpen;
@@ -197,17 +199,19 @@ export default function GameRoot() {
       {store ? <StarsFromStore store={store} /> : null}
       {store && audio ? <SoundFromStore store={store} audio={audio} /> : null}
 
-      <div className="controls-hint px-panel" data-gone={walked} aria-hidden="true">
-        {coarse ? (
-          <span>{copy.ui.controlsTouch}</span>
-        ) : (
-          <>
-            <span>{copy.ui.controlsKeys}</span>
-            <span>{copy.ui.controlsMouse}</span>
-            <span>{copy.ui.controlsInteract}</span>
-          </>
-        )}
-      </div>
+      {walked === null ? null : (
+        <div className="controls-hint px-panel" data-gone={walked} aria-hidden="true">
+          {coarse ? (
+            <span>{copy.ui.controlsTouch}</span>
+          ) : (
+            <>
+              <span>{copy.ui.controlsKeys}</span>
+              <span>{copy.ui.controlsMouse}</span>
+              <span>{copy.ui.controlsInteract}</span>
+            </>
+          )}
+        </div>
+      )}
 
       {store ? (
         <Journal
