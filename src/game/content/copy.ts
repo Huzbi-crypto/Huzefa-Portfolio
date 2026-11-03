@@ -390,6 +390,37 @@ export const copy = {
       pop: 'Now and then a corner pokes through the cube. The maths was never told it could not.',
     },
 
+    /** What the little shell and the jar say, read by their logic modules. */
+    shell: {
+      help: [
+        'help    - read this, then forget it',
+        'ls      - list the evidence',
+        'cat     - read a file',
+        'whoami  - ask a question you will regret',
+        'clear   - wipe the screen, not the guilt',
+      ],
+      ls: ['nothing', 'a cat', 'a suspiciously empty folder'],
+      catWhich: 'cat: which file? Use your words.',
+      catDenied: (file: string) => `cat: ${file}: permission denied. Nice try.`,
+      whoami: 'A visitor with too much time.',
+      clear: 'The screen is no cleaner. You are.',
+      unknown: (command: string) => `${command}? That is not a command. It is barely a word.`,
+    },
+
+    jar: {
+      evidence: 'Please stop eating the evidence.',
+      empty: 'The jar is empty. The evidence is in you now.',
+      missing: 'That cookie is not in the jar. It is in your heart.',
+      cookies: [
+        { id: 'session', label: 'session_id', note: 'Expires when you stop being curious.' },
+        { id: 'auth', label: 'auth_token', note: 'Tastes like a password reset.' },
+        { id: 'analytics', label: '_ga', note: 'Counts how many crumbs you drop.' },
+        { id: 'csrf', label: 'csrf_token', note: 'Suspiciously crunchy, for a security measure.' },
+        { id: 'theme', label: 'theme_pref', note: 'Dark. Obviously.' },
+        { id: 'cart', label: 'cart_id', note: 'You never bought anything, so this is free.' },
+      ],
+    },
+
     monster: {
       label: 'Look closer at the eyes',
       lines: [
