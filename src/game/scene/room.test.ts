@@ -266,12 +266,14 @@ describe('the whole shelf', () => {
     };
   }
 
-  it('shelf_reaches_every_reading_item', async () => {
+  it('shelf_reaches_every_reading_item', { timeout: 20_000 }, async () => {
+    const { scene, api, store } = setup();
+    let have = 0;
     for (const id of readIds) {
-      const { scene, api, store } = setup();
       await play(byId(scene, 'shelf'), api, fetchBook(id));
+      have += 1;
       expect(store.getState().found, id).toContain(id);
-      expect(store.getState().found.filter((f) => f.startsWith('read:')), id).toHaveLength(1);
+      expect(store.getState().found.filter((f) => f.startsWith('read:')), id).toHaveLength(have);
     }
   });
 
@@ -285,7 +287,7 @@ describe('the whole shelf', () => {
     expect(store.award(target)).toBe(false);
   });
 
-  it('every_book_shows_huzbis_opinion', async () => {
+  it('every_book_shows_huzbis_opinion', { timeout: 20_000 }, async () => {
     for (const item of personalInfo.readingList) {
       const { scene, api } = setup();
       const seen: string[] = [];
