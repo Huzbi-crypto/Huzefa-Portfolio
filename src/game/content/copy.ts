@@ -528,4 +528,232 @@ export const copy = {
       jamAfter: 'A small light blinks, cross. Give it a moment and a new line.',
     },
   },
+
+  /**
+   * The trail through the dark. Each scrap points at the next place to look,
+   * and none of it is a puzzle: follow the paper. Placeholder voice, for Huzbi to edit.
+   */
+  clues: {
+    note: {
+      label: 'Read the second note',
+      lines: [
+        'A second sticky note, stuck beside the first, in smaller writing:',
+        '"P.S. If you go into the dark, follow the chalk. And the paper."',
+        'You have a feeling about that.',
+      ],
+      again: ['"Follow the chalk. And the paper." Yes. You heard.'],
+    },
+    hall: {
+      label: 'Pick up the scrap of paper',
+      lines: [
+        'A scrap of paper, weighed down by a pebble:',
+        '"Tools are under the floor. The hatch is the bit that looks like a hatch."',
+      ],
+      again: ['"The hatch is the bit that looks like a hatch." Down you go, then.'],
+    },
+    workshop: {
+      label: 'Pick up the scrap of paper',
+      lines: [
+        'A scrap of paper, tucked into a jar of screws:',
+        '"Filed the rest upstairs. By upstairs I mean the door standing on its own in the hall."',
+      ],
+      again: ['"The door standing on its own in the hall." You know the one.'],
+    },
+    archive: {
+      label: 'Pick up the scrap of paper',
+      lines: [
+        'A scrap of paper, folded very small, tucked in a file box:',
+        '"Last stop: the passage in the hall that smells of toast. It goes up. Look at the sky."',
+        '"Ignore the poster. It is just a poster. It looks cross all the time."',
+      ],
+      again: ['"The passage that smells of toast. It goes up." And the poster is still just a poster.'],
+    },
+    observatory: {
+      label: 'Look through the telescope',
+      lines: [
+        'You put your eye to the brass. A smudge, then a window, far off and lit.',
+        'Through it: a sofa. On the sofa, a lump. On the lump, an open manga, face down.',
+        'The lump rises and falls. Slowly. In no hurry at all.',
+        'Behind you, a small door with a moon on it clicks. Unlocked.',
+      ],
+      again: ['The same far window. The same lump. The same slow breathing. The moon door stays unlocked.'],
+    },
+  },
+
+  /** The Observatory: a room of sky, a star map of real repos, and a door with a moon on it. */
+  observatory: {
+    /** The passage up, from the hall. */
+    arch: {
+      label: 'Take the passage up',
+      lines: [
+        'The passage leans uphill. The smell of toast gets stronger.',
+        'At the top, a round room, and a sky where the ceiling should be.',
+      ],
+      goLabel: 'GO UP',
+      stayLabel: 'NOT YET',
+      stayReply: ['Fair. Stairs are a commitment.'],
+    },
+    exit: {
+      label: 'Back down to the hall',
+      lines: ['The stairs back down to the hall, a little crooked, still warm from the toast.'],
+      backLabel: 'GO BACK',
+      stayLabel: 'NOT YET',
+      stayReply: ['Stay and look up a while. That is what the room is for.'],
+    },
+    /** Painted on the wall in chalk, capitals only. */
+    chalk: ['LOOK UP', 'ZZZ'],
+
+    sky: {
+      label: 'Look up at the sky',
+      lines: (found: number, total: number): string[] => [
+        'The same sky as the room windows, only closer.',
+        found === 0
+          ? 'Not one of your stars is lit yet. The faint dots are where they will go.'
+          : `${found} of ${total} stars lit, each one something you found.`,
+      ],
+      again: (found: number, total: number): string[] => [`${found} of ${total} lit. The faint ones are still waiting.`],
+    },
+
+    map: {
+      label: 'Read the star map',
+      intro: [
+        'A round table with a glass top, and a map of stars under it.',
+        'Every star is a real repo. The brighter, the more people starred it.',
+      ],
+      count: (n: number): string => `${n} repos in all.`,
+      brightest: (name: string, stars: number): string =>
+        `Brightest: ${name}, with ${stars} ${stars === 1 ? 'star' : 'stars'}.`,
+      again: ['The map has not moved. The repos keep being repos.'],
+    },
+
+    stats: {
+      label: 'Read the plaque',
+      intro: 'A brass plaque, polished by somebody who cares more than they let on.',
+      /** Honest numbers with the day they were taken, from the saved GitHub snapshot. */
+      numbers: (repos: number, stars: number, followers: number, date: string): string =>
+        `As of ${date}: ${repos} public repos, ${stars} stars received, ${followers} followers.`,
+      note: 'A snapshot, not live. The date above is the day it was taken.',
+      languages: (top: string): string => `Most of it is ${top}.`,
+    },
+
+    napDoor: {
+      label: 'Try the door with the moon',
+      shut: [
+        'A small round door with a moon on it. A sign: "SHH. Back in 5 mins."',
+        'It does not budge. The latch hums, sleepy, as if it is waiting for something.',
+      ],
+      /** One hint per clue, naming where to look, so a shut door is never a dead end. */
+      hints: {
+        'clue:note': 'Maybe the note in the room has more to say. The sticky one by the door.',
+        'clue:hall': 'There is paper lying around the hall in the dark. Look near the hatch.',
+        'clue:workshop': 'Something is tucked away in the workshop below the hatch.',
+        'clue:archive': 'The Archive has one more scrap, folded small, in a file box.',
+        'clue:observatory': 'The telescope is pointing at something. Have a look through it.',
+      } as Record<string, string>,
+      open: [
+        'The latch clicks. The door swings in a crack. Warm light, and the slow sound of someone breathing.',
+      ],
+      goLabel: 'GO IN, QUIETLY',
+      stayLabel: 'NOT YET',
+      stayReply: ['Take your time. They are not going anywhere. Obviously.'],
+    },
+  },
+
+  /** The nap room and the ending. The joke: the big mystery is a nap. */
+  nap: {
+    exit: {
+      label: 'Back to the observatory',
+      lines: ['The little round door with the moon on it, still ajar.'],
+      backLabel: 'TIPTOE OUT',
+      stayLabel: 'STAY',
+      stayReply: ['Take a seat. Quietly.'],
+    },
+    chalk: ['SHH'],
+    sleeper: {
+      label: 'Look at the sleeper',
+      look: [
+        'Huzbi, asleep on the sofa. Hoodie, headphones, hair going in every direction.',
+        'A manga lies open on their face, rising and falling with every breath.',
+        'The tiny desk lamp is on. So is the whole mystery.',
+      ],
+      wakeLabel: 'WAKE THEM',
+      leaveLabel: 'LET THEM SLEEP',
+      leaveReply: ['Kind. The manga rises and falls. Nothing else happens, for a good while.'],
+      /** Comic beats between the sleeping and the speaking; the scene plays them. */
+      stir: ['You cough, politely.'],
+      slide: ['The manga slides off and lands on the floor with a quiet, papery flop.'],
+      sitUp: ['One eye opens. Then the other. Neither is pleased.'],
+    },
+    /** What Huzbi says, for the star count the visitor earned. */
+    wake: {
+      full: [
+        '...huh?',
+        '...',
+        '...wait, you found everything?',
+        'Nobody does that.',
+        'I mean it. Nobody. I hid half of it from myself.',
+      ],
+      most: [
+        '...huh? Oh.',
+        'You found the way here. And most of the silly bits, too. Respect.',
+        'There is still a bit more hiding in the dark. Come back for the proper version of this conversation.',
+      ],
+      few: [
+        '...huh? Who is...',
+        'You followed the paper and skipped nearly all the stars. Efficient. Possibly lazy. I approve.',
+        'There is a lot still hiding in the dark. Collect them all and I will be properly impressed.',
+      ],
+    },
+    /** The short version, once the visitor has already had this conversation. */
+    again: {
+      full: ['Oh, it is you again. Still cannot believe you found everything.'],
+      most: ['Oh. You again. Good to see you. Go find the rest of the stars, then I will say the nice thing.'],
+      few: ['Mm. You again. Still more in the dark than you have found, you know.'],
+    },
+    /** After the line: a real way to say hi. */
+    afterWake: [
+      'Anyway. Since you are here.',
+      'If you want to say hi, this is where I actually read things. A real email, not a mystery.',
+    ],
+    sayHiLabel: 'SAY HI',
+    leaveAloneLabel: 'LEAVE THEM BE',
+    leaveAloneReply: ['Go on. They are already half asleep again.'],
+
+    /** The mail that opens when the visitor says hi. */
+    mail: {
+      subject: 'Hi from your game',
+      body: 'Hi Huzbi,\n\nI found the nap room.\n\n',
+    },
+
+    contact: {
+      title: 'Say hi',
+      lead: 'Real contact details, in case the nap was a lot.',
+      emailLabel: 'Email',
+      sayHi: 'Say hi by email',
+      github: 'GitHub',
+      linkedin: 'LinkedIn',
+      myanimelist: 'MyAnimeList',
+      close: 'CLOSE',
+      closeLabel: 'Close the contact card',
+      dialogLabel: 'Contact details',
+    },
+
+    /** Silly things to poke in the nap room. */
+    manga: {
+      label: 'Look at the pile of manga',
+      lines: ['A neat stack of manga next to a very untidy stack of manga.', 'Neither is dusty. This is a working nap.'],
+      again: ['The same two stacks. The untidy one has grown.'],
+    },
+    clock: {
+      label: 'Check the clock',
+      lines: ['A wall clock. It says it has been five minutes.', 'The clock is wrong in a hopeful way.'],
+      again: ['Still five minutes. Optimism is a kind of timekeeping.'],
+    },
+    cat: {
+      label: 'Say hello to the cat',
+      lines: ['The cat is curled on the rug, one amber eye open. It saw you coming ages ago.'],
+      again: ['The cat closes its eye again. You are, apparently, fine.'],
+    },
+  },
+
 } as const;
