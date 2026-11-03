@@ -5,6 +5,7 @@ import { copy } from '@/game/content/copy';
 import { createAsciiArt } from '@/game/exhibits/asciiArt';
 import { createCreativeCoding } from '@/game/exhibits/creativeCoding';
 import { createReadCookies } from '@/game/exhibits/readCookies';
+import { createRenderer3d } from '@/game/exhibits/renderer3d';
 import { createTermExp } from '@/game/exhibits/termExp';
 import type { ArchiveExhibit } from '@/game/exhibits/archiveKit';
 import type { Light } from '@/game/render/lighting';
@@ -31,6 +32,7 @@ const AT = {
   cookies: { x: 152, y: 72 },
   frame: { x: 232, y: 8 },
   dust: { x: 232, y: 96 },
+  vector: { x: 304, y: 88 },
   chalkBack: { x: 44, y: 24 },
   chalkShh: { x: 206, y: 26 },
   chalkArchive: { x: 292, y: 22 },
@@ -159,6 +161,7 @@ function buildExhibits(): ArchiveExhibit[] {
     createReadCookies(AT.cookies),
     createAsciiArt(AT.frame),
     createCreativeCoding(AT.dust),
+    createRenderer3d(AT.vector),
   ];
 }
 

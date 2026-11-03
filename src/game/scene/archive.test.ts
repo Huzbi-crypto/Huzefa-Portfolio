@@ -8,6 +8,7 @@ import { findPath, TILE } from '@/game/world/grid';
 import { createLantern } from '@/game/exhibits/archiveKit';
 import { ASCII_REACH, litAsciiCells } from '@/game/exhibits/asciiArt';
 import { CALL_REACH, createCreativeCoding } from '@/game/exhibits/creativeCoding';
+import { createRenderer3d, shapePixels } from '@/game/exhibits/renderer3d';
 import { createReadCookies } from '@/game/exhibits/readCookies';
 import { createTermExp } from '@/game/exhibits/termExp';
 import { createArchive, MONSTER_POSTER } from './archive';
@@ -81,6 +82,7 @@ const PICKS: Record<string, string[]> = {
   'read-cookies': ['unlock'],
   'ascii-art-tui': [],
   'creative-coding': [],
+  '3d-renderer': ['left', 'right'],
 };
 const EXHIBITS = Object.keys(PICKS);
 
@@ -313,6 +315,35 @@ describe('createArchive', () => {
     for (let i = 0; i < 30; i += 1) still.update(16, mouseCtx(near, { reducedMotion: true }));
     expect(Array.from(still.field().x)).toEqual(frozen);
     expect(CALL_REACH).toBeGreaterThan(40);
+  });
+
+  it('the_spin_choices_turn_the_shape_and_pixels_stay_whole_and_on_the_glass', async () => {
+    const store = createStore(null);
+    const api = fakeApi(store);
+    const screen = createRenderer3d({ x: 304, y: 88 });
+    const control = createRenderer3d({ x: 304, y: 88 });
+
+    await play(store, screen.use(api), ['right']);
+    for (let i = 0; i < 30; i += 1) screen.update(16, ctxFor());
+
+    for (let i = 0; i < 30; i += 1) control.update(16, ctxFor());
+    expect(screen.view().yaw - control.view().yaw, 'the nudge left it spun further').toBeGreaterThan(0.2);
+    for (const [yaw, pitch, inner] of [[0, 0, 0.62], [1.2, 0.5, 1.28], [3, -1, 0.62]]) {
+      const pixels = shapePixels(yaw, pitch, inner);
+      expect(pixels.length).toBeGreaterThan(20);
+      for (const p of pixels) {
+        expect(Number.isInteger(p.x) && Number.isInteger(p.y)).toBe(true);
+        expect(p.x >= 0 && p.x < 24 && p.y >= 0 && p.y < 20).toBe(true);
+      }
+    }
+  });
+
+  it('the_shape_holds_still_in_a_calm_pose_when_motion_is_off', () => {
+    const screen = createRenderer3d({ x: 304, y: 88 });
+    for (let i = 0; i < 20; i += 1) screen.update(16, ctxFor({ reducedMotion: true }));
+    const first = screen.view();
+    for (let i = 0; i < 20; i += 1) screen.update(16, ctxFor({ reducedMotion: true }));
+    expect(screen.view()).toEqual(first);
   });
 
   it('monster_never_moves_toward_player', () => {
