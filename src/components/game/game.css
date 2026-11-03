@@ -512,6 +512,7 @@ body {
   inset: 0;
   z-index: 40;
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
   padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
     max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -524,6 +525,7 @@ body {
 
 .journal-panel {
   display: flex;
+  min-height: 0;
   flex-direction: column;
   width: min(100%, 720px);
   max-height: 100%;
