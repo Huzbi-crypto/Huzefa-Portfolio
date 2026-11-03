@@ -282,6 +282,8 @@ body {
   width: min(100%, 760px);
   max-height: min(78vh, 620px);
   flex-direction: column;
+  overflow: auto;
+  overscroll-behavior: contain;
   padding: 16px 18px 14px;
   font-size: 18px;
   line-height: 1.35;
