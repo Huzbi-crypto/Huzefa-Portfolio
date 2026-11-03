@@ -463,3 +463,226 @@ body {
     transition: none;
   }
 }
+
+/* The journal: a visible button under the star count, and an overlay of real text. */
+
+.journal-button {
+  position: absolute;
+  top: calc(max(12px, env(safe-area-inset-top)) + 56px);
+  left: var(--g-gutter);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 12px 6px 14px;
+  border: 0;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.journal-button:hover,
+.journal-button:focus-visible {
+  background: var(--g-panel-hi);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.journal-button:active {
+  background: var(--g-line);
+  color: var(--g-ink);
+}
+
+.journal-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  background: var(--g-ink);
+  color: var(--g-amber-hi);
+  font: inherit;
+  font-size: 16px;
+  box-shadow: inset 0 0 0 2px var(--g-dim);
+}
+
+.journal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(27, 20, 40, 0.86);
+  cursor: default;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: pan-y;
+}
+
+.journal-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 720px);
+  max-height: 100%;
+  padding: 20px 8px 12px 24px;
+  font-size: 20px;
+  line-height: 1.45;
+}
+
+.journal-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding-right: 16px;
+  margin-bottom: 12px;
+}
+
+.journal-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--g-amber-hi);
+}
+
+.journal-count {
+  margin: 0;
+  color: var(--g-dim);
+}
+
+.journal-close {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  background: var(--g-ink);
+  color: var(--g-text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px var(--g-line);
+}
+
+.journal-close:hover,
+.journal-close:focus-visible {
+  background: var(--g-amber);
+  color: var(--g-ink);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.journal-scroll {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 16px;
+}
+
+.journal-section + .journal-section {
+  margin-top: 20px;
+}
+
+.journal-section-title {
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  font-size: 22px;
+  font-weight: normal;
+  line-height: 1.2;
+  box-shadow: 0 3px 0 var(--g-panel-hi);
+}
+
+.journal-section-count {
+  color: var(--g-dim);
+  font-size: 18px;
+}
+
+.journal-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journal-entry {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--g-ink);
+  box-shadow: inset 0 0 0 3px var(--g-panel-hi);
+}
+
+.journal-entry[data-found='false'] {
+  color: var(--g-dim);
+  box-shadow: inset 0 0 0 3px var(--g-panel);
+}
+
+.journal-entry[data-found='true'] .journal-entry-title {
+  color: var(--g-text);
+}
+
+.journal-star {
+  margin-top: 5px;
+  fill: var(--g-panel-hi);
+}
+
+.journal-star[data-on='true'] {
+  fill: var(--g-amber-hi);
+}
+
+.journal-entry-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: normal;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.journal-entry-body {
+  margin: 4px 0 0;
+  font-size: 18px;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+
+.journal-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 4px;
+  color: var(--g-amber-hi);
+  font-size: 18px;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+.journal-link:hover,
+.journal-link:focus-visible {
+  color: var(--g-ink);
+  background: var(--g-amber);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+  text-decoration: none;
+}
+
+@media (max-width: 560px) {
+  .journal-panel {
+    padding: 16px 4px 8px 16px;
+    font-size: 18px;
+  }
+
+  .journal-title {
+    font-size: 26px;
+  }
+
+  .journal-entry {
+    padding: 8px 10px;
+  }
+}
