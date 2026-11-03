@@ -1,6 +1,7 @@
 import { SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { createAiAnime } from '@/game/exhibits/aiAnime';
+import { createCompilerBelt } from '@/game/exhibits/compilerBelt';
 import { createLangProjects } from '@/game/exhibits/langProjects';
 import { createSpeechTranslator } from '@/game/exhibits/speechTranslator';
 import type { Exhibit } from '@/game/exhibits/types';
@@ -26,6 +27,7 @@ export const WORKSHOP_AT = {
   machine: { x: 40, y: 56 },
   board: { x: 136, y: 70 },
   cans: { x: 30, y: 176 },
+  belt: { x: 216, y: 166 },
 } as const;
 
 function sprite(name: string) {
@@ -45,9 +47,10 @@ function buildExhibits(): { exhibits: Exhibit[]; lights: Light[] } {
   const aiAnime = createAiAnime(WORKSHOP_AT.machine, { x: 9, y: 16 });
   const lang = createLangProjects(WORKSHOP_AT.board, { x: 26, y: 17 });
   const speech = createSpeechTranslator(WORKSHOP_AT.cans, { x: 4, y: 24 });
+  const belt = createCompilerBelt(WORKSHOP_AT.belt, { x: 30, y: 24 });
   return {
-    exhibits: [aiAnime.exhibit, lang.exhibit, speech.exhibit],
-    lights: [ladderLight, aiAnime.light, lang.light, speech.light],
+    exhibits: [aiAnime.exhibit, lang.exhibit, speech.exhibit, belt.exhibit],
+    lights: [ladderLight, aiAnime.light, lang.light, speech.light, belt.light],
   };
 }
 
@@ -89,6 +92,8 @@ function buildSpaceDef(): SpaceDef {
       { x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM },
       // The machine's legs. Its body is raised on them, so the visitor can pass behind.
       { x: WORKSHOP_AT.machine.x + 8, y: WORKSHOP_AT.machine.y + 62, w: 44, h: 10 },
+      // The conveyor belt and its legs.
+      { x: WORKSHOP_AT.belt.x, y: WORKSHOP_AT.belt.y + 4, w: 148, h: 18 },
       // Two crates for the tin cans to stand on.
       { x: WORKSHOP_AT.cans.x, y: WORKSHOP_AT.cans.y + 2, w: 26, h: 14 },
       { x: WORKSHOP_AT.cans.x + 140, y: WORKSHOP_AT.cans.y + 2, w: 26, h: 14 },

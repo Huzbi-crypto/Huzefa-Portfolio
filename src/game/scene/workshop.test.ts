@@ -208,6 +208,7 @@ describe('workshop art', () => {
 /** The four exhibits the workshop holds, and a choice that makes each one play. */
 const EXHIBITS: { id: string; choice?: string }[] = [{ id: 'ai-anime' }, { id: 'lang-projects' },
   { id: 'speech-translator', choice: 'hello' },
+  { id: 'compiler-project', choice: 'sum' },
 ];
 
 describe('workshop exhibits', () => {
@@ -273,6 +274,21 @@ describe('speech-translator cans', () => {
     expect(said).toContain(copy.workshop.speech.lost);
     const heard = said.split(copy.workshop.speech.heard)[1] ?? '';
     expect(heard.toLowerCase()).not.toContain(copy.workshop.speech.phrases[0].text.toLowerCase());
+  });
+});
+
+describe('compiler belt', () => {
+  it('a_good_line_comes_out_as_assembly', async () => {
+    const env = setup();
+    const said = (await interact(env, byId(env.scene, 'compiler-project'), 'sum')).join(' ');
+    expect(said).toContain(copy.workshop.compiler.out);
+  });
+
+  it('a_messy_line_gets_a_fussy_error_and_still_earns_the_star', async () => {
+    const env = setup();
+    const said = (await interact(env, byId(env.scene, 'compiler-project'), 'messy')).join(' ');
+    expect(said).toContain(copy.workshop.compiler.jam);
+    expect(env.store.getState().found).toContain('project:compiler-project');
   });
 });
 

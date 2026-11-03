@@ -21,6 +21,35 @@ export const copy = {
     soundOffLabel: 'Sound is off. Turn sound on.',
   },
 
+  /** The in-game journal. Entries for stars not found yet stay hidden. */
+  journal: {
+    button: 'JOURNAL',
+    buttonLabel: 'Open the journal. Shortcut: J.',
+    title: 'Journal',
+    close: 'CLOSE',
+    closeLabel: 'Close the journal',
+    count: (found: number, total: number) => `${found} of ${total} found`,
+    hiddenTitle: '???',
+    hiddenBody: 'Not found yet. Keep poking around.',
+    sections: { projects: 'Things Huzbi built', books: 'The shelf', silly: 'Silly things' },
+    repo: 'Repo',
+    fallbackBody: 'You found this one. It is too silly to describe.',
+    /** One line per silly star, in Huzbi's voice, for Huzbi to edit. */
+    silly: {
+      'silly:pet-cat': { title: 'Ten pets', body: 'You petted the cat ten times. It has decided you can stay.' },
+      'silly:cold-tea': { title: 'Cold tea', body: 'A mug with a skin on it. Not five minutes ago, then.' },
+      'silly:read-note': { title: 'The note', body: '"Back in 5 mins. Don\'t touch anything." You touched it.' },
+      'silly:monster-poster': { title: 'The red eyes', body: 'Two red eyes in the dark. A poster. Huzbi is a green monster, apparently.' },
+      'silly:sofa': { title: 'The sofa', body: 'It has a Huzbi-shaped dent. You are not the right shape.' },
+      'silly:lamp': { title: 'The lamp', body: 'You switched it off and on. Nothing changed. Decorative, with ambitions.' },
+      'silly:rug': { title: 'Under the rug', body: 'You looked under the rug. Floor.' },
+      'silly:note-thrice': { title: 'The note, again, again', body: 'You read the same note three times. It still says the same thing.' },
+      'silly:drink-tea': { title: 'You drank the tea', body: 'Cold, bitter and old. Nobody asked you to.' },
+      'silly:wave-at-sky': { title: 'Waving at the sky', body: 'You waved at the night sky five times. A star twinkled, which counts.' },
+      'silly:door-chicken': { title: 'Chicken', body: 'You said STAY at the door three times. The door noticed.' },
+    } as Record<string, { title: string; body: string }>,
+  },
+
   note: {
     lines: [
       'A sticky note, scribbled in a hurry:',
@@ -450,6 +479,21 @@ export const copy = {
       heard: 'The other can says:',
       lost: 'Not quite what you said. Something is always lost in translation, and it is usually the point.',
       again: 'Different words again. The string has strong opinions.',
+    },
+
+    /** `compiler-project`: a conveyor belt with four stations. */
+    compiler: {
+      label: 'Drop a line onto the belt',
+      prompt: 'A conveyor belt with four stations. Drop a line of code on and see what comes out.',
+      lines: [
+        { id: 'sum', text: 'x = 1 + 2' },
+        { id: 'times', text: 'y = x * 4' },
+        { id: 'messy', text: 'x = ( 1 +' },
+      ],
+      ok: 'Four stations, no complaints. Suspicious.',
+      out: 'Out of the far end, as toy assembly:',
+      jam: 'The belt stops with a clunk.',
+      jamAfter: 'A small light blinks, cross. Give it a moment and a new line.',
     },
   },
 } as const;
