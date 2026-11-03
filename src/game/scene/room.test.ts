@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
+import { personalInfo } from '@/data/personal';
 import { copy } from '@/game/content/copy';
-import { allStarIds } from '@/game/content/stars';
+import { allStarIds, readStarId } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
 import { createEntity, stepEntity } from '@/game/world/entity';
 import { findPath, TILE } from '@/game/world/grid';
@@ -72,7 +73,7 @@ describe('room layout', () => {
   it('has_every_planned_hotspot', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['cat', 'door', 'monitor', 'note', 'shelf', 'tea', 'window', 'window-two'],
+      ['cat', 'door', 'lamp', 'monitor', 'note', 'rug', 'shelf', 'sofa', 'tea', 'window', 'window-two'],
     );
   });
 
@@ -220,5 +221,179 @@ describe('room hotspots', () => {
     await interact(byId(scene, 'door'), api, 'stay');
     expect(store.getState().doorOpened).toBe(false);
     expect(api.goTo).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Run a hotspot, answering every dialogue with `pick`, which sees the choice
+ * ids on offer and the lines. Returns once the hotspot's promise settles.
+ */
+async function play(
+  hotspot: Hotspot,
+  api: GameApi,
+  pick: (choices: string[], lines: readonly string[]) => string | undefined,
+): Promise<void> {
+  let finished = false;
+  const done = Promise.resolve(hotspot.onInteract(api)).then(() => {
+    finished = true;
+  });
+  for (let guard = 0; !finished && guard < 400; guard += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const dialogue = api.store.getState().dialogue;
+    if (!dialogue) continue;
+    // Choose once per dialogue: on its last line, with the text fully shown.
+    const last = dialogue.line === dialogue.lines.length - 1 && dialogue.typed >= dialogue.lines[dialogue.line].length;
+    api.store.advance(last ? pick(dialogue.choices.map((c) => c.id), dialogue.lines) : undefined);
+  }
+  await done;
+  expect(finished, 'the hotspot finished').toBe(true);
+}
+
+describe('the whole shelf', () => {
+  const readIds = personalInfo.readingList.map((item) => readStarId(item.title));
+
+  /** Walk the shelf menus until `target` is on offer, then take it. */
+  function fetchBook(target: string) {
+    const triedRows = new Set<string>();
+    return (choices: string[]): string | undefined => {
+      if (choices.includes(target)) return target;
+      const row = choices.find((id) => id.startsWith('row:') && !triedRows.has(id));
+      if (row) {
+        triedRows.add(row);
+        return row;
+      }
+      return choices.includes('leave') ? 'leave' : choices[choices.length - 1];
+    };
+  }
+
+  it('shelf_reaches_every_reading_item', async () => {
+    for (const id of readIds) {
+      const { scene, api, store } = setup();
+      await play(byId(scene, 'shelf'), api, fetchBook(id));
+      expect(store.getState().found, id).toContain(id);
+      expect(store.getState().found.filter((f) => f.startsWith('read:')), id).toHaveLength(1);
+    }
+  });
+
+  it('each_shelf_item_awards_once', async () => {
+    const { scene, api, store } = setup();
+    const target = readIds[readIds.length - 1];
+    await play(byId(scene, 'shelf'), api, fetchBook(target));
+    const after = store.getState().found.length;
+    await play(byId(scene, 'shelf'), api, fetchBook(target));
+    expect(store.getState().found.length).toBe(after);
+    expect(store.award(target)).toBe(false);
+  });
+
+  it('every_book_shows_huzbis_opinion', async () => {
+    for (const item of personalInfo.readingList) {
+      const { scene, api } = setup();
+      const seen: string[] = [];
+      const fetch = fetchBook(readStarId(item.title));
+      await play(byId(scene, 'shelf'), api, (choices, lines) => {
+        seen.push(...lines);
+        return fetch(choices);
+      });
+      expect(seen.join(' '), item.title).toContain(item.note ?? item.title);
+    }
+  });
+
+  it('leaving_the_shelf_awards_nothing_and_never_traps', async () => {
+    const { scene, api, store } = setup();
+    await play(byId(scene, 'shelf'), api, (choices) => (choices.includes('leave') ? 'leave' : choices[0]));
+    expect(store.getState().found).toHaveLength(0);
+  });
+
+  it('the_shelf_menus_stay_small', async () => {
+    const { scene, api } = setup();
+    const sizes: number[] = [];
+    let visits = 0;
+    await play(byId(scene, 'shelf'), api, (choices) => {
+      sizes.push(choices.length);
+      visits += 1;
+      if (visits === 1) return 'row:0';
+      return choices.includes('leave') ? 'leave' : 'back';
+    });
+    await play(byId(scene, 'shelf'), api, (choices) => {
+      sizes.push(choices.length);
+      return 'leave';
+    });
+    expect(Math.max(...sizes)).toBeLessThanOrEqual(7);
+  });
+});
+
+describe('silly stars in the room', () => {
+  const none = () => undefined;
+
+  it('sitting_on_the_sofa_awards_a_star_once', async () => {
+    const { scene, api, store } = setup();
+    await play(byId(scene, 'sofa'), api, none);
+    expect(store.getState().found).toContain('silly:sofa');
+    const after = store.getState().found.length;
+    await play(byId(scene, 'sofa'), api, none);
+    expect(store.getState().found.length).toBe(after);
+  });
+
+  it('the_lamp_has_a_joke_and_a_star', async () => {
+    const { scene, api, store } = setup();
+    await play(byId(scene, 'lamp'), api, none);
+    expect(store.getState().found).toContain('silly:lamp');
+  });
+
+  it('the_rug_has_a_joke_and_a_star', async () => {
+    const { scene, api, store } = setup();
+    await play(byId(scene, 'rug'), api, none);
+    expect(store.getState().found).toContain('silly:rug');
+  });
+
+  it('reading_the_note_a_third_time_awards_its_own_star', async () => {
+    const { scene, api, store } = setup();
+    await play(byId(scene, 'note'), api, none);
+    await play(byId(scene, 'note'), api, none);
+    expect(store.getState().found).not.toContain('silly:note-thrice');
+    await play(byId(scene, 'note'), api, none);
+    expect(store.getState().found).toContain('silly:note-thrice');
+  });
+
+  it('checking_the_tea_a_third_time_drinks_it', async () => {
+    const { scene, api, store } = setup();
+    await play(byId(scene, 'tea'), api, none);
+    await play(byId(scene, 'tea'), api, none);
+    expect(store.getState().found).not.toContain('silly:drink-tea');
+    await play(byId(scene, 'tea'), api, none);
+    expect(store.getState().found).toContain('silly:drink-tea');
+  });
+
+  it('waving_at_the_sky_five_times_is_noticed', async () => {
+    const { scene, api, store } = setup();
+    for (let i = 0; i < 4; i += 1) await play(byId(scene, 'window'), api, none);
+    expect(store.getState().found).not.toContain('silly:wave-at-sky');
+    await play(byId(scene, 'window-two'), api, none);
+    expect(store.getState().found).toContain('silly:wave-at-sky');
+  });
+
+  it('staying_out_three_times_gets_called_a_chicken', async () => {
+    const { scene, api, store } = setup();
+    for (let i = 0; i < 2; i += 1) await play(byId(scene, 'door'), api, () => 'stay');
+    expect(store.getState().found).not.toContain('silly:door-chicken');
+    await play(byId(scene, 'door'), api, () => 'stay');
+    expect(store.getState().found).toContain('silly:door-chicken');
+    expect(api.goTo).not.toHaveBeenCalled();
+  });
+
+  it('the_new_hotspots_are_reachable', () => {
+    const { scene } = setup();
+    const nav = navMap(scene.map);
+    for (const id of ['sofa', 'lamp', 'rug']) {
+      const h = byId(scene, id);
+      expect(nav.solid[h.stand.y * nav.w + h.stand.x], id).toBe(0);
+      const path = findPath(nav, scene.spawn, h.stand);
+      expect(path[path.length - 1] ?? scene.spawn, id).toEqual(h.stand);
+      const px = h.stand.x * TILE + TILE / 2;
+      const py = h.stand.y * TILE + TILE / 2;
+      const dx = Math.max(h.rect.x - px, 0, px - (h.rect.x + h.rect.w));
+      const dy = Math.max(h.rect.y - py, 0, py - (h.rect.y + h.rect.h));
+      expect(Math.hypot(dx, dy), id).toBeLessThanOrEqual(14);
+    }
   });
 });

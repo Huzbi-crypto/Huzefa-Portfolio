@@ -95,27 +95,92 @@ async function openDoor(api: GameApi): Promise<void> {
     api.goTo('dark');
     return;
   }
+  store.increment('door-stay');
+  if (store.count('door-stay') === 3 && store.award('silly:door-chicken')) {
+    await store.say([...copy.doorChicken.lines]);
+    return;
+  }
+  if (store.count('door-stay') > 3) {
+    await store.say([...copy.doorChicken.again]);
+    return;
+  }
   await store.say([...copy.door.stayReply]);
 }
 
-/** One shelf opinion per visit: the first unread book, then back round again. */
-async function browseShelf(api: GameApi): Promise<void> {
+type Book = (typeof personalInfo.readingList)[number];
+
+/** The shelf is three rows; the reading list splits across them in order. */
+const SHELF_ROWS = 3;
+
+function shelfRows(): Book[][] {
+  const list = personalInfo.readingList;
+  const per = Math.ceil(list.length / SHELF_ROWS);
+  return Array.from({ length: SHELF_ROWS }, (_, row) => list.slice(row * per, (row + 1) * per)).filter(
+    (row) => row.length > 0,
+  );
+}
+
+/** Take one book down: its star the first time, and Huzbi's opinion every time. */
+async function readBook(api: GameApi, book: Book): Promise<void> {
+  api.store.award(readStarId(book.title));
+  const lines = [copy.shelf.pull(book.title)];
+  if (book.note) lines.push(book.note);
+  await api.store.say(lines);
+}
+
+/** The next book nobody has read yet, then back round the list again. */
+async function readNext(api: GameApi): Promise<void> {
   const { store } = api;
   const list = personalInfo.readingList;
   const found = new Set(store.getState().found);
   let pick = list.find((item) => !found.has(readStarId(item.title)));
 
-  if (pick) {
-    store.award(readStarId(pick.title));
-  } else {
+  if (!pick) {
     const visit = store.count('shelf-browse');
     store.increment('shelf-browse');
     pick = list[visit % list.length];
   }
+  await readBook(api, pick);
+}
 
-  const lines = [copy.shelf.pull(pick.title)];
-  if (pick.note) lines.push(pick.note);
-  await store.say(lines);
+/**
+ * The whole shelf, browsable: the first choice is always "whatever is next",
+ * so a single press still works; the rows let anyone pick a spine; the last
+ * choice leaves, which is also what Esc takes.
+ */
+async function browseShelf(api: GameApi): Promise<void> {
+  const { store } = api;
+  const rows = shelfRows();
+
+  for (let guard = 0; guard < 200; guard += 1) {
+    const choice = await store.say(
+      [...copy.shelf.menu],
+      [
+        { id: 'next', label: copy.shelf.nextLabel },
+        ...rows.map((_, index) => ({ id: `row:${index}`, label: copy.shelf.rowLabels[index] })),
+        { id: 'leave', label: copy.shelf.leaveLabel },
+      ],
+    );
+
+    if (choice === 'next') return readNext(api);
+    if (!choice || !choice.startsWith('row:')) return;
+
+    const books = rows[Number(choice.slice(4))] ?? [];
+    const found = new Set(store.getState().found);
+    const pick = await store.say(
+      [copy.shelf.which],
+      [
+        ...books.map((book) => {
+          const id = readStarId(book.title);
+          return { id, label: found.has(id) ? `${book.title} ${copy.shelf.readMark}` : book.title };
+        }),
+        { id: 'back', label: copy.shelf.backLabel },
+      ],
+    );
+    const book = books.find((item) => readStarId(item.title) === pick);
+    if (book) return readBook(api, book);
+    // 'back', or Esc, goes round to the rows again.
+  }
 }
 
 async function petCat(api: GameApi): Promise<void> {
@@ -136,6 +201,11 @@ async function petCat(api: GameApi): Promise<void> {
 }
 
 async function readWindow(api: GameApi): Promise<void> {
+  api.store.increment('window-look');
+  if (api.store.count('window-look') === 5 && api.store.award('silly:wave-at-sky')) {
+    await api.store.say([...copy.waveAtSky.lines]);
+    return;
+  }
   const { found, total } = api.store.getState();
   if (found.length === 0) {
     await api.store.say([...copy.window.none]);
@@ -161,6 +231,26 @@ function windowHotspot(id: string, at: { x: number; y: number }, standX: number)
   };
 }
 
+/** A thing in the room whose only job is to be a joke worth a star. */
+function silly(
+  id: string,
+  rect: Hotspot['rect'],
+  stand: Hotspot['stand'],
+  text: { label: string; lines: readonly string[]; again: readonly string[] },
+  star: string,
+): Hotspot {
+  return {
+    id,
+    rect,
+    stand,
+    label: text.label,
+    async onInteract(api) {
+      const first = api.store.award(star);
+      await api.store.say([...(first ? text.lines : text.again)]);
+    },
+  };
+}
+
 function buildHotspots(): Hotspot[] {
   return [
     {
@@ -170,6 +260,11 @@ function buildHotspots(): Hotspot[] {
       label: 'Read the note',
       async onInteract(api) {
         const first = api.store.award('silly:read-note');
+        api.store.increment('note-read');
+        if (api.store.count('note-read') === 3 && api.store.award('silly:note-thrice')) {
+          await api.store.say([...copy.noteThrice.lines]);
+          return;
+        }
         await api.store.say([...(first ? copy.note.lines : copy.note.again)]);
       },
     },
@@ -180,6 +275,15 @@ function buildHotspots(): Hotspot[] {
       label: 'Check the tea',
       async onInteract(api) {
         const first = api.store.award('silly:cold-tea');
+        api.store.increment('tea-check');
+        if (api.store.count('tea-check') === 3 && api.store.award('silly:drink-tea')) {
+          await api.store.say([...copy.drinkTea.lines]);
+          return;
+        }
+        if (api.store.count('tea-check') > 3) {
+          await api.store.say([...copy.drinkTea.again]);
+          return;
+        }
         await api.store.say([...(first ? copy.tea.lines : copy.tea.again)]);
       },
     },
@@ -207,6 +311,9 @@ function buildHotspots(): Hotspot[] {
       label: 'Pet the cat',
       onInteract: petCat,
     },
+    silly('sofa', { x: AT.sofa.x, y: AT.sofa.y, w: 40, h: 26 }, { x: 5, y: 16 }, copy.sofa, 'silly:sofa'),
+    silly('lamp', { x: AT.lamp.x, y: AT.lamp.y, w: 12, h: 34 }, { x: 33, y: 16 }, copy.lamp, 'silly:lamp'),
+    silly('rug', { x: AT.rug.x, y: AT.rug.y, w: 48, h: 32 }, { x: 22, y: 16 }, copy.rug, 'silly:rug'),
     windowHotspot('window', AT.window, 4),
     windowHotspot('window-two', AT.windowTwo, 30),
     {
