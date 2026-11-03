@@ -10,7 +10,12 @@ import { ASCII_REACH, litAsciiCells } from '@/game/exhibits/asciiArt';
 import { CALL_REACH, createCreativeCoding } from '@/game/exhibits/creativeCoding';
 import { createRenderer3d, shapePixels } from '@/game/exhibits/renderer3d';
 import { createReadCookies } from '@/game/exhibits/readCookies';
-import { createTermExp } from '@/game/exhibits/termExp';
+import {
+  closeTermPrompt,
+  createTermExp,
+  submitTermPrompt,
+  termPromptState,
+} from '@/game/exhibits/termExp';
 import { createArchive, MONSTER_POSTER } from './archive';
 import { navMap } from './nav';
 import type { GameApi, Scene, SceneCtx } from './types';
@@ -127,7 +132,8 @@ const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0
 /**
  * Play an exhibit like a visitor: each time a dialogue with choices appears,
  * take the next pick from `picks` (the last choice once they run out, which
- * is always the way out). Plain lines are clicked through.
+ * is always the way out). Plain lines are clicked through. The terminal's DOM
+ * prompt is driven the same way: submit the picked command, then close it.
  */
 async function play(store: GameStore, run: Promise<void>, picks: string[] = []): Promise<void> {
   let finished = false;
@@ -136,6 +142,17 @@ async function play(store: GameStore, run: Promise<void>, picks: string[] = []):
   });
   for (let guard = 0; !finished && guard < 400; guard += 1) {
     await tick();
+    const prompt = termPromptState();
+    if (prompt) {
+      const pick = picks.shift();
+      const choice = pick ? prompt.choices.find((item) => item.id === pick) : undefined;
+      if (choice?.line) {
+        submitTermPrompt(choice.line);
+      } else {
+        closeTermPrompt();
+      }
+      continue;
+    }
     const dialogue = store.getState().dialogue;
     if (!dialogue) continue;
     const lastLine = dialogue.line >= dialogue.lines.length - 1;
@@ -207,7 +224,7 @@ describe('createArchive', () => {
   });
 
   it('phone_can_use_terminal_with_on_screen_choices', async () => {
-    // No key events anywhere: the visitor only taps what the dialogue offers.
+    // No key events anywhere: the visitor only taps what the prompt offers.
     const store = createStore(null);
     const api = fakeApi(store);
     const term = createTermExp({ x: 56, y: 92 });
@@ -215,10 +232,17 @@ describe('createArchive', () => {
 
     const run = term.use(api);
     await tick();
-    const offered = store.getState().dialogue?.choices.map((choice) => choice.id) ?? [];
+    const offered = termPromptState()?.choices.map((choice) => choice.id) ?? [];
     expect(offered).toEqual(expect.arrayContaining(['help', 'ls', 'cat', 'whoami', 'leave']));
 
-    await play(store, run, ['help', 'cat']);
+    submitTermPrompt('help');
+    submitTermPrompt('cat secrets.txt');
+    expect(termPromptState()?.history.map((entry) => entry.command)).toEqual([
+      'help',
+      'cat secrets.txt',
+    ]);
+    closeTermPrompt();
+    await run;
 
     expect(term.shell().trying).toBe(true);
     expect(term.shell().history).toEqual(['help', 'cat secrets.txt']);

@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext';
 import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
+import { isTermPromptOpen } from '@/game/exhibits/termExp';
 import { createGame, type Game, type GameHint } from '@/game/game';
 import { createArchive } from '@/game/scene/archive';
 import { createDarkScene } from '@/game/scene/dark';
@@ -16,6 +17,7 @@ import { Journal } from './Journal';
 import { ProjectPanel } from './ProjectPanel';
 import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
+import { TermPrompt } from './TermPrompt';
 import './game.css';
 
 const EMPTY_UI = {
@@ -86,7 +88,7 @@ export default function GameRoot() {
   const [audio, setAudio] = useState<GameAudio | null>(null);
   const [hint, setHint] = useState<GameHint>(null);
   const [coarse, setCoarse] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [walked, setWalked] = useState(false);
   const [nudge, setNudge] = useState<string | null>(null);
 
   terminalOpenRef.current = isTerminalOpen;
@@ -113,6 +115,7 @@ export default function GameRoot() {
       isBlocked: () => {
         const state = gameStore.getState();
         return (
+          isTermPromptOpen() ||
           state.dialogue !== null ||
           state.project !== null ||
           terminalOpenRef.current ||
@@ -161,10 +164,14 @@ export default function GameRoot() {
     if (!isTerminalOpen) stageRef.current?.focus({ preventScroll: true });
   }, [isTerminalOpen]);
 
-  const begin = (): void => setStarted(true);
+  const begin = (): void => setWalked(true);
   const blocked = (): boolean => {
     const state = store?.getState();
-    return Boolean(state && (state.dialogue || state.project)) || terminalOpenRef.current;
+    return (
+      isTermPromptOpen() ||
+      Boolean(state && (state.dialogue || state.project)) ||
+      terminalOpenRef.current
+    );
   };
 
   return (
@@ -185,7 +192,7 @@ export default function GameRoot() {
       {store ? <StarsFromStore store={store} /> : null}
       {store && audio ? <SoundFromStore store={store} audio={audio} /> : null}
 
-      <div className="controls-hint px-panel" data-gone={started} aria-hidden="true">
+      <div className="controls-hint px-panel" data-gone={walked} aria-hidden="true">
         {coarse ? (
           <span>{copy.ui.controlsTouch}</span>
         ) : (
@@ -214,6 +221,7 @@ export default function GameRoot() {
         </div>
       ) : null}
       {store ? <UseHint hint={hint} /> : null}
+      {store ? <TermPrompt /> : null}
       {store ? <DialogueBox store={store} /> : null}
       {store ? <ProjectPanel store={store} /> : null}
     </div>

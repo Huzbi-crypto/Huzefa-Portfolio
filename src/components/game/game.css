@@ -260,6 +260,235 @@ body {
   outline-offset: 2px;
 }
 
+/* The little terminal's real DOM prompt: input, history and tap-able commands. */
+
+.term-prompt-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  display: grid;
+  place-items: end center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(27, 20, 40, 0.55);
+  cursor: default;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: pan-y;
+}
+
+.term-prompt {
+  display: flex;
+  width: min(100%, 760px);
+  max-height: min(78vh, 620px);
+  flex-direction: column;
+  padding: 16px 18px 14px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.term-prompt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+
+.term-prompt-title {
+  margin: 0;
+  color: var(--g-amber-hi);
+  font-size: 24px;
+  font-weight: normal;
+  line-height: 1.1;
+}
+
+.term-prompt-kicker {
+  color: var(--g-dim);
+  font-size: 16px;
+}
+
+.term-prompt-close {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  background: var(--g-ink);
+  color: var(--g-text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px var(--g-line);
+}
+
+.term-prompt-close:hover,
+.term-prompt-close:focus-visible {
+  background: var(--g-amber);
+  color: var(--g-ink);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.term-prompt-body {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.term-prompt-screen {
+  min-height: 86px;
+  max-height: 240px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 10px 12px;
+  background: var(--g-ink);
+  box-shadow: inset 0 0 0 3px var(--g-panel-hi);
+}
+
+.term-prompt-line,
+.term-prompt-output {
+  margin: 0 0 4px;
+  overflow-wrap: break-word;
+}
+
+.term-prompt-line {
+  color: var(--g-dim);
+}
+
+.term-prompt-entry + .term-prompt-entry {
+  margin-top: 8px;
+}
+
+.term-prompt-command {
+  margin: 0 0 2px;
+  color: var(--g-green);
+  overflow-wrap: anywhere;
+}
+
+.term-prompt-output {
+  padding-left: 12px;
+  color: var(--g-text);
+}
+
+.term-prompt-side {
+  min-width: 0;
+}
+
+.term-prompt-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--g-ink);
+  box-shadow: inset 0 0 0 3px var(--g-dim);
+}
+
+.term-prompt-caret {
+  color: var(--g-green);
+}
+
+.term-prompt-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--g-text);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1.4;
+  outline: none;
+}
+
+.term-prompt-input::placeholder {
+  color: var(--g-dim);
+}
+
+.term-prompt-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.term-prompt-hint {
+  margin: 8px 0 10px;
+  color: var(--g-dim);
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.term-prompt-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.term-prompt-choice {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  background: var(--g-ink);
+  color: var(--g-text);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px var(--g-dim);
+}
+
+.term-prompt-choice:hover,
+.term-prompt-choice:focus-visible {
+  background: var(--g-amber);
+  color: var(--g-ink);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.term-prompt-choice:active {
+  background: var(--g-amber-hi);
+  color: var(--g-ink);
+}
+
+/* On a touch screen the commands sit beside the screen, not under the field. */
+@media (pointer: coarse) {
+  .term-prompt-body {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    align-items: start;
+  }
+
+  .term-prompt-screen {
+    max-height: 200px;
+  }
+}
+
+@media (max-width: 560px) {
+  .term-prompt {
+    padding: 12px 12px 10px;
+    font-size: 16px;
+  }
+
+  .term-prompt-title {
+    font-size: 22px;
+  }
+
+  .term-prompt-input {
+    font-size: 18px;
+  }
+
+  .term-prompt-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* What you can use right now */
 
 .use-hint {

@@ -6,7 +6,7 @@ import { projectStarId } from '@/game/content/stars';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
 import { TILE } from '@/game/world/grid';
-import { createShell, runCommand, type ShellState } from './logic/miniShell';
+import { createShell, MAX_INPUT, runCommand, type ShellState } from './logic/miniShell';
 import { tryExhibit } from './exhibit';
 import { projectFor, type ArchiveExhibit, type At } from './archiveKit';
 
@@ -20,6 +20,129 @@ export type TermExhibit = ArchiveExhibit & {
   shell(): ShellState;
 };
 
+/** One command the visitor can type, or tap when they have no keyboard. */
+export type TermPromptChoice = {
+  id: string;
+  label: string;
+  /** The line the choice sends. Undefined means "close the terminal". */
+  line?: string;
+};
+
+/** A command and what the rude little shell said back. */
+export type TermPromptLine = {
+  command: string;
+  output: readonly string[];
+};
+
+/** The real DOM prompt's state. React renders this; the exhibit owns the shell. */
+export type TermPromptState = {
+  /** Changes on every session, so React knows to reset the field and focus. */
+  id: number;
+  label: string;
+  kicker: string;
+  close: string;
+  closeLabel: string;
+  inputLabel: string;
+  hint: string;
+  choicesLabel: string;
+  outputLabel: string;
+  intro: readonly string[];
+  history: readonly TermPromptLine[];
+  choices: readonly TermPromptChoice[];
+};
+
+type PromptSession = {
+  state: TermPromptState;
+  run(line: string): readonly string[];
+  closed(): void;
+};
+
+let nextId = 1;
+let active: PromptSession | null = null;
+const listeners = new Set<() => void>();
+
+function emit(): void {
+  for (const listener of [...listeners]) listener();
+}
+
+/** Subscribe to prompt changes. Returns the unsubscribe function. */
+export function subscribeTermPrompt(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/** The prompt's current state, or null when no terminal is open. */
+export function termPromptState(): TermPromptState | null {
+  return active?.state ?? null;
+}
+
+export function isTermPromptOpen(): boolean {
+  return active !== null;
+}
+
+/** Close the prompt and let the exhibit carry on to the project panel. */
+export function closeTermPrompt(): void {
+  const session = active;
+  if (!session) return;
+
+  active = null;
+  emit();
+  session.closed();
+}
+
+/**
+ * Run one line at the prompt. Blank lines are harmless and leave no history.
+ * The exhibit owns the shell, so the same `runCommand` drives the DOM and the
+ * little screen drawn on the canvas.
+ */
+export function submitTermPrompt(line: string): void {
+  const session = active;
+  if (!session) return;
+
+  const command = line.trim().slice(0, MAX_INPUT);
+  if (!command) return;
+
+  const output = session.run(command);
+  session.state = {
+    ...session.state,
+    history: [...session.state.history, { command, output }],
+  };
+  emit();
+}
+
+function openTermPrompt(options: {
+  intro: readonly string[];
+  choices: readonly TermPromptChoice[];
+  run(line: string): readonly string[];
+  closed(): void;
+}): void {
+  // A second terminal replaces the first rather than leaving it waiting forever.
+  closeTermPrompt();
+
+  active = {
+    state: {
+      id: nextId,
+      label: copy.archive.term.promptLabel,
+      kicker: copy.archive.term.promptKicker,
+      close: copy.archive.term.promptClose,
+      closeLabel: copy.archive.term.promptCloseLabel,
+      inputLabel: copy.archive.term.promptInputLabel,
+      hint: copy.archive.term.promptHint,
+      choicesLabel: copy.archive.term.promptChoicesLabel,
+      outputLabel: copy.archive.term.promptOutputLabel,
+      intro: [...options.intro],
+      history: [],
+      choices: [...options.choices],
+    },
+    run: options.run,
+    closed: options.closed,
+  };
+  nextId += 1;
+  emit();
+}
+
 function drawText(
   g: CanvasRenderingContext2D,
   text: string,
@@ -32,10 +155,9 @@ function drawText(
 }
 
 /**
- * A very small terminal on a stool. The visitor taps suggested commands (or
- * presses their keyboard's choice keys) and the prompt is rude about all of
- * them. Nothing here can fail, and every choice is on-screen, so a phone with
- * no keyboard earns the star as easily as anyone.
+ * A very small terminal on a stool. The visitor types at a real DOM prompt and
+ * the little shell is rude about all of it. The same choices stay on screen so
+ * a phone without a keyboard earns the star just as easily.
  */
 export function createTermExp(at: At): TermExhibit {
   const project = projectFor(PROJECT_ID);
@@ -50,8 +172,12 @@ export function createTermExp(at: At): TermExhibit {
     tint: 'cool',
   };
 
-  const choices = [
-    ...copy.archive.term.commands.map((c) => ({ id: c.id, label: `> ${c.line}` })),
+  const choices: TermPromptChoice[] = [
+    ...copy.archive.term.commands.map((c) => ({
+      id: c.id,
+      label: `> ${c.line}`,
+      line: c.line,
+    })),
     { id: 'leave', label: copy.archive.term.leaveLabel },
   ];
 
@@ -94,24 +220,29 @@ export function createTermExp(at: At): TermExhibit {
 
     async use(api) {
       const star = projectStarId(PROJECT_ID);
-      let lines: string[] = [...copy.archive.term.intro];
+      const closed = new Promise<void>((resolve) => {
+        openTermPrompt({
+          intro: copy.archive.term.intro,
+          choices,
+          run: (line) => {
+            const result = runCommand(line, shell);
+            shell = result.state;
+            const word = line.trim().split(/\s+/)[0]?.toLowerCase() ?? '';
+            lastLine = word;
+            const known = copy.archive.term.commands.find((command) => command.id === word);
+            reply = known
+              ? (copy.archive.term.screenReply as Record<string, string>)[known.id] ??
+                copy.archive.term.screenUnknown
+              : copy.archive.term.screenUnknown;
+            // The first real command is a try, whatever it was.
+            if (result.trying) api.store.award(star);
+            return result.output;
+          },
+          closed: () => resolve(),
+        });
+      });
 
-      for (let guard = 0; guard < 200; guard += 1) {
-        const picked = await api.store.say(lines, choices);
-        const command = copy.archive.term.commands.find((c) => c.id === picked);
-        if (!command) break;
-
-        const result = runCommand(command.line, shell);
-        shell = result.state;
-        lastLine = command.line.split(/\s+/)[0];
-        reply =
-          (copy.archive.term.screenReply as Record<string, string>)[command.id] ??
-          copy.archive.term.screenUnknown;
-        // The first real command is a try, whatever it was.
-        if (result.trying) api.store.award(star);
-        lines = result.output.length > 0 ? result.output : [copy.archive.term.screenUnknown];
-      }
-
+      await closed;
       await tryExhibit(api, project.id);
     },
   };

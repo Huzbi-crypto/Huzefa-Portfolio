@@ -330,6 +330,17 @@ export const copy = {
         { id: 'sudo', line: 'sudo make me a sandwich' },
       ],
       leaveLabel: 'STEP AWAY',
+      /** The little DOM prompt, which is the terminal's real keyboard. */
+      promptLabel: 'The little terminal',
+      promptKicker: 'huzbi@room:~$',
+      promptInputLabel: 'Type a command at the little terminal',
+      promptHint: 'Type a command and press Enter. Esc gets you out.',
+      promptChoicesLabel: 'No keyboard? Tap one of these.',
+      promptClose: 'CLOSE',
+      promptCloseLabel: 'Close the little terminal',
+      promptOutputLabel: 'Terminal output',
+      promptCommand: (line: string) => `> ${line}`,
+      promptEmpty: 'Say something. It is waiting.',
       /** The few letters the little screen shows, before and after a command. */
       screenIdle: 'HI?',
       screenReply: {
