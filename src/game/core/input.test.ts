@@ -220,6 +220,72 @@ describe('createInput', () => {
     expect(input.drain()).toEqual([{ type: 'tap', x: 32, y: 45 }]);
   });
 
+  it('pointer_down_state_tracks_the_press', () => {
+    const { target, input } = setup();
+    target.getBoundingClientRect = () => RECT;
+
+    expect(input.pointerDown).toBeNull();
+    pointer(target, 'pointerdown', {
+      clientX: 42,
+      clientY: 65,
+      pointerType: 'mouse',
+    });
+    expect(input.pointerDown).toEqual({ x: 32, y: 45 });
+
+    pointer(target, 'pointerup', {
+      clientX: 42,
+      clientY: 65,
+      pointerType: 'mouse',
+    });
+    expect(input.pointerDown).toBeNull();
+  });
+
+  it('consume_press_removes_the_tap_without_touching_the_pointer', () => {
+    const { target, input } = setup();
+    target.getBoundingClientRect = () => RECT;
+
+    pointer(target, 'pointerdown', {
+      clientX: 42,
+      clientY: 65,
+      pointerType: 'mouse',
+    });
+    input.consumePress?.();
+    pointer(target, 'pointerup', {
+      clientX: 42,
+      clientY: 65,
+      pointerType: 'mouse',
+    });
+
+    expect(input.drain()).toEqual([]);
+    expect(input.pointer).toEqual({ x: 32, y: 45 });
+  });
+
+  it('touch_drag_light_still_works_elsewhere', () => {
+    const { target, input } = setup();
+    target.getBoundingClientRect = () => RECT;
+
+    pointer(target, 'pointerdown', {
+      clientX: 42,
+      clientY: 65,
+      pointerType: 'touch',
+    });
+    pointer(target, 'pointermove', {
+      clientX: 90,
+      clientY: 65,
+      pointerType: 'touch',
+    });
+    pointer(target, 'pointerup', {
+      clientX: 90,
+      clientY: 65,
+      pointerType: 'touch',
+    });
+
+    // A drag on ordinary floor is still the light, not a walk.
+    expect(input.mode).toBe('touch');
+    expect(input.pointer).toEqual({ x: 80, y: 45 });
+    expect(input.drain()).toEqual([]);
+  });
+
   it('mode_tracks_last_device', () => {
     const { target, input } = setup();
 

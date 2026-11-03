@@ -11,7 +11,20 @@ export type InputMove = {
 export type Input = {
   move: InputMove;
   pointer: { x: number; y: number } | null;
+  /**
+   * Where the current press began, in CSS pixels of the stage, or null when
+   * nothing is held. Exhibits use it to tell a grab from a walk.
+   */
+  pointerDown?: { x: number; y: number } | null;
   mode: 'mouse' | 'keyboard' | 'touch';
+  /**
+   * Keep the current press from becoming a tap when it ends. The 3D screen
+   * calls this after a press that started on its glass, so spinning it never
+   * walks the visitor.
+   */
+  consumePress?(): void;
+  /** Arrow keys alone, kept live even when a panel has blocked the game. */
+  arrows?: InputMove;
   drain(): InputEvent[];
   dispose(): void;
 };
@@ -31,6 +44,9 @@ const DIRECTIONS: Record<string, Direction> = {
   arrowdown: { x: 0, y: 1 },
   s: { x: 0, y: 1 },
 };
+
+/** The arrow keys alone, readable even while the game is blocked by a panel. */
+const ARROW_KEYS = new Set(['arrowleft', 'arrowright', 'arrowup', 'arrowdown']);
 
 function normalizeKey(key: string): string {
   return key.toLowerCase();
@@ -54,9 +70,12 @@ export function createInput(
   opts: { isBlocked: () => boolean },
 ): Input {
   const move: InputMove = { x: 0, y: 0 };
+  const arrows: InputMove = { x: 0, y: 0 };
   const held = new Set<string>();
   const queue: InputEvent[] = [];
   let pointer: { x: number; y: number } | null = null;
+  let pointerDown: { x: number; y: number } | null = null;
+  let pressConsumed = false;
   let downPoint: { x: number; y: number } | null = null;
   let mode: Input['mode'] = 'mouse';
 
@@ -68,6 +87,16 @@ export function createInput(
 
     move.x = ((right ? 1 : 0) - (left ? 1 : 0)) as InputMove['x'];
     move.y = ((down ? 1 : 0) - (up ? 1 : 0)) as InputMove['y'];
+  };
+
+  const syncArrows = (): void => {
+    const left = held.has('arrowleft');
+    const right = held.has('arrowright');
+    const up = held.has('arrowup');
+    const down = held.has('arrowdown');
+
+    arrows.x = ((right ? 1 : 0) - (left ? 1 : 0)) as InputMove['x'];
+    arrows.y = ((down ? 1 : 0) - (up ? 1 : 0)) as InputMove['y'];
   };
 
   const localPoint = (event: PointerEvent): { x: number; y: number } => {
@@ -84,9 +113,14 @@ export function createInput(
   const onKeyDown = (event: KeyboardEvent): void => {
     if (isTypingTarget(event.target)) return;
     mode = 'keyboard';
-    if (opts.isBlocked()) return;
 
     const key = normalizeKey(event.key);
+    if (ARROW_KEYS.has(key)) {
+      held.add(key);
+      syncArrows();
+    }
+    if (opts.isBlocked()) return;
+
     const direction = DIRECTIONS[key];
     if (direction) {
       event.preventDefault();
@@ -111,6 +145,10 @@ export function createInput(
     if (isTypingTarget(event.target)) return;
 
     const key = normalizeKey(event.key);
+    if (ARROW_KEYS.has(key)) {
+      held.delete(key);
+      syncArrows();
+    }
     if (!DIRECTIONS[key]) return;
 
     held.delete(key);
@@ -120,11 +158,14 @@ export function createInput(
   const clearHeld = (): void => {
     held.clear();
     syncMove();
+    syncArrows();
   };
 
   const onPointerDown = (event: PointerEvent): void => {
     mode = deviceFor(event);
     pointer = localPoint(event);
+    pointerDown = pointer;
+    pressConsumed = false;
     downPoint = pointer;
   };
 
@@ -141,14 +182,19 @@ export function createInput(
       ? Math.hypot(point.x - downPoint.x, point.y - downPoint.y)
       : 0;
     const dragged = mode === 'touch' && dragDistance > DRAG_SLOP;
+    const consumed = pressConsumed;
     downPoint = null;
-    if (!opts.isBlocked() && !dragged) {
+    pointerDown = null;
+    pressConsumed = false;
+    if (!opts.isBlocked() && !dragged && !consumed) {
       queue.push({ type: 'tap', x: point.x, y: point.y });
     }
   };
 
   const onPointerLeave = (): void => {
     pointer = null;
+    pointerDown = null;
+    pressConsumed = false;
     downPoint = null;
   };
 
@@ -162,8 +208,15 @@ export function createInput(
 
   return {
     move,
+    arrows,
     get pointer() {
       return pointer;
+    },
+    get pointerDown() {
+      return pointerDown;
+    },
+    consumePress(): void {
+      if (pointerDown) pressConsumed = true;
     },
     get mode() {
       return mode;
@@ -180,6 +233,8 @@ export function createInput(
       target.removeEventListener('pointerleave', onPointerLeave);
       window.removeEventListener('blur', clearHeld);
       clearHeld();
+      pointerDown = null;
+      pressConsumed = false;
       queue.length = 0;
     },
   };

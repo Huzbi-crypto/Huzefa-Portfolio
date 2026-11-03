@@ -4,6 +4,7 @@ import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
+import type { SceneCtx } from '@/game/scene/types';
 import { TILE } from '@/game/world/grid';
 import {
   projectEdges,
@@ -28,6 +29,11 @@ const NUDGE = 3.2;
 /** How strongly a light held over the glass pushes the shape round. */
 const PUSH = 0.045;
 const FRICTION = 0.96;
+/** Radians per world pixel dragged over the glass. */
+const DRAG_YAW = 0.035;
+const DRAG_PITCH = 0.028;
+/** Radians per second while an arrow key is held during the exhibit's use. */
+const KEY_SPIN = 2.6;
 /** The inner shape is usually inside the cube. Now and then it pokes through. */
 const POP_EVERY_MS = 6400;
 const POP_FOR_MS = 700;
@@ -118,9 +124,29 @@ export function createRenderer3d(at: At): RendererExhibit {
   let pitchSpeed = 0;
   let clock = 0;
   let calm = false;
+  let focused = false;
+  let dragFrom: { x: number; y: number } | null = null;
+  let lastDrag: { x: number; y: number } | null = null;
 
   const poking = (): boolean => clock % POP_EVERY_MS > POP_EVERY_MS - POP_FOR_MS;
   const innerSize = (): number => (calm ? POKING_SIZE : poking() ? POKING_SIZE : INNER_SIZE);
+
+  const clampPitch = (): void => {
+    pitch = Math.max(-1.3, Math.min(1.3, pitch));
+  };
+
+  /** A pointer in the same world pixels as the glass. */
+  const pointerWorld = (ctx: SceneCtx): { x: number; y: number } | null => {
+    const p = ctx.input.pointer;
+    if (!p) return null;
+    return { x: p.x / ctx.scale + ctx.camera.x, y: p.y / ctx.scale + ctx.camera.y };
+  };
+
+  const onGlass = (point: { x: number; y: number }): boolean =>
+    point.x >= screen.x &&
+    point.x <= screen.x + SCREEN_W &&
+    point.y >= screen.y &&
+    point.y <= screen.y + SCREEN_H;
 
   return {
     id: PROJECT_ID,
@@ -133,14 +159,70 @@ export function createRenderer3d(at: At): RendererExhibit {
     view: () => ({ yaw, pitch }),
 
     update(ms, ctx) {
+      const dt = Math.min(ms, 100) / 1000;
+      const wasCalm = calm;
       calm = ctx.reducedMotion;
-      if (calm) {
+      if (calm && !wasCalm) {
+        // Entering the calm version settles on a still pose. From there it
+        // only moves when the visitor drags or presses an arrow.
         yaw = CALM_YAW;
         pitch = CALM_PITCH;
+      }
+
+      // A press that begins on the glass grabs the screen for as long as it is
+      // held. The exhibit claims the press so it never turns into a walk.
+      const pointer = pointerWorld(ctx);
+      const down = ctx.input.pointerDown ?? null;
+      let grabbed = false;
+      if (down && pointer) {
+        if (!dragFrom) {
+          const origin = {
+            x: down.x / ctx.scale + ctx.camera.x,
+            y: down.y / ctx.scale + ctx.camera.y,
+          };
+          if (onGlass(origin)) {
+            dragFrom = origin;
+            lastDrag = origin;
+          }
+        }
+        if (dragFrom) {
+          ctx.input.consumePress?.();
+          if (lastDrag) {
+            yaw += (pointer.x - lastDrag.x) * DRAG_YAW;
+            pitch += (pointer.y - lastDrag.y) * DRAG_PITCH;
+            clampPitch();
+          }
+          lastDrag = pointer;
+          grabbed = true;
+        }
+      } else {
+        dragFrom = null;
+        lastDrag = null;
+      }
+
+      // Arrow keys also turn it while its own dialogue is up and focused.
+      const arrows = ctx.input.arrows;
+      if (focused && arrows && (arrows.x !== 0 || arrows.y !== 0)) {
+        yaw += arrows.x * KEY_SPIN * dt;
+        pitch += arrows.y * KEY_SPIN * dt;
+        clampPitch();
+        grabbed = true;
+      }
+
+      if (calm) {
+        yawSpeed = 0;
+        pitchSpeed = 0;
+        clock += ms;
         return;
       }
-      const dt = Math.min(ms, 100) / 1000;
+
       clock += ms;
+      if (grabbed) {
+        // Being held stops the idle spin and the light's push.
+        yawSpeed = 0;
+        pitchSpeed = 0;
+        return;
+      }
 
       // A light held over the glass pushes the shape round, harder the further from the middle.
       const held = lantern(ctx);
@@ -156,7 +238,7 @@ export function createRenderer3d(at: At): RendererExhibit {
       // Friction settles the shape back to its idle spin, never to a standstill.
       yawSpeed = IDLE_SPIN + (yawSpeed - IDLE_SPIN) * Math.pow(FRICTION, dt * 60);
       pitchSpeed *= Math.pow(FRICTION, dt * 60);
-      pitch = Math.max(-1.3, Math.min(1.3, pitch));
+      clampPitch();
     },
 
     draw(g) {
@@ -189,24 +271,29 @@ export function createRenderer3d(at: At): RendererExhibit {
       ];
       let lines: string[] = [...text.intro];
 
-      for (let guard = 0, spins = 0; guard < 200; guard += 1) {
-        const picked = await api.store.say(lines, choices);
-        const push: Record<string, [number, number]> = {
-          left: [-NUDGE, 0],
-          right: [NUDGE, 0],
-          up: [0, -NUDGE],
-          down: [0, NUDGE],
-        };
-        const impulse = picked ? push[picked] : undefined;
-        if (!impulse) break;
+      focused = true;
+      try {
+        for (let guard = 0, spins = 0; guard < 200; guard += 1) {
+          const picked = await api.store.say(lines, choices);
+          const push: Record<string, [number, number]> = {
+            left: [-NUDGE, 0],
+            right: [NUDGE, 0],
+            up: [0, -NUDGE],
+            down: [0, NUDGE],
+          };
+          const impulse = picked ? push[picked] : undefined;
+          if (!impulse) break;
 
-        yawSpeed += impulse[0];
-        pitchSpeed += impulse[1];
-        // Turning it is the try. It can't be done wrong.
-        api.store.award(star);
-        lines = [text.spun[Math.min(spins, text.spun.length - 1)]];
-        if (spins === 1) lines.push(text.pop);
-        spins += 1;
+          yawSpeed += impulse[0];
+          pitchSpeed += impulse[1];
+          // Turning it is the try. It can't be done wrong.
+          api.store.award(star);
+          lines = [text.spun[Math.min(spins, text.spun.length - 1)]];
+          if (spins === 1) lines.push(text.pop);
+          spins += 1;
+        }
+      } finally {
+        focused = false;
       }
 
       await tryExhibit(api, project.id);
