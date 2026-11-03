@@ -3,6 +3,8 @@
  * session, because the evidence was never meant to be eaten.
  */
 
+import { copy } from '@/game/content/copy';
+
 export type Cookie = {
   /** Stable id, used to take this one biscuit out of the jar. */
   id: string;
@@ -12,41 +14,10 @@ export type Cookie = {
   note: string;
 };
 
-export const EVIDENCE_LINE = 'Please stop eating the evidence.';
-export const EMPTY_LINE = 'The jar is empty. The evidence is in you now.';
+export const EVIDENCE_LINE: string = copy.archive.jar.evidence;
+export const EMPTY_LINE: string = copy.archive.jar.empty;
 
-const JAR: readonly Cookie[] = [
-  {
-    id: 'session',
-    label: 'session_id',
-    note: 'Expires when you stop being curious.',
-  },
-  {
-    id: 'auth',
-    label: 'auth_token',
-    note: 'Tastes like a password reset.',
-  },
-  {
-    id: 'analytics',
-    label: '_ga',
-    note: 'Counts how many crumbs you drop.',
-  },
-  {
-    id: 'csrf',
-    label: 'csrf_token',
-    note: 'Suspiciously crunchy, for a security measure.',
-  },
-  {
-    id: 'theme',
-    label: 'theme_pref',
-    note: 'Dark. Obviously.',
-  },
-  {
-    id: 'cart',
-    label: 'cart_id',
-    note: 'You never bought anything, so this is free.',
-  },
-];
+const JAR: readonly Cookie[] = copy.archive.jar.cookies;
 
 /** A fresh jar: the visitor's snacking never changes the contents. */
 export function unlockJar(): Cookie[] {
@@ -65,7 +36,7 @@ export function eatCookie(
       line:
         cookies.length === 0
           ? EMPTY_LINE
-          : 'That cookie is not in the jar. It is in your heart.',
+          : copy.archive.jar.missing,
     };
   }
 

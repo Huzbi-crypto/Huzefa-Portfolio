@@ -3,6 +3,8 @@
  * a real shell: a few commands, a short memory and no way to break anything.
  */
 
+import { copy } from '@/game/content/copy';
+
 export const MAX_INPUT = 48;
 
 export const COMMANDS = ['help', 'ls', 'cat', 'whoami', 'clear'] as const;
@@ -22,14 +24,6 @@ export type ShellResult = {
   trying: boolean;
 };
 
-const HELP_LINES = [
-  'help    - read this, then forget it',
-  'ls      - list the evidence',
-  'cat     - read a file',
-  'whoami  - ask a question you will regret',
-  'clear   - wipe the screen, not the guilt',
-];
-
 export function createShell(): ShellState {
   return { cwd: '~', history: [], trying: false };
 }
@@ -48,10 +42,10 @@ export function runCommand(line: string, s: ShellState): ShellResult {
 
   switch (command) {
     case 'help':
-      return { output: [...HELP_LINES], state, trying: true };
+      return { output: [...copy.archive.shell.help], state, trying: true };
     case 'ls':
       return {
-        output: ['nothing', 'a cat', 'a suspiciously empty folder'],
+        output: [...copy.archive.shell.ls],
         state,
         trying: true,
       };
@@ -60,8 +54,8 @@ export function runCommand(line: string, s: ShellState): ShellResult {
       return {
         output: [
           file
-            ? `cat: ${file}: permission denied. Nice try.`
-            : 'cat: which file? Use your words.',
+            ? copy.archive.shell.catDenied(file)
+            : copy.archive.shell.catWhich,
         ],
         state,
         trying: true,
@@ -69,19 +63,19 @@ export function runCommand(line: string, s: ShellState): ShellResult {
     }
     case 'whoami':
       return {
-        output: ['A visitor with too much time.'],
+        output: [copy.archive.shell.whoami],
         state,
         trying: true,
       };
     case 'clear':
       return {
-        output: ['The screen is no cleaner. You are.'],
+        output: [copy.archive.shell.clear],
         state,
         trying: true,
       };
     default:
       return {
-        output: [`${command}? That is not a command. It is barely a word.`],
+        output: [copy.archive.shell.unknown(command)],
         state,
         trying: true,
       };
