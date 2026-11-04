@@ -73,8 +73,15 @@ describe('room layout', () => {
   it('has_every_planned_hotspot', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['cat', 'door', 'lamp', 'monitor', 'note', 'rug', 'shelf', 'sofa', 'tea', 'window', 'window-two'],
+      ['cat', 'clue:note', 'door', 'lamp', 'monitor', 'note', 'rug', 'shelf', 'sofa', 'tea', 'window', 'window-two'],
     );
+  });
+
+  it('the_second_note_starts_the_clue_trail', async () => {
+    const { scene, api, store } = setup();
+    const said = await interact(byId(scene, 'clue:note'), api);
+    expect(store.hasClue('clue:note')).toBe(true);
+    expect(said.join(' ')).toContain(copy.clues.note.lines[1]);
   });
 
   it('all_room_hotspots_reachable', () => {

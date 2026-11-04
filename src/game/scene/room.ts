@@ -21,6 +21,7 @@ const AT = {
   desk: { x: 152, y: 24 },
   crt: { x: 166, y: 8 },
   note: { x: 156, y: 26 },
+  clueNote: { x: 212, y: 26 },
   tea: { x: 188, y: 26 },
   door: { x: 288, y: 8 },
   doorLight: { x: 286, y: 48 },
@@ -200,6 +201,13 @@ async function petCat(api: GameApi): Promise<void> {
   await store.say([copy.cat.pets[(pets - 1) % copy.cat.pets.length]]);
 }
 
+/** The second note: the first scrap of the trail through the dark. */
+async function readClueNote(api: GameApi): Promise<void> {
+  const first = !api.store.hasClue('clue:note');
+  api.store.markClue('clue:note');
+  await api.store.say([...(first ? copy.clues.note.lines : copy.clues.note.again)]);
+}
+
 async function readWindow(api: GameApi): Promise<void> {
   api.store.increment('window-look');
   if (api.store.count('window-look') === 5 && api.store.award('silly:wave-at-sky')) {
@@ -267,6 +275,13 @@ function buildHotspots(): Hotspot[] {
         }
         await api.store.say([...(first ? copy.note.lines : copy.note.again)]);
       },
+    },
+    {
+      id: 'clue:note',
+      rect: { x: AT.clueNote.x, y: AT.clueNote.y, w: 10, h: 22 },
+      stand: { x: 27, y: 7 },
+      label: copy.clues.note.label,
+      onInteract: readClueNote,
     },
     {
       id: 'tea',
@@ -455,6 +470,7 @@ export function createRoomScene(store: GameStore): Scene {
       const flicker = !reducedMotion && t % 2300 < 120;
       drawSprite(g, sprite(flicker ? 'crt-1' : 'crt'), AT.crt.x, AT.crt.y);
       drawSprite(g, sprite('note'), AT.note.x, AT.note.y);
+      drawSprite(g, sprite('note'), AT.clueNote.x, AT.clueNote.y);
       drawSprite(g, sprite('tea'), AT.tea.x, AT.tea.y);
 
       // Floor decals.
