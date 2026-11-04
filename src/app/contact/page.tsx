@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import snapshot from '@/data/github-snapshot.json';
 import { personalInfo } from '@/data/personal';
 import { ICONS } from '@/components/journal/journalArt';
 import { JournalPage } from '@/components/journal/JournalPage';
@@ -16,7 +17,7 @@ const SOCIAL_CHANNELS = [
   {
     name: 'GitHub',
     handle: '@Huzbi-crypto',
-    desc: '38 public repositories, systems code, network routing, and AI agents.',
+    desc: `${snapshot.repositories.length} public repositories, systems code, network routing, and AI agents.`,
     url: personalInfo.socials.github,
     icon: ICONS.branch,
     badge: 'Code repos',

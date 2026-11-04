@@ -16,7 +16,7 @@ import { ICONS, SCENE } from '@/components/journal/journalArt';
 export const metadata: Metadata = {
   title: 'GitHub Log | Huzbi',
   description:
-    'The honest GitHub snapshot: 38 public repositories, the language breakdown, and a year of lit contribution windows.',
+    `The honest GitHub snapshot: ${snapshot.repositories.length} public repositories, the language breakdown, and a year of lit contribution windows.`,
 };
 
 const HEAT_CELL = 11;

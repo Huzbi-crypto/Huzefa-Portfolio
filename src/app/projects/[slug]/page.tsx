@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import snapshot from '@/data/github-snapshot.json';
 import { projects, getProjectBySlug } from '@/data/projects';
 import type { ProjectCategory } from '@/types/portfolio';
 import { JournalPage } from '@/components/journal/JournalPage';
@@ -209,8 +210,9 @@ export default async function ProjectSlugPage({ params }: PageProps) {
         <p className="j-kicker">Keep looking</p>
         <h2 id="back-heading">There are more artifacts on the bench.</h2>
         <p>
-          The lab directory lists every project, and the GitHub log holds all 38
-          public repositories and the year&apos;s lit contribution windows.
+          The lab directory lists every project, and the GitHub log holds all{' '}
+          {snapshot.repositories.length} public repositories and the year&apos;s lit
+          contribution windows.
         </p>
         <div className="j-row">
           <Link href="/projects/" className="j-btn">

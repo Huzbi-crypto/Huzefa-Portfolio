@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import snapshot from '@/data/github-snapshot.json';
 import { projects } from '@/data/projects';
 import type { ProjectCategory } from '@/types/portfolio';
 import { JournalPage } from '@/components/journal/JournalPage';
@@ -113,8 +114,9 @@ export default function ProjectsPage() {
         <p className="j-kicker">The wider archive</p>
         <h2 id="catalog-heading">Looking for the full catalog?</h2>
         <p>
-          The GitHub log holds all 38 public repositories, the language
-          breakdown, and the year’s contribution wall — every commit window lit.
+          The GitHub log holds all {snapshot.repositories.length} public repositories,
+          the language breakdown, and the year’s contribution wall — every commit
+          window lit.
         </p>
         <div className="j-row">
           <Link href="/github/" className="j-btn">
