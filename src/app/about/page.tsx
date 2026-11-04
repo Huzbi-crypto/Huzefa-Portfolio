@@ -1,13 +1,17 @@
-'use client';
-
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { useApp } from '@/context/AppContext';
 import { personalInfo } from '@/data/personal';
-import { SCENE, PROJECT_ICONS, ICONS } from '@/components/journal/journalArt';
+import { SCENE, PROJECT_ICONS } from '@/components/journal/journalArt';
 import { JournalPage } from '@/components/journal/JournalPage';
 import { PixelPanel } from '@/components/journal/PixelPanel';
 import { PixelArt } from '@/components/journal/PixelArt';
+
+export const metadata: Metadata = {
+  title: 'About Huzbi | Huzbi',
+  description:
+    'Huzefa Saifuddin, known online as Huzbi: a FAST NU computer science graduate building systems, agents and cozy retro experiments.',
+};
 
 const INTERESTS = [
   {
@@ -43,8 +47,6 @@ const MANGA_INFLUENCES = [
  * builds, the shelf and the education, all in his own voice.
  */
 export default function AboutPage() {
-  const { openTerminal } = useApp();
-
   return (
     <JournalPage
       title="Hey. I’m Huzefa, but most people online know me as Huzbi."
@@ -213,10 +215,6 @@ export default function AboutPage() {
           <Link href="/contact/" className="j-btn">
             Say hello
           </Link>
-          <button type="button" className="j-btn" data-kind="ghost" onClick={openTerminal}>
-            <PixelArt grid={ICONS.bubble} scale={2} />
-            Open the CLI
-          </button>
         </div>
       </PixelPanel>
     </JournalPage>
