@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { copy } from '../../src/game/content/copy';
+import { starTotal } from '../../src/game/content/stars';
 import type { SceneId } from '../../src/game/scene/types';
 
 const STAGE = '.game-stage';
@@ -10,7 +11,7 @@ const CHOICE = '.dialogue-choice';
 const COUNTER = '.star-counter';
 const CHECKPOINT_DIR = path.join('test-results', 'checkpoint-1');
 const FIX_DIR = path.join('test-results', 'fix');
-const TOTAL_STARS = 26;
+const TOTAL_STARS = starTotal();
 
 type Snapshot = {
   sceneId: SceneId;
