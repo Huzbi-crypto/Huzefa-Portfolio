@@ -106,6 +106,89 @@
   --theme-name: 'moonlit-terminal';
 }
 
+/*
+ * The three themes are one pixel palette each. The game HUD (--g-*) and the
+ * journal pages (--j-*) read these same roles, so a theme change repaints the
+ * chrome of the whole site in place, with no reload.
+ */
+html[data-theme="warm-apartment"] {
+  --g-ink: #1c1110;
+  --g-panel: #2e1d18;
+  --g-panel-hi: #46291f;
+  --g-line: #cfb488;
+  --g-text: #fff5e0;
+  --g-dim: #cfb488;
+  --g-amber: #ffad42;
+  --g-amber-hi: #ffd98a;
+  --g-green: #b6e06a;
+  --g-focus: #ffd98a;
+
+  --j-ink: #1c1110;
+  --j-panel: #2e1d18;
+  --j-panel-hi: #46291f;
+  --j-wall: #61382a;
+  --j-line: #cfb488;
+  --j-paper: #f6e6c3;
+  --j-paper-shade: #cfb488;
+  --j-text: #fff5e0;
+  --j-dim: #cfb488;
+  --j-amber: #ffad42;
+  --j-amber-hi: #ffd98a;
+  --j-green: #b6e06a;
+  --j-green-dark: #527a24;
+  --j-teal: #5f7036;
+  --j-teal-hi: #879a54;
+  --j-red: #a3402f;
+  --j-violet: #b56a76;
+  --j-hoodie: #b95a37;
+  --j-wood: #774020;
+  --j-focus: #ffd98a;
+  --j-heat-0: #2e1d18;
+  --j-heat-1: #774020;
+  --j-heat-2: #ffad42;
+  --j-heat-3: #ffd98a;
+  --j-heat-4: #fff5e0;
+}
+
+html[data-theme="moonlit-terminal"] {
+  --g-ink: #080c16;
+  --g-panel: #0f1626;
+  --g-panel-hi: #182238;
+  --g-line: #a6b8cd;
+  --g-text: #f3f8ff;
+  --g-dim: #a6b8cd;
+  --g-amber: #79d2ff;
+  --g-amber-hi: #c2f1ff;
+  --g-green: #8af0c8;
+  --g-focus: #c2f1ff;
+
+  --j-ink: #080c16;
+  --j-panel: #0f1626;
+  --j-panel-hi: #182238;
+  --j-wall: #23304d;
+  --j-line: #a6b8cd;
+  --j-paper: #dfeaf6;
+  --j-paper-shade: #a6b8cd;
+  --j-text: #f3f8ff;
+  --j-dim: #a6b8cd;
+  --j-amber: #79d2ff;
+  --j-amber-hi: #c2f1ff;
+  --j-green: #8af0c8;
+  --j-green-dark: #2b8168;
+  --j-teal: #245a6d;
+  --j-teal-hi: #3f8499;
+  --j-red: #9c7cf0;
+  --j-violet: #9c7cf0;
+  --j-hoodie: #3d5aa3;
+  --j-wood: #38496a;
+  --j-focus: #c2f1ff;
+  --j-heat-0: #0f1626;
+  --j-heat-1: #38496a;
+  --j-heat-2: #79d2ff;
+  --j-heat-3: #c2f1ff;
+  --j-heat-4: #f3f8ff;
+}
+
 /* Global resets and base styling */
 html {
   background-color: var(--color-bg);
@@ -215,6 +298,502 @@ body {
     2px 0 0 0 var(--color-accent),
     0 -2px 0 0 var(--color-accent),
     0 2px 0 0 var(--color-accent);
+}
+
+/*
+ * The CRT: hard one-pixel scanlines over a stepped vignette. No flicker, no
+ * blur, no animation at all, for anyone, so reduced motion has nothing to
+ * remove.
+ */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  user-select: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='3' shape-rendering='crispEdges'%3E%3Crect y='2' width='4' height='1' fill='%23000000' fill-opacity='0.26'/%3E%3C/svg%3E");
+  background-size: 100% 3px;
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 22px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 56px rgba(0, 0, 0, 0.14);
+  opacity: 0.55;
+}
+
+/* The theme selector: three palettes as real swatches and a CRT switch. */
+
+.theme-selector {
+  --ts-ink: #1b1428;
+  --ts-panel: #2a2040;
+  --ts-line: #bba682;
+  --ts-text: #f4f1ea;
+  --ts-amber: #f0a93c;
+  --ts-amber-hi: #ffd97a;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  background: var(--ts-panel);
+  color: var(--ts-text);
+  font-family: var(--font-pixel);
+  box-shadow: inset 0 0 0 3px var(--ts-ink), inset 0 0 0 5px var(--ts-line);
+  image-rendering: pixelated;
+}
+
+.theme-selector-label {
+  margin: 0;
+  padding: 2px 2px 0;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ts-line);
+}
+
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (max-width: 700px) {
+  .theme-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 0;
+  background: var(--ts-panel);
+  color: var(--ts-text);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--ts-ink);
+  image-rendering: pixelated;
+}
+
+.theme-option:hover {
+  background: var(--ts-ink);
+}
+
+.theme-option[aria-pressed="true"] {
+  background: var(--ts-ink);
+  box-shadow: inset 0 0 0 3px var(--ts-amber-hi);
+}
+
+.theme-swatches {
+  display: flex;
+  flex: none;
+  height: 18px;
+  box-shadow: inset 0 0 0 1px var(--ts-ink);
+}
+
+.theme-swatch {
+  display: block;
+  width: 7px;
+  height: 18px;
+}
+
+.theme-option-text {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.theme-option-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-option-short {
+  display: block;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--ts-line);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-option-mark {
+  flex: none;
+  width: 1ch;
+  margin-left: auto;
+  color: var(--ts-amber-hi);
+}
+
+.theme-crt {
+  justify-self: start;
+  padding: 6px 10px;
+  border: 0;
+  background: var(--ts-ink);
+  color: var(--ts-text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--ts-line);
+}
+
+.theme-crt[aria-pressed="true"] {
+  color: var(--ts-ink);
+  background: var(--ts-amber-hi);
+}
+
+.theme-crt:hover {
+  box-shadow: inset 0 0 0 2px var(--ts-amber);
+}
+
+/* The in-game terminal: a hard-edged CRT shell in the site's own palette. */
+
+.term-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.term-window {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 880px;
+  height: 78vh;
+  max-height: 660px;
+  overflow: hidden;
+  background: var(--color-bg-deep);
+  color: var(--color-text);
+  font-family: var(--font-pixel);
+  box-shadow:
+    inset 0 0 0 3px var(--color-bg-deep),
+    inset 0 0 0 6px var(--color-accent),
+    0 0 0 2px var(--color-bg-deep);
+  image-rendering: pixelated;
+}
+
+.term-window[data-fullscreen="true"] {
+  max-width: none;
+  height: calc(100vh - 24px);
+  max-height: none;
+}
+
+.term-titlebar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  background: var(--color-surface);
+  box-shadow: inset 0 -2px 0 var(--color-border);
+}
+
+.term-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--color-accent);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.term-title-icon {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: var(--color-accent);
+  box-shadow:
+    -3px 3px 0 var(--color-accent),
+    3px 3px 0 var(--color-accent),
+    0 6px 0 var(--color-accent);
+}
+
+.term-lights {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.term-light {
+  min-width: 22px;
+  height: 24px;
+  padding: 0 4px;
+  border: 0;
+  background: var(--color-bg-deep);
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--color-border);
+}
+
+.term-light:hover {
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.term-light[data-close]:hover {
+  color: var(--color-bg);
+  background: var(--color-accent);
+}
+
+.term-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  overflow-x: auto;
+  background: var(--color-bg-deep);
+  box-shadow: inset 0 -2px 0 var(--color-border-subtle);
+  scrollbar-width: none;
+}
+
+.term-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.term-toolbar-label {
+  flex: none;
+  margin-right: 2px;
+  font-size: 13px;
+  color: var(--color-text-subtle);
+}
+
+.term-chip {
+  flex: none;
+  padding: 3px 7px;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--color-border);
+}
+
+.term-chip:hover {
+  color: var(--color-bg);
+  background: var(--color-accent);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.term-output {
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 16px;
+  line-height: 1.45;
+  scrollbar-color: var(--color-border) var(--color-bg-deep);
+}
+
+.term-output::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.term-entry + .term-entry {
+  margin-top: 12px;
+}
+
+.term-echo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--color-text);
+}
+
+.term-echo-prompt {
+  flex: none;
+  color: var(--color-accent-secondary);
+}
+
+.term-body {
+  margin-top: 3px;
+}
+
+.term-accent {
+  color: var(--color-accent);
+}
+
+.term-cream {
+  color: var(--color-accent-cream);
+}
+
+.term-dim {
+  color: var(--color-text-muted);
+}
+
+.term-subtle {
+  color: var(--color-text-subtle);
+}
+
+.term-warn {
+  color: var(--color-accent-secondary);
+}
+
+.term-line {
+  margin: 2px 0;
+}
+
+.term-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 18px;
+}
+
+@media (max-width: 640px) {
+  .term-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.term-card {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 2px var(--color-border);
+}
+
+.term-card-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.term-kbd {
+  display: inline-block;
+  padding: 0 4px;
+  background: var(--color-bg-deep);
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.term-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.term-link:hover {
+  color: var(--color-accent-cream);
+}
+
+.term-ascii {
+  margin: 0;
+  color: var(--color-accent);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.1;
+  white-space: pre;
+}
+
+.term-swatches {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.term-swatch {
+  width: 14px;
+  height: 14px;
+}
+
+.term-inputrow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-bg-deep);
+  box-shadow: inset 0 2px 0 var(--color-border-subtle);
+}
+
+.term-inputprompt {
+  flex: none;
+  color: var(--color-accent-secondary);
+}
+
+.term-inputwrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.term-input {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.3;
+  caret-color: var(--color-accent);
+}
+
+.term-suggestion {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--color-text-subtle);
+  white-space: pre;
+  pointer-events: none;
+}
+
+.term-suggestion-prefix {
+  opacity: 0;
+}
+
+.term-status {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.2;
+  box-shadow: inset 0 2px 0 var(--color-border);
+}
+
+.term-status-left,
+.term-status-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.term-status-key {
+  color: var(--color-accent);
 }
 
 /* Global Accessibility Focus Ring */
