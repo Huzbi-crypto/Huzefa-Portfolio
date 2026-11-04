@@ -648,6 +648,8 @@ type HotspotView = {
 type PlayOptions = {
   /** Which of a dialogue's choices to take. The first is the obvious one. */
   choice?: 'first' | 'last';
+  /** Per-choice picks, for exhibits that need a try and then a way out. */
+  choices?: ('first' | 'last')[];
   /** On a phone, drive the dialogue with taps rather than the keyboard. */
   touch?: boolean;
   /** Every full dialogue line seen, in order. */
@@ -732,6 +734,7 @@ async function playUntilQuiet(page: Page, options: PlayOptions = {}): Promise<{
   let sawPanel = false;
   let quietSince = 0;
   let smallTerminalUsed = false;
+  let choiceIndex = 0;
 
   while (Date.now() < deadline) {
     const contact = page.locator(CONTACT_CARD);
@@ -793,7 +796,10 @@ async function playUntilQuiet(page: Page, options: PlayOptions = {}): Promise<{
       const choices = page.locator(CHOICE);
       const count = await choices.count();
       if (count > 0) {
-        const target = choices.nth(choice === 'last' ? count - 1 : 0);
+        const pick =
+          options.choices?.[Math.min(choiceIndex, options.choices.length - 1)] ?? choice;
+        choiceIndex += 1;
+        const target = choices.nth(pick === 'last' ? count - 1 : 0);
         if (touch) await target.tap();
         else await target.click();
       } else if (touch) {
@@ -1055,7 +1061,11 @@ test.describe('the full collection', () => {
     await useHotspot(page, 'archive', 'read-cookies', { panels, panel: true });
     await useHotspot(page, 'archive', 'ascii-art-tui', { panels, panel: true });
     await useHotspot(page, 'archive', 'creative-coding', { panels, panel: true });
-    await useHotspot(page, 'archive', '3d-renderer', { choice: 'last', panels, panel: true });
+    await useHotspot(page, 'archive', '3d-renderer', {
+      choices: ['first', 'last'],
+      panels,
+      panel: true,
+    });
     await useHotspot(page, 'archive', 'monster-poster');
 
     await expect(page.locator(COUNTER)).toHaveAttribute(
