@@ -333,6 +333,21 @@ describe('the lantern', () => {
     expect(lantern.y).toBe(200 / 4 + 4);
   });
 
+  it('the_pointer_light_freezes_while_a_panel_is_open_then_resumes', () => {
+    const lights = darkLights(ctxFor({ mode: 'mouse', pointer: { x: 400, y: 200 } }));
+    const held = { x: lights[0].x, y: lights[0].y };
+
+    // A panel owns the room: moving the mouse must not drag the flame.
+    darkLights(ctxFor({ mode: 'mouse', pointer: { x: 800, y: 400 }, blocked: true }));
+    expect(lights[0].x).toBe(held.x);
+    expect(lights[0].y).toBe(held.y);
+
+    // Closing it hands the light back to the pointer.
+    darkLights(ctxFor({ mode: 'mouse', pointer: { x: 800, y: 400 } }));
+    expect(lights[0].x).toBe(800 / 4 + 10);
+    expect(lights[0].y).toBe(400 / 4 + 4);
+  });
+
   it('touch_uses_the_last_drag_then_the_player', () => {
     const dragged = darkLights(ctxFor({ mode: 'touch', drag: { x: 80, y: 40 } }))[0];
     expect(dragged.x).toBe(80 / 4 + 10);

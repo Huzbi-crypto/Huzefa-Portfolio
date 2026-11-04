@@ -154,6 +154,7 @@ export function createGameController(opts: ControllerOptions) {
   let idleMs = 0;
   let nudge: NudgeTarget | null = null;
   let stepSfxMs = 0;
+  let blockedNow = false;
 
   const api: GameApi = {
     store,
@@ -476,6 +477,7 @@ export function createGameController(opts: ControllerOptions) {
       drag: lightDrag,
       reducedMotion,
       found: store.getState().found,
+      blocked: blockedNow,
     };
   }
 
@@ -490,6 +492,7 @@ export function createGameController(opts: ControllerOptions) {
 
       const covered = transition !== null;
       const blocked = covered || opts.isBlocked();
+      blockedNow = blocked;
       const events = input.drain();
       if (!blocked) watchDrag();
 

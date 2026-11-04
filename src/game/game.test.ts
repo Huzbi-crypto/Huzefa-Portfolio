@@ -168,6 +168,29 @@ describe('game controller', () => {
     expect(player.path).toHaveLength(0);
   });
 
+  it('tells_the_scene_when_a_panel_owns_the_input', () => {
+    const seen: boolean[] = [];
+    let blocked = false;
+    const { game } = setup({
+      blocked: () => blocked,
+      scenes: (gameStore) => {
+        const room = createRoomScene(gameStore);
+        const update = room.update.bind(room);
+        room.update = (ms, ctx) => {
+          seen.push(Boolean(ctx.blocked));
+          update(ms, ctx);
+        };
+        return [room];
+      },
+    });
+
+    run(game, 2);
+    expect(seen.at(-1)).toBe(false);
+    blocked = true;
+    run(game, 2);
+    expect(seen.at(-1)).toBe(true);
+  });
+
   it('blocked_taps_are_dropped_not_replayed_afterwards', () => {
     let blocked = true;
     const { game, queue } = setup({ blocked: () => blocked });

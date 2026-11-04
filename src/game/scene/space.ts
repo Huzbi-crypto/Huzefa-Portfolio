@@ -88,7 +88,11 @@ export function createSpaceLights(fixed: Light[]): (ctx: SceneCtx) => Light[] {
   const bodyPoint = { x: 0, y: 0 };
 
   return (ctx) => {
-    const { input, player, camera, scale, drag, t, reducedMotion } = ctx;
+    const { input, player, camera, scale, drag, t, reducedMotion, blocked } = ctx;
+
+    // A panel or dialogue owns the room now: freeze the flame where it was so
+    // the pointer no longer pulls the light around behind the UI.
+    if (blocked) return lights;
 
     const pointer = input.pointer;
     if (pointer) {

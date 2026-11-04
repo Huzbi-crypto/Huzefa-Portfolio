@@ -46,6 +46,11 @@ export type SceneCtx = {
   drag: { x: number; y: number } | null;
   reducedMotion: boolean;
   found: readonly string[];
+  /**
+   * True while a panel, dialogue or terminal owns input. The dark room is not
+   * focused, so the pointer-driven lantern holds still until it closes.
+   */
+  blocked?: boolean;
 };
 
 export type Scene = {
