@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { contactCardOpen, subscribeContactCard } from '@/game/scene/nap';
 import type { GameStore } from '@/game/state/store';
 import { useFocusTrap } from './useFocusTrap';
 
@@ -16,7 +17,10 @@ export function DialogueBox({ store }: { store: GameStore }) {
   const [selected, setSelected] = useState(0);
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(Boolean(dialogue), panelRef);
+  // The ending contact card can sit over the reply dialogue. Only one modal
+  // may own focus, or the two traps would bounce focus between them forever.
+  const contactOpen = useSyncExternalStore(subscribeContactCard, contactCardOpen, () => false);
+  useFocusTrap(Boolean(dialogue) && !contactOpen, panelRef);
 
   const line = dialogue ? (dialogue.lines[dialogue.line] ?? '') : '';
   const complete = dialogue ? dialogue.typed >= line.length : false;
