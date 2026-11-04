@@ -1,4 +1,4 @@
-import { SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import type { GameAudio } from '@/game/audio/audio';
 import { copy } from '@/game/content/copy';
 import { computeViewport } from '@/game/core/viewport';
@@ -24,7 +24,6 @@ import { navMap } from '@/game/scene/nav';
 const INTERACT_RANGE = 14;
 /** Extra pixels around a hotspot's rect that still count as a tap on it. */
 const TAP_SLOP = 3;
-const BACKDROP = '#1b1428';
 /** A walk that makes no progress for this long is abandoned. */
 const STALL_MS = 400;
 /** Space between footsteps, so a walk sounds like feet and not a rattle. */
@@ -496,7 +495,7 @@ export function createGameController(opts: ControllerOptions) {
     /** Draw the world, pixel-aligned, into a canvas the size of the view. */
     render(g: CanvasRenderingContext2D): void {
       g.imageSmoothingEnabled = false;
-      g.fillStyle = BACKDROP;
+      g.fillStyle = ACTIVE_PALETTE.a;
       g.fillRect(0, 0, view.viewW, view.viewH);
       g.save();
       g.translate(-camera.x, -camera.y);
@@ -509,7 +508,7 @@ export function createGameController(opts: ControllerOptions) {
       g.restore();
       const tv = transitionView();
       if (tv && tv.phase !== 'hold') {
-        drawIris(g, tv.progress, tv.cx, tv.cy, view.viewW, view.viewH, BACKDROP);
+        drawIris(g, tv.progress, tv.cx, tv.cy, view.viewW, view.viewH, ACTIVE_PALETTE.a);
       }
     },
 

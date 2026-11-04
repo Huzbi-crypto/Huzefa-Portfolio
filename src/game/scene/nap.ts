@@ -1,5 +1,5 @@
 import { personalInfo } from '@/data/personal';
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { drawSprite } from '@/game/render/sprite';
 import type { GameStore } from '@/game/state/store';
@@ -12,7 +12,7 @@ const WORLD_W = 336;
 const WORLD_H = 192;
 const WALL_BOTTOM = 48;
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 
 /** Where everything stands, in world pixels (the top-left of each sprite). */
 const AT = {

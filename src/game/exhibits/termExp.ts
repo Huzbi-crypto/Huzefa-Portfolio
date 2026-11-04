@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { TERM, TERM_SCREEN } from '@/game/art/sprites/archive';
 import { screenTextPixels } from '@/game/art/sprites/archiveGlyphs';
 import { copy } from '@/game/content/copy';
@@ -10,7 +10,7 @@ import { createShell, MAX_INPUT, runCommand, type ShellState } from './logic/min
 import { tryExhibit } from './exhibit';
 import { projectFor, type ArchiveExhibit, type At } from './archiveKit';
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 const PROJECT_ID = 'term-exp';
 /** How many typed letters of a command fit on the little screen's first row. */
 const SHOWN_LETTERS = 5;

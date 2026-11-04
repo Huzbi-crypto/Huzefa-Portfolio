@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { JAR, JAR_INSIDE } from '@/game/art/sprites/archive';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
@@ -8,7 +8,7 @@ import { eatCookie, unlockJar, type Cookie } from './logic/cookies';
 import { tryExhibit } from './exhibit';
 import { projectFor, type ArchiveExhibit, type At } from './archiveKit';
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 const PROJECT_ID = 'read-cookies';
 /** The most cookie choices offered at once, so a phone's screen never overflows. */
 const CHOICES_SHOWN = 4;

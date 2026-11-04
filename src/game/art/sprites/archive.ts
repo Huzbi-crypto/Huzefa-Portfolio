@@ -1,4 +1,4 @@
-import { PALETTES } from '../palette';
+import { ACTIVE_PALETTE } from '../palette';
 import { CAT_GRIDS } from './cat';
 
 /**
@@ -253,7 +253,7 @@ function luminance(hex: string): number {
 
 /** The picture as brightness, 0 to 1, for the ASCII conversion. */
 export function framePictureLuminance(): { w: number; h: number; pixels: number[] } {
-  const palette = PALETTES['cozy-crt'];
+  const palette = ACTIVE_PALETTE;
   const picture = pictureRows();
   const pixels: number[] = [];
   for (const row of picture) {

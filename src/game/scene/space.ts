@@ -1,4 +1,4 @@
-import { ANIMS, PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, ANIMS, SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import type { Exhibit } from '@/game/exhibits/types';
 import {
@@ -23,8 +23,6 @@ export const LANTERN_RADIUS = 46;
 /** A gentle shimmer in whole pixels, one step at a time. */
 const FLICKER = [0, 1, 0, -1, 0, 1, 1, 0, -1, 0] as const;
 const FLICKER_MS = 160;
-
-const INK = PALETTES['cozy-crt'].a;
 
 /** Something with height in the lit layer, sorted by the line it stands on. */
 export type SpaceProp = {
@@ -385,7 +383,7 @@ export function createDarkSpace(def: SpaceDef, _store: GameStore): Scene {
 
       // 1. The world, unlit, into a scratch canvas the size of the view.
       s.setTransform(1, 0, 0, 1, 0, 0);
-      s.fillStyle = INK;
+      s.fillStyle = ACTIVE_PALETTE.a;
       s.fillRect(0, 0, viewW, viewH);
       s.setTransform(1, 0, 0, 1, -camera.x, -camera.y);
       drawWorld(s, ctx, playerName);

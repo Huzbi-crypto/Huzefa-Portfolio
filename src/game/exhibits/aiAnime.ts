@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { AI_BULB, AI_CANVAS } from '@/game/art/sprites/workshop';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
@@ -268,7 +268,7 @@ const SIZE = { w: 60, h: 72 } as const;
 const PULL_MS = 2600;
 const STEPS = 14;
 const COUNTER = 'workshop-ai-pulls';
-const C = PALETTES['cozy-crt'];
+const C = ACTIVE_PALETTE;
 
 /** Seeds are searched once so the very first pull is the six-fingers joke. */
 function seedFor(flaw: string): number {

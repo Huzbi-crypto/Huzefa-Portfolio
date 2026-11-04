@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { BELT_STATIONS, BELT_SURFACE_Y, STATION_LAMP } from '@/game/art/sprites/workshop';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
@@ -86,7 +86,7 @@ export function beltLook(plan: BeltPlan, elapsedMs: number): number {
   return plan.stopAt === null ? arrived : Math.min(arrived, plan.stopAt);
 }
 
-const C = PALETTES['cozy-crt'];
+const C = ACTIVE_PALETTE;
 const BELT = { w: 148, h: 22 } as const;
 const STATION = { w: 26, h: 40 } as const;
 const ICONS = ['workshopIconTokens', 'workshopIconTree', 'workshopIconCode', 'workshopIconAsm'] as const;

@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { VECTOR, VECTOR_SCREEN } from '@/game/art/sprites/archive';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
@@ -17,7 +17,7 @@ import {
 import { tryExhibit } from './exhibit';
 import { createLantern, projectFor, type ArchiveExhibit, type At } from './archiveKit';
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 const PROJECT_ID = '3d-renderer';
 const { w: SCREEN_W, h: SCREEN_H } = VECTOR_SCREEN;
 /** How far the shape sits from the camera, so the cube fills about half the glass. */

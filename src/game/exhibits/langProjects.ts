@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { chalkPixels } from '@/game/art/sprites/darkGlyphs';
 import { FLOW_PADS } from '@/game/art/sprites/workshop';
 import { copy } from '@/game/content/copy';
@@ -47,7 +47,7 @@ export function loopArrowDot(step: number): Point {
   return RING[((Math.floor(step) % n) + n) % n];
 }
 
-const C = PALETTES['cozy-crt'];
+const C = ACTIVE_PALETTE;
 const BOARD = { w: 152, h: 62 } as const;
 const ROBOT = { w: 14, h: 20 } as const;
 /** The robots' eyes, one colour each: curious, busy, dizzy, writing. */

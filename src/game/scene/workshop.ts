@@ -1,4 +1,4 @@
-import { SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { createAiAnime } from '@/game/exhibits/aiAnime';
 import { createCompilerBelt } from '@/game/exhibits/compilerBelt';
@@ -75,7 +75,7 @@ function drawShell(g: CanvasRenderingContext2D): void {
     }
   }
   // The same inky border the hall has, so every dark space ends the same way.
-  g.fillStyle = '#1b1428';
+  g.fillStyle = ACTIVE_PALETTE.a;
   g.fillRect(0, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
   g.fillRect(WORLD_W - TILE, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
   g.fillRect(0, WORLD_H - TILE, WORLD_W, TILE);

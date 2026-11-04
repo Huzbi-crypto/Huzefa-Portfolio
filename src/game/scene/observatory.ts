@@ -1,5 +1,5 @@
 import snapshot from '@/data/github-snapshot.json';
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import {
   digitPixels,
   PLAQUE_ROWS,
@@ -21,7 +21,7 @@ const WORLD_H = 224;
 const SKY_BOTTOM = 56;
 const WALL_BOTTOM = 72;
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 
 /** Where everything stands, in world pixels (the top-left of each sprite). */
 const AT = {

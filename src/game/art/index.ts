@@ -1,5 +1,5 @@
 import { decodeSprite, type Sprite } from '../render/sprite';
-import { PALETTES } from './palette';
+import { ACTIVE_PALETTE, PALETTES, setActiveTheme } from './palette';
 import { ARCHIVE_SPRITE_GRIDS } from './sprites/archive';
 import { CAT_GRIDS } from './sprites/cat';
 import { DARK_PROP_GRIDS } from './sprites/darkProps';
@@ -12,7 +12,7 @@ import { TILE_GRIDS } from './sprites/tiles';
 import { VISITOR_GRIDS } from './sprites/visitor';
 import { WORKSHOP_GRIDS } from './sprites/workshop';
 
-export { PALETTES };
+export { ACTIVE_PALETTE, PALETTES };
 
 /**
  * Every sprite as a palette-indexed character grid, flat by name.
@@ -54,4 +54,14 @@ export function spritesFor(theme: keyof typeof PALETTES): Record<string, Sprite>
   return out;
 }
 
-export const SPRITES: Record<string, Sprite> = spritesFor('cozy-crt');
+/**
+ * The live sprite set. Reassigned by `setGameTheme`, and every scene reads it
+ * at draw time, so the canvas repaints in the new palette on the next frame.
+ */
+export let SPRITES: Record<string, Sprite> = spritesFor('cozy-crt');
+
+/** Switch the game's palette and re-decode every sprite for it. */
+export function setGameTheme(theme: keyof typeof PALETTES): void {
+  setActiveTheme(theme);
+  SPRITES = spritesFor(theme);
+}

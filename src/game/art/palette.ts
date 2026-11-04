@@ -136,3 +136,22 @@ export const PALETTES: Record<Theme, Record<string, string>> = {
   'warm-apartment': WARM_APARTMENT,
   'moonlit-terminal': MOONLIT_TERMINAL,
 };
+
+/**
+ * The palette the game is drawing with right now. Scenes index this object at
+ * draw time instead of holding a theme constant, so a theme switch recolours
+ * every later frame. The keys never change; only the values are swapped in
+ * place, which also updates code that already holds this object.
+ */
+export const ACTIVE_PALETTE: Record<string, string> = { ...COZY_CRT };
+
+let activeTheme: Theme = 'cozy-crt';
+
+export function setActiveTheme(theme: Theme): void {
+  activeTheme = theme;
+  Object.assign(ACTIVE_PALETTE, PALETTES[theme]);
+}
+
+export function getActiveTheme(): Theme {
+  return activeTheme;
+}

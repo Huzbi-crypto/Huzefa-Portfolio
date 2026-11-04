@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { FRAME, FRAME_PICTURE, framePictureLuminance } from '@/game/art/sprites/archive';
 import { RAMP_GLYPHS } from '@/game/art/sprites/archiveGlyphs';
 import { copy } from '@/game/content/copy';
@@ -8,7 +8,7 @@ import { asciifyCell } from './logic/asciify';
 import { tryExhibit } from './exhibit';
 import { createLantern, projectFor, type ArchiveExhibit, type At } from './archiveKit';
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 const PROJECT_ID = 'ascii-art-tui';
 /** Picture pixels per character: each ASCII glyph is three pixels square. */
 const CELL = 3;

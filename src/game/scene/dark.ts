@@ -1,5 +1,5 @@
 import { projects } from '@/data/projects';
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { chalkPixels } from '@/game/art/sprites/darkGlyphs';
 import {
   MONITOR_SCREEN,
@@ -29,9 +29,7 @@ const WORLD_W = 320;
 const WORLD_H = 192;
 const WALL_BOTTOM = 48; // rows 0..5 are wall, floor starts at y = 48
 
-const INK = PALETTES['cozy-crt'].a;
-const CHALK = PALETTES['cozy-crt'].q;
-const SOLID_COLORS = PALETTES['cozy-crt'];
+const SOLID_COLORS = ACTIVE_PALETTE;
 
 /** Where everything stands, in world pixels. */
 const AT = {
@@ -281,7 +279,7 @@ function buildExhibits(): Exhibit[] {
 // --- drawing ---------------------------------------------------------------
 
 function drawChalk(g: CanvasRenderingContext2D, text: string, x: number, y: number): void {
-  g.fillStyle = CHALK;
+  g.fillStyle = ACTIVE_PALETTE.q;
   for (const p of chalkPixels(text).points) {
     // Chalk skips a pixel here and there.
     if (((p.x + x) * 7 + (p.y + y) * 13) % 5 === 0) continue;
@@ -299,7 +297,7 @@ function drawShell(g: CanvasRenderingContext2D): void {
       drawSprite(g, sprite(name), x, y);
     }
   }
-  g.fillStyle = INK;
+  g.fillStyle = ACTIVE_PALETTE.a;
   g.fillRect(0, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
   g.fillRect(WORLD_W - TILE, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
   g.fillRect(0, WORLD_H - TILE, WORLD_W, TILE);

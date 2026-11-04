@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { POSTER, POSTER_EYES, SHELF } from '@/game/art/sprites/archive';
 import { chalkPixels } from '@/game/art/sprites/darkGlyphs';
 import { copy } from '@/game/content/copy';
@@ -23,7 +23,7 @@ const WORLD_W = 384;
 const WORLD_H = 208;
 const WALL_BOTTOM = 48; // rows 0..5 are wall, floor starts at y = 48
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 
 /** Where everything stands, in world pixels (the top-left of each sprite). */
 const AT = {

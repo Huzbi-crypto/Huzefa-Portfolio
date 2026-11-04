@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { CAN_KNOT } from '@/game/art/sprites/workshop';
 import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
@@ -43,7 +43,7 @@ export function barsAlong(
   return bars;
 }
 
-const C = PALETTES['cozy-crt'];
+const C = ACTIVE_PALETTE;
 const CAN = { w: 24, h: 16 } as const;
 const CRATE = { w: 26, h: 16 } as const;
 const SAG = 9;

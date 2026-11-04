@@ -1,4 +1,4 @@
-import { PALETTES, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { TANK, TANK_INSIDE } from '@/game/art/sprites/archive';
 import { copy } from '@/game/content/copy';
 import type { Light } from '@/game/render/lighting';
@@ -8,7 +8,7 @@ import { createField, stepField, type Field } from './logic/particles';
 import { tryExhibit } from './exhibit';
 import { createLantern, projectFor, type ArchiveExhibit, type At } from './archiveKit';
 
-const COLORS = PALETTES['cozy-crt'];
+const COLORS = ACTIVE_PALETTE;
 const PROJECT_ID = 'creative-coding';
 const SPECKS = 90;
 /** The lantern only calls the dust when it is this close to the case, in world pixels. */

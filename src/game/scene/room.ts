@@ -1,5 +1,5 @@
 import { personalInfo } from '@/data/personal';
-import { ANIMS, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, ANIMS, SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { readStarId, starTotal } from '@/game/content/stars';
 import { drawSprite } from '@/game/render/sprite';
@@ -389,7 +389,7 @@ function fadePatternsFor(g: CanvasRenderingContext2D): CanvasPattern[] {
     tile.height = 4;
     const t = tile.getContext('2d');
     if (!t) continue;
-    t.fillStyle = '#1b1428';
+    t.fillStyle = ACTIVE_PALETTE.a;
     BAYER.forEach((threshold, index) => {
       if (threshold < level * 2) t.fillRect(index % 4, Math.floor(index / 4), 1, 1);
     });
@@ -419,7 +419,7 @@ function drawFade(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
   patterns.forEach((pattern, index) => {
     ring(FADE_LEAD + FADE_STEP * (index + 1), FADE_LEAD + FADE_STEP * index, pattern);
   });
-  ring(reach, FADE_LEAD + FADE_STEP * patterns.length, '#1b1428');
+  ring(reach, FADE_LEAD + FADE_STEP * patterns.length, ACTIVE_PALETTE.a);
 }
 
 function drawWindowStars(g: CanvasRenderingContext2D, ctx: SceneCtx): void {
