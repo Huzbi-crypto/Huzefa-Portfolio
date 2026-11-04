@@ -243,7 +243,9 @@ export function createTermExp(at: At): TermExhibit {
       });
 
       await closed;
-      await tryExhibit(api, project.id);
+      // Opening and closing the prompt is not a try. Only a real command
+      // earns the star and the project card.
+      if (shell.trying) await tryExhibit(api, project.id);
     },
   };
 }

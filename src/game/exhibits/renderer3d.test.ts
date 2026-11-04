@@ -130,6 +130,28 @@ describe('3d-renderer dragging', () => {
     expect(input.drain()).toEqual([{ type: 'tap', x: 12, y: 12 }]);
   });
 
+  it('walking_away_without_spinning_earns_nothing', async () => {
+    setup();
+    const store = createStore(null);
+    store.setReducedMotion(true);
+    const api: GameApi = {
+      store,
+      goTo: vi.fn(),
+      openTerminal: vi.fn(),
+      showProject: vi.fn(async () => undefined),
+    };
+    const screen = createRenderer3d(AT);
+    const run = screen.use(api);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    for (let guard = 0; store.getState().dialogue && guard < 100; guard += 1) {
+      store.advance('leave');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    await run;
+
+    expect(store.getState().found).not.toContain('project:3d-renderer');
+  });
+
   it('arrow_keys_turn_the_screen_while_its_dialogue_is_focused', async () => {
     const { input } = setup();
     const store = createStore(null);

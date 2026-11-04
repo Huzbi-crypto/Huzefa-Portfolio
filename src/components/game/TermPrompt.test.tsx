@@ -210,6 +210,16 @@ describe('term-exp prompt', () => {
     await settle(second.run);
   });
 
+  it('walking_away_without_typing_earns_nothing', async () => {
+    const { run, store } = await openPrompt();
+    const close = container.querySelector<HTMLButtonElement>('[data-close]');
+    await act(async () => {
+      close?.click();
+      await run;
+    });
+    expect(store.getState().found).not.toContain(projectStarId('term-exp'));
+  });
+
   it('the_input_has_a_label_and_a_short_limit', async () => {
     const { run } = await openPrompt();
 

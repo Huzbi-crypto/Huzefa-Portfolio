@@ -125,6 +125,7 @@ export function createRenderer3d(at: At): RendererExhibit {
   let clock = 0;
   let calm = false;
   let focused = false;
+  let tried = false;
   let dragFrom: { x: number; y: number } | null = null;
   let lastDrag: { x: number; y: number } | null = null;
 
@@ -209,6 +210,8 @@ export function createRenderer3d(at: At): RendererExhibit {
         grabbed = true;
       }
 
+      if (focused && grabbed) tried = true;
+
       if (calm) {
         yawSpeed = 0;
         pitchSpeed = 0;
@@ -270,6 +273,7 @@ export function createRenderer3d(at: At): RendererExhibit {
         { id: 'leave', label: text.leaveLabel },
       ];
       let lines: string[] = [...text.intro];
+      tried = false;
 
       focused = true;
       try {
@@ -284,6 +288,7 @@ export function createRenderer3d(at: At): RendererExhibit {
           const impulse = picked ? push[picked] : undefined;
           if (!impulse) break;
 
+          tried = true;
           yawSpeed += impulse[0];
           pitchSpeed += impulse[1];
           // Turning it is the try. It can't be done wrong.
@@ -296,7 +301,7 @@ export function createRenderer3d(at: At): RendererExhibit {
         focused = false;
       }
 
-      await tryExhibit(api, project.id);
+      if (tried) await tryExhibit(api, project.id);
     },
   };
 }
