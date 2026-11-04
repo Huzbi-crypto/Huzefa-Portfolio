@@ -45,6 +45,7 @@ const AT = {
   chalkOne: { x: 56, y: 24 },
   chalkTwo: { x: 216, y: 24 },
   hatch: { x: 112, y: 140 },
+  clueHall: { x: 152, y: 150 },
   archiveDoor: { x: 268, y: 128 },
 } as const;
 
@@ -115,6 +116,13 @@ async function sayOnce(
   await api.store.say([...(seen === 0 ? first : again)]);
 }
 
+/** The scrap by the hatch: the hall's step on the trail. */
+async function readClue(api: GameApi): Promise<void> {
+  const first = !api.store.hasClue('clue:hall');
+  api.store.markClue('clue:hall');
+  await api.store.say([...(first ? copy.clues.hall.lines : copy.clues.hall.again)]);
+}
+
 /**
  * The routing board keeps its phase-one dialogue, then opens the shared
  * project panel. The star is still awarded only once.
@@ -144,6 +152,17 @@ function buildProps(): SpaceProp[] {
       // Flat on the floor: everything standing on it is drawn over it.
       footY: AT.hatch.y,
       draw: (g) => drawSprite(g, sprite('workshopHatch'), AT.hatch.x, AT.hatch.y),
+    },
+    {
+      id: 'clue:hall',
+      footY: AT.clueHall.y + 10,
+      draw: (g) => drawSprite(g, sprite('clueScrap'), AT.clueHall.x, AT.clueHall.y),
+      interact: {
+        rect: { x: AT.clueHall.x, y: AT.clueHall.y, w: 12, h: 10 },
+        stand: { x: 20, y: 18 },
+        label: copy.clues.hall.label,
+        use: readClue,
+      },
     },
     {
       id: 'archive-door-art',
@@ -199,18 +218,6 @@ function buildProps(): SpaceProp[] {
         stand: { x: 24, y: 6 },
         label: copy.dark.noteTwo.label,
         use: (api) => sayOnce(api, 'dark-note-two', copy.dark.noteTwo.lines, copy.dark.noteTwo.again),
-      },
-    },
-    {
-      id: 'arch',
-      footY: WALL_BOTTOM,
-      interact: {
-        rect: { x: AT.arch.x, y: AT.arch.y, w: 24, h: 40 },
-        stand: { x: 35, y: 6 },
-        label: copy.dark.arch.label,
-        use: async (api) => {
-          await api.store.say([...copy.dark.arch.lines]);
-        },
       },
     },
     {
@@ -323,7 +330,12 @@ function buildSpaceDef(): SpaceDef {
       { x: AT.archiveDoor.x, y: AT.archiveDoor.y + 24, w: 24, h: 16 },
     ],
     spawn: { x: 4, y: 7 },
-    entries: { fromRoom: { x: 4, y: 7 }, fromWorkshop: { x: 16, y: 21 }, fromArchive: { x: 35, y: 21 } },
+    entries: {
+      fromRoom: { x: 4, y: 7 },
+      fromWorkshop: { x: 16, y: 21 },
+      fromArchive: { x: 35, y: 21 },
+      fromObservatory: { x: 35, y: 6 },
+    },
     exits: [
       {
         id: 'exit',
@@ -348,6 +360,18 @@ function buildSpaceDef(): SpaceDef {
         goLabel: copy.workshop.hatch.goLabel,
         stayLabel: copy.workshop.hatch.stayLabel,
         stayReply: copy.workshop.hatch.stayReply,
+      },
+      {
+        id: 'arch',
+        rect: { x: AT.arch.x, y: AT.arch.y, w: 24, h: 40 },
+        stand: { x: 35, y: 6 },
+        label: copy.observatory.arch.label,
+        to: 'observatory',
+        entry: 'fromHall',
+        lines: copy.observatory.arch.lines,
+        goLabel: copy.observatory.arch.goLabel,
+        stayLabel: copy.observatory.arch.stayLabel,
+        stayReply: copy.observatory.arch.stayReply,
       },
       {
         id: 'archive-door',

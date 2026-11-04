@@ -182,8 +182,23 @@ describe('dark layout', () => {
   it('has_the_first_dark_space_and_nothing_from_phase_two', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['arch', 'archive-door', 'cat', 'exit', 'eye', 'note-one', 'note-two', 'routing-sim', 'workshop-hatch'],
+      ['arch', 'archive-door', 'cat', 'clue:hall', 'exit', 'eye', 'note-one', 'note-two', 'routing-sim', 'workshop-hatch'],
     );
+  });
+
+  it('the_scrap_by_the_hatch_carries_the_hall_clue', async () => {
+    const { scene, api, store } = setup();
+    const said = await interact(byId(scene, 'clue:hall'), api);
+    expect(store.hasClue('clue:hall')).toBe(true);
+    expect(said.join(' ')).toContain(copy.clues.hall.lines[1]);
+  });
+
+  it('the_arch_leads_up_to_the_observatory_and_can_be_declined', async () => {
+    const { scene, api } = setup();
+    await interact(byId(scene, 'arch'), api, 'stay');
+    expect(api.goTo).not.toHaveBeenCalled();
+    await interact(byId(scene, 'arch'), api, 'back');
+    expect(api.goTo).toHaveBeenCalledWith('observatory', 'fromHall');
   });
 
   it('all_dark_hotspots_reachable', () => {
@@ -269,9 +284,9 @@ describe('dark hotspots', () => {
     expect(again.join(' ')).toContain(copy.dark.noteOne.again[0]);
   });
 
-  it('the_eye_and_the_arch_and_the_cat_all_talk', async () => {
+  it('the_eye_and_the_cat_all_talk', async () => {
     const { scene, api } = setup();
-    for (const id of ['eye', 'arch', 'cat']) {
+    for (const id of ['eye', 'cat']) {
       const said = await interact(byId(scene, id), api);
       expect(said.length, id).toBeGreaterThan(0);
     }
