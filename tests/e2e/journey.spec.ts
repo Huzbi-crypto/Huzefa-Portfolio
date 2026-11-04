@@ -1205,6 +1205,135 @@ test.describe('the full collection', () => {
   });
 });
 
+test.describe('focus and modals', () => {
+  test('focus_returns_to_the_stage_after_the_small_terminal_panel', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openGame(page);
+    await standAt(page, 'archive', 'term-exp');
+    await page.locator(STAGE).focus();
+    await page.keyboard.press('Enter');
+
+    const prompt = page.locator(TERM_PROMPT);
+    await expect(prompt).toBeVisible({ timeout: 10_000 });
+    await page.locator('.term-prompt-choice').first().click();
+    await page.waitForTimeout(120);
+    await page.locator('.term-prompt-close').click();
+    await expect(page.locator(PROJECT_PANEL)).toBeVisible({ timeout: 10_000 });
+    await page.keyboard.press('Escape');
+    await expect(page.locator(PROJECT_PANEL)).toHaveCount(0);
+
+    await expect
+      .poll(async () => page.evaluate(() => document.activeElement?.className ?? ''))
+      .toContain('game-stage');
+    const before = await snapshot(page);
+    await page.keyboard.down('ArrowRight');
+    await expect
+      .poll(async () => (await snapshot(page)).x, { timeout: 5_000 })
+      .toBeGreaterThan(before.x + 4);
+    await page.keyboard.up('ArrowRight');
+  });
+
+  test('focus_returns_to_the_stage_after_the_ending_contact_card', async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.addInitScript(
+      ({ key }) => {
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            version: 1,
+            found: [],
+            doorOpened: true,
+            sound: false,
+            counters: {
+              'clue:note': 1,
+              'clue:hall': 1,
+              'clue:workshop': 1,
+              'clue:archive': 1,
+              'clue:observatory': 1,
+            },
+          }),
+        );
+      },
+      { key: PROGRESS_KEY },
+    );
+    await openGame(page);
+    await goToScene(page, 'nap');
+    await standAt(page, 'nap', 'sleeper');
+    await page.keyboard.press('Enter');
+    await advanceToChoices(page);
+    await page.keyboard.press('Enter'); // WAKE THEM
+    await advanceToChoices(page);
+    await page.keyboard.press('Enter'); // SAY HI
+
+    await expect(page.locator(CONTACT_CARD)).toBeVisible();
+    // The reply dialogue sits under the card; close it first, then the card if
+    // Enter on the focused close button did not already do so.
+    await dismissDialogue(page);
+    if ((await page.locator(CONTACT_CARD).count()) > 0) {
+      await page.getByRole('button', { name: copy.nap.contact.closeLabel }).click();
+    }
+    await expect(page.locator(CONTACT_CARD)).toHaveCount(0);
+
+    await expect
+      .poll(async () => page.evaluate(() => document.activeElement?.className ?? ''))
+      .toContain('game-stage');
+    const before = await snapshot(page);
+    await page.keyboard.down('ArrowRight');
+    await expect
+      .poll(async () => (await snapshot(page)).x, { timeout: 5_000 })
+      .toBeGreaterThan(before.x + 4);
+    await page.keyboard.up('ArrowRight');
+  });
+
+  test('idle_nudge_names_an_unfound_object_after_the_trail', async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.addInitScript(
+      ({ key }) => {
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            version: 1,
+            found: [],
+            doorOpened: true,
+            sound: false,
+            counters: {
+              'clue:note': 1,
+              'clue:hall': 1,
+              'clue:workshop': 1,
+              'clue:archive': 1,
+              'clue:observatory': 1,
+            },
+          }),
+        );
+      },
+      { key: PROGRESS_KEY },
+    );
+    await openGame(page);
+
+    const nudge = page.locator('.nudge-hint');
+    await expect(nudge).toBeVisible({ timeout: 36_000 });
+    await expect(nudge).toContainText(copy.ui.nudgeTarget('Read the note'));
+  });
+
+  test('project_panel_keeps_tab_focus_inside', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openGame(page);
+    await standAt(page, 'dark', 'routing-sim');
+    await page.keyboard.press('Enter');
+    await dismissDialogue(page);
+    await expect(page.locator(PROJECT_PANEL)).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(`${PROJECT_PANEL} [data-close]`)).toBeFocused();
+
+    for (let i = 0; i < 8; i += 1) {
+      await page.keyboard.press('Tab');
+      const inside = await page.evaluate(() =>
+        Boolean(document.activeElement?.closest('.project-panel')),
+      );
+      expect(inside, `Tab ${i + 1} left the project panel`).toBe(true);
+    }
+  });
+});
+
 test.describe('phone journey', () => {
   test.use({
     viewport: { width: 390, height: 844 },

@@ -31,6 +31,7 @@ import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
 import { TermPrompt } from './TermPrompt';
 import { hasWalked, noteWalked } from './controlsHint';
+import { useFocusTrap } from './useFocusTrap';
 import './game.css';
 
 const EMPTY_UI = {
@@ -81,11 +82,13 @@ function SoundFromStore({ store, audio }: { store: GameStore; audio: GameAudio }
 function EndingContact() {
   const open = useSyncExternalStore(subscribeContactCard, contactCardOpen, () => false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(open, panelRef, closeRef);
 
   useEffect(() => {
     if (!open) return;
 
-    closeRef.current?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
@@ -106,6 +109,7 @@ function EndingContact() {
       }}
     >
       <div
+        ref={panelRef}
         className="project-panel px-panel"
         role="dialog"
         aria-modal="true"

@@ -9,6 +9,7 @@ import {
   submitTermPrompt,
   termPromptState,
 } from '@/game/exhibits/termExp';
+import { useFocusTrap } from './useFocusTrap';
 import './game.css';
 
 /**
@@ -26,24 +27,13 @@ export function TermPrompt() {
   const panelRef = useRef<HTMLDivElement>(null);
   const [line, setLine] = useState('');
 
+  useFocusTrap(Boolean(prompt), panelRef, inputRef);
+
   // A new session starts with an empty field and the cursor in it.
   useEffect(() => {
     if (!prompt) return;
-
     setLine('');
     inputRef.current?.focus({ preventScroll: true });
-
-    const keepIn = (event: FocusEvent): void => {
-      const panel = panelRef.current;
-      if (panel && event.target instanceof Node && !panel.contains(event.target)) {
-        inputRef.current?.focus({ preventScroll: true });
-      }
-    };
-    document.addEventListener('focusin', keepIn);
-
-    return () => {
-      document.removeEventListener('focusin', keepIn);
-    };
   }, [prompt?.id]);
 
   // Esc closes it, whether the field or a command button has focus.
