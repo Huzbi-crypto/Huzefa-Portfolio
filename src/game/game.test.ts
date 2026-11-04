@@ -3,8 +3,10 @@ import type { Input, InputEvent } from '@/game/core/input';
 import { createGameController } from './game';
 import { createDarkScene } from './scene/dark';
 import { createRoomScene } from './scene/room';
+import { createWorkshop } from './scene/workshop';
+import type { Scene } from './scene/types';
 import { copy } from './content/copy';
-import { createStore } from './state/store';
+import { createStore, type GameStore } from './state/store';
 import { TILE } from './world/grid';
 
 const STEP = 1000 / 60;
@@ -13,6 +15,7 @@ function setup(opts: {
   blocked?: () => boolean;
   dark?: boolean;
   storage?: Storage | null;
+  scenes?: (store: GameStore) => Scene[];
   onNudge?: (target: string | null) => void;
 } = {}) {
   const store = createStore(opts.storage ?? null);
@@ -25,17 +28,19 @@ function setup(opts: {
     dispose: () => undefined,
   };
   const openTerminalCalls: number[] = [];
-  const room = createRoomScene(store);
+  const scenes =
+    opts.scenes?.(store) ??
+    (opts.dark ? [createRoomScene(store), createDarkScene(store)] : [createRoomScene(store)]);
   const game = createGameController({
     store,
-    scenes: opts.dark ? [room, createDarkScene(store)] : [room],
+    scenes,
     input,
     openTerminal: () => openTerminalCalls.push(1),
     isBlocked: opts.blocked ?? (() => store.getState().dialogue !== null),
     onNudge: opts.onNudge,
   });
   game.resize(1366, 768);
-  return { store, input, queue, game, openTerminalCalls, room };
+  return { store, input, queue, game, openTerminalCalls, room: scenes[0] };
 }
 
 type Ctx = ReturnType<typeof setup>;
@@ -122,6 +127,22 @@ describe('game controller', () => {
     run(game, 5);
     expect(store.getState().dialogue).not.toBeNull();
     expect(store.getState().found).toContain('silly:read-note');
+  });
+
+  it('interact_key_reads_the_workshop_clue_from_its_own_stand', () => {
+    // The lang-projects board is only six pixels from the clue's stand, while
+    // the clue itself is fourteen away. The trail must still win on Enter.
+    const { game, queue, store } = setup({
+      scenes: (gameStore) => [createWorkshop(gameStore)],
+    });
+    const clue = game.snapshot().hotspots.find((h) => h.id === 'clue:workshop');
+    expect(clue).toBeDefined();
+    game.teleport(clue!.stand.x * TILE + TILE / 2, clue!.stand.y * TILE + TILE / 2, 'up');
+    queue.push({ type: 'interact' });
+    run(game, 5);
+
+    expect(store.hasClue('clue:workshop')).toBe(true);
+    expect(store.getState().dialogue?.lines).toEqual([...copy.clues.workshop.lines]);
   });
 
   it('interact_key_does_nothing_far_from_everything', () => {

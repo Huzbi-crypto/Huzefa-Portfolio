@@ -854,6 +854,76 @@ async function tapHotspot(
   return playUntilQuiet(page, { ...options, touch: true });
 }
 
+/**
+ * Walk with real arrow-key events, releasing each key on the frame the feet
+ * enter the target tile. Checking inside the page avoids the overshoot that
+ * a round-trip poll causes at 60 world pixels per second.
+ */
+async function walkArrowKeysToTile(
+  page: Page,
+  stand: { x: number; y: number },
+): Promise<void> {
+  await page.evaluate(
+    ({ stand: target, tile }) =>
+      new Promise<void>((resolve, reject) => {
+        const stage = document.querySelector<HTMLElement>('.game-stage');
+        const game = window.__huzbiGame;
+        if (!stage || !game) {
+          reject(new Error('The game stage is missing'));
+          return;
+        }
+        const send = (type: 'keydown' | 'keyup', key: string): void => {
+          stage.dispatchEvent(
+            new KeyboardEvent(type, { key, bubbles: true, cancelable: true }),
+          );
+        };
+
+        const targetX = target.x * tile + tile / 2;
+        const targetY = target.y * tile + tile / 2;
+        let phase: 'right' | 'up' | 'done' = 'right';
+        let frames = 0;
+        send('keydown', 'ArrowRight');
+
+        const step = (): void => {
+          frames += 1;
+          if (frames > 1200) {
+            send('keyup', 'ArrowRight');
+            send('keyup', 'ArrowUp');
+            reject(new Error('The keyboard walk never reached the stand'));
+            return;
+          }
+
+          const player = game.snapshot().player;
+          if (phase === 'right') {
+            if (player.x < targetX) {
+              requestAnimationFrame(step);
+              return;
+            }
+            send('keyup', 'ArrowRight');
+            phase = 'up';
+            send('keydown', 'ArrowUp');
+            requestAnimationFrame(step);
+            return;
+          }
+
+          if (phase === 'up') {
+            if (player.y > targetY) {
+              requestAnimationFrame(step);
+              return;
+            }
+            send('keyup', 'ArrowUp');
+            phase = 'done';
+            resolve();
+          }
+        };
+
+        requestAnimationFrame(step);
+      }),
+    { stand, tile: TILE },
+  );
+  await page.waitForTimeout(100);
+}
+
 /** The CRT's hidden command, the one star that lives outside the dark. */
 async function useMainTerminal(page: Page): Promise<void> {
   await standAt(page, 'room', 'monitor');
@@ -1047,6 +1117,70 @@ test.describe('the full collection', () => {
 
     expect(lines).toEqual(expect.arrayContaining([...copy.nap.wake.full]));
     for (const line of copy.nap.wake.few) expect(lines).not.toContain(line);
+  });
+
+  test('keyboard_only_workshop_clue_unlocks_the_ending', async ({ page }) => {
+    test.setTimeout(180_000);
+    // Four papers are already in hand; the workshop scrap is the last one,
+    // and it must be usable without touching the mouse.
+    await page.addInitScript(
+      ({ key }) => {
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            version: 1,
+            found: [],
+            doorOpened: true,
+            sound: false,
+            counters: {
+              'clue:note': 1,
+              'clue:hall': 1,
+              'clue:archive': 1,
+              'clue:observatory': 1,
+            },
+          }),
+        );
+      },
+      { key: PROGRESS_KEY },
+    );
+    await openGame(page);
+    await goToScene(page, 'workshop');
+
+    const clue = await hotspotView(page, 'clue:workshop');
+    await page.locator(STAGE).focus();
+
+    // Walk along the free floor row, then one step up onto the stand tile.
+    await walkArrowKeysToTile(page, clue.stand);
+
+    const stood = await snapshot(page);
+    expect(Math.floor(stood.x / TILE)).toBe(clue.stand.x);
+    expect(Math.floor(stood.y / TILE)).toBe(clue.stand.y);
+
+    await page.keyboard.press('Enter');
+    await expect(page.locator(DIALOGUE)).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.sr-live')).toHaveText(copy.clues.workshop.lines[0]);
+    const persisted = await page.evaluate((key) => {
+      const raw = window.localStorage.getItem(key);
+      return raw
+        ? (JSON.parse(raw) as { counters?: Record<string, number> }).counters ?? {}
+        : {};
+    }, PROGRESS_KEY);
+    expect(persisted['clue:workshop']).toBe(1);
+    await dismissDialogue(page);
+
+    // The fifth clue unlocks the moon door, and the ending is still reachable
+    // with no stars at all.
+    await goToScene(page, 'observatory');
+    await standAt(page, 'observatory', 'nap-door');
+    await page.keyboard.press('Enter');
+    await advanceToChoices(page);
+    await page.keyboard.press('Enter');
+    await waitForScene(page, 'nap');
+
+    await standAt(page, 'nap', 'sleeper');
+    await page.keyboard.press('Enter');
+    const ending = await playUntilQuiet(page);
+    expect(ending.lines).toEqual(expect.arrayContaining([...copy.nap.wake.few]));
   });
 
   test('no_console_errors_across_full_journey', async ({ page }) => {

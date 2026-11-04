@@ -193,9 +193,23 @@ export function createGameController(opts: ControllerOptions) {
   function nearestInRange(): Hotspot | null {
     let best: Hotspot | null = null;
     let bestScore = Number.POSITIVE_INFINITY;
+    // A hotspot's own stand tile is an explicit promise: standing there and
+    // pressing Enter must use it, even when an exhibit's big rectangle looms
+    // closer. Clicking a hotspot already honors the same idea through `pending`.
+    let onStand: Hotspot | null = null;
+    let onStandDistance = Number.POSITIVE_INFINITY;
+    const tileX = Math.floor(player.x / TILE);
+    const tileY = Math.floor(player.y / TILE);
+
     for (const h of scene.hotspots) {
       const d = distanceToRect(player.x, player.y, h.rect);
       if (d > INTERACT_RANGE) continue;
+
+      if (h.stand.x === tileX && h.stand.y === tileY && d < onStandDistance) {
+        onStand = h;
+        onStandDistance = d;
+      }
+
       // A hotspot the visitor is facing wins a near tie.
       const cx = h.rect.x + h.rect.w / 2 - player.x;
       const cy = h.rect.y + h.rect.h / 2 - player.y;
@@ -210,7 +224,7 @@ export function createGameController(opts: ControllerOptions) {
         bestScore = score;
       }
     }
-    return best;
+    return onStand ?? best;
   }
 
   function use(h: Hotspot): void {
