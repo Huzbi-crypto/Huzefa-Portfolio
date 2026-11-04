@@ -4,7 +4,7 @@ import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
-import type { GameApi } from '@/game/scene/types';
+import type { GameApi, Rect } from '@/game/scene/types';
 import type { Tile } from '@/game/world/grid';
 import { tryExhibit } from './exhibit';
 import { translate } from './logic/translator';
@@ -43,11 +43,38 @@ export function barsAlong(
   return bars;
 }
 
+/**
+ * Tight pointer targets for the sagging string between the two cans. Short
+ * pieces keep the wire clickable without turning the empty air above and
+ * below it into a hotspot.
+ */
+export function stringHitRects(a: Point, b: Point, sag: number): Rect[] {
+  const rects: Rect[] = [];
+  for (let i = 0; i < STRING_SEGMENTS; i += 1) {
+    const from = stringPoint(a, b, sag, i / STRING_SEGMENTS);
+    const to = stringPoint(a, b, sag, (i + 1) / STRING_SEGMENTS);
+    const left = Math.min(from.x, to.x);
+    const right = Math.max(from.x, to.x);
+    const top = Math.min(from.y, to.y);
+    const bottom = Math.max(from.y, to.y);
+    rects.push({
+      x: left,
+      y: top - STRING_HIT_PAD,
+      w: Math.max(1, right - left),
+      h: bottom - top + STRING_HIT_PAD * 2 + 1,
+    });
+  }
+  return rects;
+}
+
 const C = ACTIVE_PALETTE;
 const CAN = { w: 24, h: 16 } as const;
 const CRATE = { w: 26, h: 16 } as const;
 const SAG = 9;
 const SOUND_GAP = 3;
+/** The string is clickable in short pieces, each a little taller than the wire. */
+const STRING_SEGMENTS = 10;
+const STRING_HIT_PAD = 2;
 const SPEAK_MS = 2800;
 const COUNTER = 'workshop-speech-turns';
 
@@ -84,6 +111,11 @@ export function createSpeechTranslator(at: Point, stand: Tile): { exhibit: Exhib
     id: 'speech-translator',
     projectId: 'speech-translator',
     rect: { x: at.x, y: canY - 22, w: rightCrate.x + CRATE.w - at.x, h: CRATE.h + CAN.h + 22 },
+    hitRects: [
+      { x: at.x, y: canY, w: CRATE.w, h: at.y + CRATE.h - canY },
+      { x: rightCrate.x, y: canY, w: CRATE.w, h: at.y + CRATE.h - canY },
+      ...stringHitRects(knotA, knotB, SAG),
+    ],
     stand,
     footY: at.y + CRATE.h,
     label: copy.workshop.speech.label,

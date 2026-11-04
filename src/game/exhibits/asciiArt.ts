@@ -58,6 +58,7 @@ export function createAsciiArt(at: At): ArchiveExhibit {
     id: PROJECT_ID,
     projectId: PROJECT_ID,
     rect: { x: at.x, y: at.y, w: FRAME.w, h: FRAME.h },
+    hitRects: [{ x: at.x, y: at.y, w: FRAME.w, h: FRAME.h }],
     stand: { x: Math.floor((at.x + FRAME.w / 2) / TILE), y: 6 },
     footY: 48,
     label: copy.archive.ascii.label,

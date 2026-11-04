@@ -109,6 +109,20 @@ function distanceToRect(
   return Math.hypot(dx, dy);
 }
 
+/** The pointer targets for a hotspot: its tight hit rects, or its whole bounds. */
+function pointerRects(h: Hotspot): readonly Hotspot['rect'][] {
+  return h.hitRects && h.hitRects.length > 0 ? h.hitRects : [h.rect];
+}
+
+/** Distance to the nearest visible piece of a hotspot. */
+function distanceToPointerTarget(x: number, y: number, h: Hotspot): number {
+  let best = Number.POSITIVE_INFINITY;
+  for (const rect of pointerRects(h)) {
+    best = Math.min(best, distanceToRect(x, y, rect));
+  }
+  return best;
+}
+
 function tileCenter(tile: { x: number; y: number }): { x: number; y: number } {
   return { x: tile.x * TILE + TILE / 2, y: tile.y * TILE + TILE / 2 };
 }
@@ -180,7 +194,7 @@ export function createGameController(opts: ControllerOptions) {
 
   function hotspotAt(x: number, y: number): Hotspot | null {
     for (const h of scene.hotspots) {
-      if (distanceToRect(x, y, h.rect) <= TAP_SLOP) return h;
+      if (distanceToPointerTarget(x, y, h) <= TAP_SLOP) return h;
     }
     return null;
   }

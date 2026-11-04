@@ -193,6 +193,21 @@ describe('createArchive', () => {
     );
   });
 
+  it('every_exhibit_declares_tight_pointer_targets_inside_its_bounds', () => {
+    const scene = createArchive(createStore(null));
+    for (const id of EXHIBITS) {
+      const h = hotspot(scene, id);
+      expect(h.hitRects, `${id} has no hitRects`).toBeDefined();
+      expect(h.hitRects!.length, `${id} has no pointer target`).toBeGreaterThan(0);
+      for (const rect of h.hitRects!) {
+        expect(rect.x, id).toBeGreaterThanOrEqual(h.rect.x);
+        expect(rect.y, id).toBeGreaterThanOrEqual(h.rect.y);
+        expect(rect.x + rect.w, id).toBeLessThanOrEqual(h.rect.x + h.rect.w);
+        expect(rect.y + rect.h, id).toBeLessThanOrEqual(h.rect.y + h.rect.h);
+      }
+    }
+  });
+
   it('the_scrap_in_the_file_box_carries_the_archive_clue', async () => {
     const store = createStore(null);
     const scene = createArchive(store);

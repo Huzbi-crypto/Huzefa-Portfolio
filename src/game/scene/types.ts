@@ -11,8 +11,14 @@ export type SceneId = 'room' | 'dark' | 'workshop' | 'archive' | 'observatory' |
 /** Something in a scene the visitor can walk to and inspect. */
 export type Hotspot = {
   id: string;
-  /** World pixels. Taps inside this rect, or close to it, target the hotspot. */
+  /** World pixels. The whole thing, used for walking range and facing. */
   rect: Rect;
+  /**
+   * Tighter world-pixel targets for the pointer. When present, only these
+   * count as a click on the thing; a tap in the empty space around it walks
+   * to that spot instead. Keyboard use still reads `rect`.
+   */
+  hitRects?: Rect[];
   /** The walkable tile the visitor stands on to use it. */
   stand: Tile;
   label: string;

@@ -219,6 +219,48 @@ describe('workshop exhibits', () => {
     );
   });
 
+  it('every_exhibit_declares_tight_pointer_targets_inside_its_bounds', () => {
+    const { scene } = setup();
+    for (const { id } of EXHIBITS) {
+      const h = byId(scene, id);
+      expect(h.hitRects, `${id} has no hitRects`).toBeDefined();
+      expect(h.hitRects!.length, `${id} has no pointer target`).toBeGreaterThan(0);
+      for (const rect of h.hitRects!) {
+        expect(rect.x, id).toBeGreaterThanOrEqual(h.rect.x);
+        expect(rect.y, id).toBeGreaterThanOrEqual(h.rect.y);
+        expect(rect.x + rect.w, id).toBeLessThanOrEqual(h.rect.x + h.rect.w);
+        expect(rect.y + rect.h, id).toBeLessThanOrEqual(h.rect.y + h.rect.h);
+      }
+    }
+  });
+
+  it('the_tin_cans_only_claim_the_cans_their_crates_and_their_string', () => {
+    const { scene } = setup();
+    const cans = byId(scene, 'speech-translator');
+    // Three pieces: the two can-and-crate ends, plus short pieces of the wire.
+    expect(cans.hitRects!.length).toBeGreaterThanOrEqual(3);
+    expect(cans.hitRects!.some((rect) => rect.w <= 30)).toBe(true);
+    // The empty middle of the old span is not covered by any target.
+    const emptyMiddle = { x: cans.rect.x + 82, y: cans.rect.y + 8 };
+    const onTarget = cans.hitRects!.some(
+      (rect) =>
+        emptyMiddle.x >= rect.x &&
+        emptyMiddle.x <= rect.x + rect.w &&
+        emptyMiddle.y >= rect.y &&
+        emptyMiddle.y <= rect.y + rect.h,
+    );
+    expect(onTarget).toBe(false);
+  });
+
+  it('the_robot_board_only_claims_the_board_itself', () => {
+    const { scene } = setup();
+    const board = byId(scene, 'lang-projects');
+    expect(board.hitRects).toHaveLength(1);
+    const [rect] = board.hitRects!;
+    expect(rect.y).toBeGreaterThan(board.rect.y);
+    expect(rect.y + rect.h).toBeLessThanOrEqual(board.rect.y + board.rect.h);
+  });
+
   it('the_scrap_in_the_jars_carries_the_workshop_clue', async () => {
     const env = setup();
     const said = (await interact(env, byId(env.scene, 'clue:workshop'))).join(' ');

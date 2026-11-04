@@ -246,6 +246,7 @@ function buildExhibits(): Exhibit[] {
       id: 'routing-sim',
       projectId: 'routing-sim',
       rect: { x: AT.router.x, y: AT.router.y, w: 32, h: 36 },
+      hitRects: [{ x: AT.router.x, y: AT.router.y, w: 32, h: 36 }],
       stand: { x: 29, y: 16 },
       footY: AT.router.y + 36,
       label: copy.dark.routing.label,

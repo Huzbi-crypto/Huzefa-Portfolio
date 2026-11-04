@@ -9,8 +9,14 @@ import type { Tile } from '@/game/world/grid';
 export type Exhibit = {
   id: string;
   projectId: string;
-  /** World pixels. Taps inside this rect target the exhibit. */
+  /** World pixels. The whole exhibit, used for walking range and facing. */
   rect: Rect;
+  /**
+   * Tighter world-pixel targets for the pointer, one per visible object (and
+   * a meaningful connector such as the tin cans' string). A tap in the empty
+   * space inside `rect` but outside these walks to the tapped spot instead.
+   */
+  hitRects?: Rect[];
   /** The walkable tile the visitor stands on to use it. */
   stand: Tile;
   /** The line the exhibit stands on, for depth sorting. */

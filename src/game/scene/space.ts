@@ -36,6 +36,8 @@ export type SpaceProp = {
   /** When present the prop is also a hotspot the visitor can walk to. */
   interact?: {
     rect: Rect;
+    /** Tighter pointer targets, when the prop's bounds include empty space. */
+    hitRects?: Rect[];
     stand: Tile;
     label: string;
     use(api: GameApi): void | Promise<void>;
@@ -189,10 +191,11 @@ function buildHotspots(def: SpaceDef): Hotspot[] {
 
   for (const prop of def.props) {
     if (!prop.interact) continue;
-    const { rect, stand, label, use } = prop.interact;
+    const { rect, hitRects, stand, label, use } = prop.interact;
     hotspots.push({
       id: prop.id,
       rect,
+      hitRects,
       stand,
       label,
       onInteract: (api) => use(api),
@@ -203,6 +206,7 @@ function buildHotspots(def: SpaceDef): Hotspot[] {
     hotspots.push({
       id: exhibit.id,
       rect: exhibit.rect,
+      hitRects: exhibit.hitRects,
       stand: exhibit.stand,
       label: exhibit.label,
       onInteract: (api) => exhibit.use(api),

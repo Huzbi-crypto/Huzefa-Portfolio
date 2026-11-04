@@ -185,6 +185,7 @@ export function createTermExp(at: At): TermExhibit {
     id: PROJECT_ID,
     projectId: PROJECT_ID,
     rect: { x: at.x, y: at.y, w: TERM.w, h: TERM.h },
+    hitRects: [{ x: at.x, y: at.y, w: TERM.w, h: TERM.h }],
     stand: { x: Math.floor((at.x + TERM.w / 2) / TILE), y: Math.floor((at.y + TERM.h) / TILE) },
     footY: at.y + TERM.h,
     label: copy.archive.term.label,

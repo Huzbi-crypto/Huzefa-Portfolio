@@ -666,11 +666,21 @@ test.describe('old pages', () => {
 
 // --- the whole game ---------------------------------------------------------
 
+type WorldRect = { x: number; y: number; w: number; h: number };
+
 type HotspotView = {
   id: string;
-  rect: { x: number; y: number; w: number; h: number };
+  rect: WorldRect;
+  /** Tighter pointer targets, when the visible thing is smaller than its bounds. */
+  hitRects?: WorldRect[];
   stand: { x: number; y: number };
 };
+
+/** The centre of the first visible piece, which is what a visitor would click. */
+function hotspotTarget(hotspot: HotspotView): { x: number; y: number } {
+  const target = hotspot.hitRects?.[0] ?? hotspot.rect;
+  return { x: target.x + target.w / 2, y: target.y + target.h / 2 };
+}
 
 type PlayOptions = {
   /** Which of a dialogue's choices to take. The first is the obvious one. */
@@ -709,7 +719,12 @@ async function hotspotView(page: Page, id: string): Promise<HotspotView> {
     if (!game) throw new Error('window.__huzbiGame is missing; open the page with ?e2e=1');
     const found = game.snapshot().hotspots.find((hotspot) => hotspot.id === hotspotId);
     if (!found) throw new Error(`No hotspot ${hotspotId} in this scene`);
-    return { id: found.id, rect: found.rect, stand: found.stand };
+    return {
+      id: found.id,
+      rect: found.rect,
+      hitRects: found.hitRects,
+      stand: found.stand,
+    };
   }, id);
 }
 
@@ -865,9 +880,10 @@ async function useHotspot(
 ): Promise<{ lines: string[]; panels: string[] }> {
   const hotspot = await standAt(page, sceneId, id);
   const state = await gameState(page);
+  const target = hotspotTarget(hotspot);
   await page.mouse.click(
-    (hotspot.rect.x + hotspot.rect.w / 2 - state.camera.x) * state.scale,
-    (hotspot.rect.y + hotspot.rect.h / 2 - state.camera.y) * state.scale,
+    (target.x - state.camera.x) * state.scale,
+    (target.y - state.camera.y) * state.scale,
   );
   return playUntilQuiet(page, options);
 }
@@ -881,9 +897,10 @@ async function tapHotspot(
 ): Promise<{ lines: string[]; panels: string[] }> {
   const hotspot = await standAt(page, sceneId, id);
   const state = await gameState(page);
+  const target = hotspotTarget(hotspot);
   await page.touchscreen.tap(
-    (hotspot.rect.x + hotspot.rect.w / 2 - state.camera.x) * state.scale,
-    (hotspot.rect.y + hotspot.rect.h / 2 - state.camera.y) * state.scale,
+    (target.x - state.camera.x) * state.scale,
+    (target.y - state.camera.y) * state.scale,
   );
   return playUntilQuiet(page, { ...options, touch: true });
 }

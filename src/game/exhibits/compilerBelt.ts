@@ -170,6 +170,8 @@ export function createCompilerBelt(at: Point, stand: Tile): { exhibit: Exhibit; 
     id: 'compiler-project',
     projectId: 'compiler-project',
     rect: { x: at.x, y: stationTop, w: BELT.w, h: BELT.h + 18 + 4 },
+    // The belt and the station boxes above it; nothing outside the machine.
+    hitRects: [{ x: at.x, y: stationTop, w: BELT.w, h: BELT.h + 18 + 4 }],
     stand,
     footY: at.y + 20,
     label: copy.workshop.compiler.label,

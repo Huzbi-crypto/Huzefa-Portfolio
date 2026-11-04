@@ -153,6 +153,8 @@ export function createRenderer3d(at: At): RendererExhibit {
     id: PROJECT_ID,
     projectId: PROJECT_ID,
     rect: { x: at.x, y: at.y, w: VECTOR.w, h: VECTOR.h },
+    // The glass case and its pedestal: no empty table outside the display.
+    hitRects: [{ x: at.x, y: at.y, w: VECTOR.w, h: VECTOR.h }],
     stand: { x: Math.floor((at.x + VECTOR.w / 2) / TILE), y: Math.floor((at.y + VECTOR.h) / TILE) },
     footY: at.y + VECTOR.h,
     label: copy.archive.renderer.label,

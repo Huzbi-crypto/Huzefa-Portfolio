@@ -329,6 +329,7 @@ export function createAiAnime(at: Point, stand: Tile): { exhibit: Exhibit; light
     id: 'ai-anime',
     projectId: 'ai-anime',
     rect: { x: at.x, y: at.y, w: SIZE.w, h: SIZE.h },
+    hitRects: [{ x: at.x, y: at.y, w: SIZE.w, h: SIZE.h }],
     stand,
     footY: at.y + SIZE.h,
     label: copy.workshop.aiAnime.label,

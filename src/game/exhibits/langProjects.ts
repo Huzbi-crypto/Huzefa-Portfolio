@@ -90,6 +90,8 @@ export function createLangProjects(at: Point, stand: Tile): { exhibit: Exhibit; 
     id: 'lang-projects',
     projectId: 'lang-projects',
     rect: { x: at.x, y: at.y - 12, w: BOARD.w, h: BOARD.h + 12 },
+    // Only the drafting board itself is clickable; the table air above it is not.
+    hitRects: [{ x: at.x, y: at.y, w: BOARD.w, h: BOARD.h }],
     stand,
     footY: at.y + BOARD.h,
     label: copy.workshop.lang.label,

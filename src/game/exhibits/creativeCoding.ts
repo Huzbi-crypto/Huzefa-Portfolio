@@ -47,6 +47,7 @@ export function createCreativeCoding(at: At): DustExhibit {
     id: PROJECT_ID,
     projectId: PROJECT_ID,
     rect: { x: at.x, y: at.y, w: TANK.w, h: TANK.h },
+    hitRects: [{ x: at.x, y: at.y, w: TANK.w, h: TANK.h }],
     stand: { x: Math.floor((at.x + TANK.w / 2) / TILE), y: Math.floor((at.y + TANK.h) / TILE) },
     footY: at.y + TANK.h,
     label: copy.archive.particles.label,

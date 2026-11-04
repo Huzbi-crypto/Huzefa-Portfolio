@@ -57,6 +57,7 @@ export function createReadCookies(at: At): CookieExhibit {
     id: PROJECT_ID,
     projectId: PROJECT_ID,
     rect: { x: at.x, y: at.y, w: JAR.w, h: JAR.h },
+    hitRects: [{ x: at.x, y: at.y, w: JAR.w, h: JAR.h }],
     stand: { x: Math.floor((at.x + JAR.w / 2) / TILE), y: Math.floor((at.y + JAR.h) / TILE) },
     footY: at.y + JAR.h,
     label: copy.archive.cookies.label,

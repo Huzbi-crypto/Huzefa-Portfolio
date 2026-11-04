@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Input, InputEvent } from '@/game/core/input';
 import { createGameController } from './game';
+import { createArchive } from './scene/archive';
 import { createDarkScene } from './scene/dark';
 import { createRoomScene } from './scene/room';
 import { createWorkshop } from './scene/workshop';
@@ -221,6 +222,73 @@ describe('game controller', () => {
         expect(snap.camera.y + snap.viewH).toBeLessThanOrEqual(room.h);
       }
     }
+  });
+});
+
+describe('exhibit pointer targets', () => {
+  /** Tap a world point and let the walk settle. */
+  function tapAndWalk(
+    game: Ctx['game'],
+    queue: Ctx['queue'],
+    x: number,
+    y: number,
+  ): void {
+    queue.push({ type: 'tap', ...cssOf(game, x, y) });
+    run(game, 1600);
+  }
+
+  it('the_empty_air_between_the_tin_cans_walks_there_instead', () => {
+    const { game, queue, store } = setup({
+      scenes: (gameStore) => [createWorkshop(gameStore)],
+    });
+    const hot = game.snapshot().hotspots.find((h) => h.id === 'speech-translator');
+    expect(hot).toBeDefined();
+    // High in the old full-span rectangle, well above the sagging string.
+    const empty = { x: hot!.rect.x + 82, y: hot!.rect.y + 8 };
+
+    tapAndWalk(game, queue, empty.x, empty.y);
+
+    const { player } = game.snapshot();
+    expect(Math.floor(player.x / TILE)).toBe(Math.floor(empty.x / TILE));
+    expect(Math.floor(player.y / TILE)).toBe(Math.floor(empty.y / TILE));
+    expect(store.getState().dialogue).toBeNull();
+    expect(store.getState().found).toHaveLength(0);
+  });
+
+  it('the_empty_table_above_the_robot_board_walks_there_instead', () => {
+    const { game, queue, store } = setup({
+      scenes: (gameStore) => [createWorkshop(gameStore)],
+    });
+    const hot = game.snapshot().hotspots.find((h) => h.id === 'lang-projects');
+    expect(hot).toBeDefined();
+    // Inside the old bounds (which reached twelve pixels above the board), but
+    // above the visible board itself.
+    const empty = { x: hot!.rect.x + 76, y: hot!.rect.y + 4 };
+
+    tapAndWalk(game, queue, empty.x, empty.y);
+
+    const { player } = game.snapshot();
+    expect(Math.floor(player.x / TILE)).toBe(Math.floor(empty.x / TILE));
+    expect(Math.floor(player.y / TILE)).toBe(Math.floor(empty.y / TILE));
+    expect(store.getState().dialogue).toBeNull();
+    expect(store.getState().found).toHaveLength(0);
+  });
+
+  it('the_empty_floor_beside_an_archive_exhibit_walks_there_instead', () => {
+    const { game, queue, store } = setup({
+      scenes: (gameStore) => [createArchive(gameStore)],
+    });
+    const hot = game.snapshot().hotspots.find((h) => h.id === 'read-cookies');
+    expect(hot).toBeDefined();
+    const empty = { x: hot!.rect.x + hot!.rect.w + 14, y: hot!.rect.y + hot!.rect.h - 2 };
+
+    tapAndWalk(game, queue, empty.x, empty.y);
+
+    const { player } = game.snapshot();
+    expect(Math.floor(player.x / TILE)).toBe(Math.floor(empty.x / TILE));
+    expect(Math.floor(player.y / TILE)).toBe(Math.floor(empty.y / TILE));
+    expect(store.getState().dialogue).toBeNull();
+    expect(store.getState().found).toHaveLength(0);
   });
 });
 
