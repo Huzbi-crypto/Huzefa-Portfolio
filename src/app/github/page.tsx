@@ -266,8 +266,7 @@ export default function GitHubHubPage() {
             >
               <title id="heat-title">Contribution windows for the last year</title>
               <desc id="heat-desc">
-                {totalContributions} contributions across {streaks.activeDays} active days,
-                between {formatDay(days[0].date)} and {formatDay(days[days.length - 1].date)}.
+                {`${totalContributions} contributions across ${streaks.activeDays} active days, between ${formatDay(days[0].date)} and ${formatDay(days[days.length - 1].date)}.`}
               </desc>
               {monthLabels.map((label) => (
                 <text
@@ -295,7 +294,7 @@ export default function GitHubHubPage() {
                       data-l={day.level}
                     >
                       <title>
-                        {day.count} contributions on {formatDay(day.date)}
+                        {`${day.count} contributions on ${formatDay(day.date)}`}
                       </title>
                     </rect>
                   ) : null,
