@@ -134,6 +134,7 @@ function buildSpaceDef(): SpaceDef {
           drawSprite(g, sprite('clueScrap'), WORKSHOP_AT.clueWorkshop.x, WORKSHOP_AT.clueWorkshop.y),
         interact: {
           rect: { x: WORKSHOP_AT.clueWorkshop.x, y: 14, w: 12, h: 24 },
+          hitRects: [{ x: WORKSHOP_AT.clueWorkshop.x, y: WORKSHOP_AT.clueWorkshop.y, w: 12, h: 10 }],
           stand: { x: 21, y: 6 },
           label: copy.clues.workshop.label,
           use: readClue,

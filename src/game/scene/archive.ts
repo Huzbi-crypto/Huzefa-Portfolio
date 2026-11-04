@@ -110,6 +110,9 @@ function buildProps(): SpaceProp[] {
       },
       interact: {
         rect: { ...MONSTER_POSTER.rect },
+        hitRects: [
+          { x: at.x + 1, y: at.y + 1, w: POSTER.w - 2, h: POSTER.h - 2 },
+        ],
         stand: { ...MONSTER_POSTER.stand },
         label: copy.archive.monster.label,
         use: lookAtPoster,
@@ -121,6 +124,7 @@ function buildProps(): SpaceProp[] {
       draw: (g) => drawSprite(g, sprite('clueScrap'), AT.clueArchive.x, AT.clueArchive.y),
       interact: {
         rect: { x: AT.clueArchive.x, y: AT.clueArchive.y, w: 12, h: 10 },
+        hitRects: [{ x: AT.clueArchive.x, y: AT.clueArchive.y, w: 12, h: 10 }],
         stand: { x: 9, y: 18 },
         label: copy.clues.archive.label,
         use: readClue,

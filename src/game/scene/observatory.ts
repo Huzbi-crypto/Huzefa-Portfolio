@@ -433,6 +433,8 @@ function buildProps(store: GameStore): SpaceProp[] {
       glow: (g) => drawSky(g, store),
       interact: {
         rect: { x: 144, y: 4, w: 150, h: 70 },
+        // The sky is the whole band, but the wall and floor under it are not.
+        hitRects: [{ x: 144, y: 6, w: 150, h: 40 }],
         stand: { x: 27, y: 10 },
         label: copy.observatory.sky.label,
         use: readSky,
@@ -445,6 +447,12 @@ function buildProps(store: GameStore): SpaceProp[] {
       glow: drawConstellation,
       interact: {
         rect: { x: AT.table.x, y: AT.table.y, w: 112, h: 62 },
+        // The heavy top plus the stem and foot; the empty corners around the
+        // round table walk instead of selecting it.
+        hitRects: [
+          { x: AT.table.x + 1, y: AT.table.y + 1, w: 110, h: 50 },
+          { x: AT.table.x + 34, y: AT.table.y + 47, w: 44, h: 14 },
+        ],
         stand: { x: 23, y: 20 },
         label: copy.observatory.map.label,
         use: readMap,
@@ -460,6 +468,8 @@ function buildProps(store: GameStore): SpaceProp[] {
       glow: drawPlaqueDigits,
       interact: {
         rect: { x: AT.plaque.x, y: AT.plaque.y, w: 60, h: 58 },
+        // Only the brass itself; the wall between it and the stand walks.
+        hitRects: [{ x: AT.plaque.x, y: AT.plaque.y, w: 60, h: PLAQUE.h }],
         // One clear tile below the plaque's bottom border, head clear of it.
         stand: { x: 14, y: 17 },
         label: copy.observatory.stats.label,
@@ -472,6 +482,7 @@ function buildProps(store: GameStore): SpaceProp[] {
       draw: (g) => drawSprite(g, sprite('obsTelescope'), AT.telescope.x, AT.telescope.y),
       interact: {
         rect: { x: AT.telescope.x, y: AT.telescope.y, w: 44, h: 64 },
+        hitRects: [{ x: AT.telescope.x + 2, y: AT.telescope.y + 2, w: 40, h: 60 }],
         stand: { x: 33, y: 17 },
         label: copy.clues.observatory.label,
         use: lookThroughTelescope,
@@ -486,6 +497,7 @@ function buildProps(store: GameStore): SpaceProp[] {
       glow: (g) => drawNapDoor(g, store),
       interact: {
         rect: { x: AT.napDoor.x, y: AT.napDoor.y, w: 28, h: 48 },
+        hitRects: [{ x: AT.napDoor.x + 1, y: AT.napDoor.y + 1, w: 26, h: 46 }],
         stand: { x: 41, y: 9 },
         label: copy.observatory.napDoor.label,
         use: tryNapDoor,

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { personalInfo } from '@/data/personal';
 import { PALETTES } from '@/game/art';
+import { SLEEPER } from '@/game/art/sprites/ending';
 import { copy } from '@/game/content/copy';
 import { allStarIds } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
@@ -9,6 +10,7 @@ import { navMap } from './nav';
 import { CONTACT_LINKS, createNap, mailtoHref } from './nap';
 import {
   byId,
+  coversPointer,
   fakeGraphics,
   harness,
   installFakeDocument,
@@ -49,6 +51,36 @@ describe('nap room layout', () => {
       const path = findPath(nav, scene.spawn, h.stand);
       const last = path[path.length - 1] ?? scene.spawn;
       expect(last, h.id).toEqual(h.stand);
+    }
+  });
+
+  it('the_sofa_only_claims_the_sofa_not_the_floor_around_it', () => {
+    const { scene } = setup();
+    const sleeper = byId(scene, 'sleeper');
+    expect(sleeper.hitRects).toHaveLength(1);
+    const [hit] = sleeper.hitRects!;
+    expect(hit).toEqual({
+      x: sleeper.rect.x,
+      y: sleeper.rect.y,
+      w: SLEEPER.w,
+      h: SLEEPER.h,
+    });
+    // The floor below the sofa used to select the sleeper; it must walk now.
+    expect(coversPointer(sleeper, sleeper.rect.x + 32, sleeper.rect.y + 60)).toBe(false);
+    expect(coversPointer(sleeper, sleeper.rect.x + 32, sleeper.rect.y + 40)).toBe(true);
+  });
+
+  it('every_nap_hotspot_has_a_pointer_target_inside_its_bounds', () => {
+    const { scene } = setup();
+    for (const h of scene.hotspots.filter((spot) => spot.id !== 'exit')) {
+      expect(h.hitRects, `${h.id} has no hitRects`).toBeDefined();
+      expect(h.hitRects!.length, `${h.id} has no pointer target`).toBeGreaterThan(0);
+      for (const rect of h.hitRects!) {
+        expect(rect.x, h.id).toBeGreaterThanOrEqual(h.rect.x);
+        expect(rect.y, h.id).toBeGreaterThanOrEqual(h.rect.y);
+        expect(rect.x + rect.w, h.id).toBeLessThanOrEqual(h.rect.x + h.rect.w);
+        expect(rect.y + rect.h, h.id).toBeLessThanOrEqual(h.rect.y + h.rect.h);
+      }
     }
   });
 

@@ -16,6 +16,7 @@ import {
 } from './observatory';
 import {
   byId,
+  coversPointer,
   fakeGraphics,
   harness,
   installFakeDocument,
@@ -107,6 +108,23 @@ describe('observatory layout', () => {
     const standFoot = plaque.stand.y * TILE + TILE / 2 + 3;
     // Walking past below the brass must draw the visitor over it, never under.
     expect(standFoot).toBeGreaterThan(plaque.rect.y + PLAQUE.h);
+  });
+
+  it('the_plaque_table_and_telescope_only_claim_their_own_art', () => {
+    const { scene } = setup();
+    const plaque = byId(scene, 'stats-plaque');
+    // The empty wall between the brass and the stand is walking space now.
+    expect(coversPointer(plaque, plaque.rect.x + 30, plaque.rect.y + PLAQUE.h + 6)).toBe(false);
+    expect(coversPointer(plaque, plaque.rect.x + 30, plaque.rect.y + 20)).toBe(true);
+
+    const table = byId(scene, 'star-map');
+    expect(coversPointer(table, table.rect.x + 3, table.rect.y + 56)).toBe(false);
+    expect(coversPointer(table, table.rect.x + 56, table.rect.y + 24)).toBe(true);
+    expect(coversPointer(table, table.rect.x + 56, table.rect.y + 56)).toBe(true);
+
+    const telescope = byId(scene, 'clue:observatory');
+    expect(coversPointer(telescope, telescope.rect.x, telescope.rect.y)).toBe(false);
+    expect(coversPointer(telescope, telescope.rect.x + 22, telescope.rect.y + 30)).toBe(true);
   });
 
   it('the_stairs_lead_back_to_the_hall_and_can_be_declined', async () => {

@@ -124,6 +124,14 @@ export function byId(scene: Scene, id: string): Hotspot {
   return found;
 }
 
+/** True when a pointer at this world pixel would select the hotspot. */
+export function coversPointer(h: Hotspot, x: number, y: number): boolean {
+  const targets = h.hitRects && h.hitRects.length > 0 ? h.hitRects : [h.rect];
+  return targets.some(
+    (rect) => x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h,
+  );
+}
+
 /**
  * Use a hotspot, stepping the scene clock and dismissing every dialogue until
  * it finishes. `choice` answers each question; `choices` answers in order.

@@ -7,6 +7,7 @@ import { createEntity, stepEntity } from '@/game/world/entity';
 import { findPath, TILE } from '@/game/world/grid';
 import { navMap } from './nav';
 import { createRoomScene } from './room';
+import { coversPointer } from './spaceHarness';
 import type { GameApi, Hotspot } from './types';
 
 /** The world positions of the two window sprites in the room. */
@@ -126,6 +127,46 @@ describe('room layout', () => {
       expect(h.rect.y, h.id).toBeGreaterThanOrEqual(0);
       expect(h.rect.x + h.rect.w, h.id).toBeLessThanOrEqual(scene.worldW);
       expect(h.rect.y + h.rect.h, h.id).toBeLessThanOrEqual(scene.worldH);
+    }
+  });
+
+  it('every_room_hotspot_has_a_tight_pointer_target_inside_its_bounds', () => {
+    const { scene } = setup();
+    for (const h of scene.hotspots) {
+      expect(h.hitRects, `${h.id} has no hitRects`).toBeDefined();
+      expect(h.hitRects!.length, `${h.id} has no pointer target`).toBeGreaterThan(0);
+      for (const rect of h.hitRects!) {
+        expect(rect.x, h.id).toBeGreaterThanOrEqual(h.rect.x);
+        expect(rect.y, h.id).toBeGreaterThanOrEqual(h.rect.y);
+        expect(rect.x + rect.w, h.id).toBeLessThanOrEqual(h.rect.x + h.rect.w);
+        expect(rect.y + rect.h, h.id).toBeLessThanOrEqual(h.rect.y + h.rect.h);
+      }
+    }
+  });
+
+  it('the_sofa_lamp_and_rug_only_claim_their_own_pixels', () => {
+    const { scene } = setup();
+    const sofa = byId(scene, 'sofa');
+    // The old sofa rect began at its sprite edge; the transparent margin and
+    // the floor beside it now walk instead of selecting the sofa.
+    expect(coversPointer(sofa, sofa.rect.x, sofa.rect.y)).toBe(false);
+    expect(coversPointer(sofa, sofa.rect.x + 20, sofa.rect.y + 12)).toBe(true);
+
+    const lamp = byId(scene, 'lamp');
+    expect(coversPointer(lamp, lamp.rect.x, lamp.rect.y + 32)).toBe(false);
+    expect(coversPointer(lamp, lamp.rect.x + 6, lamp.rect.y + 20)).toBe(true);
+
+    const rug = byId(scene, 'rug');
+    expect(coversPointer(rug, rug.rect.x, rug.rect.y)).toBe(false);
+    expect(coversPointer(rug, rug.rect.x + 24, rug.rect.y + 16)).toBe(true);
+  });
+
+  it('the_notes_and_tea_only_claim_the_paper_and_the_cup', () => {
+    const { scene } = setup();
+    for (const id of ['note', 'clue:note', 'tea']) {
+      const h = byId(scene, id);
+      expect(coversPointer(h, h.rect.x + 4, h.rect.y + 4), id).toBe(true);
+      expect(coversPointer(h, h.rect.x + 4, h.rect.y + h.rect.h - 4), id).toBe(false);
     }
   });
 });

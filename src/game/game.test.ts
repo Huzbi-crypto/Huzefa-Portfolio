@@ -3,6 +3,8 @@ import type { Input, InputEvent } from '@/game/core/input';
 import { createGameController } from './game';
 import { createArchive } from './scene/archive';
 import { createDarkScene } from './scene/dark';
+import { createNap } from './scene/nap';
+import { createObservatory } from './scene/observatory';
 import { createRoomScene } from './scene/room';
 import { createWorkshop } from './scene/workshop';
 import type { Scene } from './scene/types';
@@ -583,5 +585,99 @@ describe('dragging the light on touch', () => {
     run(game, 2);
     expect(game.snapshot().drag).toBeNull();
     expect(game.snapshot().player.path.length + (game.snapshot().player.moving ? 1 : 0)).toBeGreaterThan(0);
+  });
+});
+
+describe('clicking around an object in the dark', () => {
+  function sceneSetup() {
+    return setup({
+      scenes: (store) => [
+        createRoomScene(store),
+        createNap(store),
+        createObservatory(store),
+        createDarkScene(store),
+      ],
+    });
+  }
+
+  function enter(game: Ctx['game'], id: 'nap' | 'observatory' | 'dark', entry: string): void {
+    game.setReducedMotion(true);
+    game.goTo(id, entry);
+    run(game, 3);
+    expect(game.snapshot().sceneId).toBe(id);
+  }
+
+  function tapAt(game: Ctx['game'], queue: InputEvent[], wx: number, wy: number): void {
+    queue.push({ type: 'tap', ...cssOf(game, wx, wy) });
+  }
+
+  function walkOut(game: Ctx['game']): void {
+    run(game, 1600, () => {
+      const { player } = game.snapshot();
+      return player.path.length === 0 && !player.moving;
+    });
+  }
+
+  it('the_nap_sofa_walks_to_the_floor_below_it_instead_of_talking', () => {
+    const { game, queue, store } = sceneSetup();
+    enter(game, 'nap', 'fromObservatory');
+    // Inside the old 64x70 sleeper rectangle, well below the 64x46 sofa art.
+    tapAt(game, queue, 160, 150);
+    walkOut(game);
+
+    const { player } = game.snapshot();
+    expect(store.getState().dialogue).toBeNull();
+    expect(Math.floor(player.x / TILE)).toBe(20);
+    expect(Math.floor(player.y / TILE)).toBe(18);
+  });
+
+  it('the_sofa_itself_still_walks_to_its_stand_and_talks', () => {
+    const { game, queue, store } = sceneSetup();
+    enter(game, 'nap', 'fromObservatory');
+    tapAt(game, queue, 160, 110);
+    run(game, 1600, () => store.getState().dialogue !== null);
+
+    const stand = game.snapshot().hotspots.find((h) => h.id === 'sleeper')!.stand;
+    const { player } = game.snapshot();
+    expect(store.getState().dialogue).not.toBeNull();
+    expect(Math.abs(player.x - (stand.x * TILE + TILE / 2))).toBeLessThan(2);
+    expect(Math.abs(player.y - (stand.y * TILE + TILE / 2))).toBeLessThan(2);
+  });
+
+  it('the_wall_under_the_plaque_walks_instead_of_reading_it', () => {
+    const { game, queue, store } = sceneSetup();
+    enter(game, 'observatory', 'fromHall');
+    // Under the brass but above the stand: inside the tall interaction rect.
+    tapAt(game, queue, 110, 126);
+    walkOut(game);
+
+    const { player } = game.snapshot();
+    expect(store.getState().dialogue).toBeNull();
+    expect(Math.floor(player.x / TILE)).toBe(13);
+    expect(Math.floor(player.y / TILE)).toBe(15);
+  });
+
+  it('the_empty_corner_under_the_star_table_walks_past_it', () => {
+    const { game, queue, store } = sceneSetup();
+    enter(game, 'observatory', 'fromHall');
+    tapAt(game, queue, 139, 155);
+    walkOut(game);
+
+    const { player } = game.snapshot();
+    expect(store.getState().dialogue).toBeNull();
+    expect(Math.floor(player.x / TILE)).toBe(17);
+    expect(Math.floor(player.y / TILE)).toBe(19);
+  });
+
+  it('the_wall_below_a_dark_note_walks_instead_of_reading_it', () => {
+    const { game, queue, store } = sceneSetup();
+    enter(game, 'dark', 'fromRoom');
+    clickThrough(store); // the first-arrival lantern line
+    tapAt(game, queue, 192, 46);
+    walkOut(game);
+
+    const { player } = game.snapshot();
+    expect(store.getState().dialogue).toBeNull();
+    expect(player.y).toBeGreaterThanOrEqual(48);
   });
 });

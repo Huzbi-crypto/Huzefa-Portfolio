@@ -208,8 +208,24 @@ describe('createArchive', () => {
     }
   });
 
-  it('the_scrap_in_the_file_box_carries_the_archive_clue', async () => {
-    const store = createStore(null);
+  it('the_poster_and_the_scrap_only_claim_their_own_art', () => {
+    const scene = createArchive(createStore(null));
+    const poster = hotspot(scene, 'monster-poster');
+    expect(poster.hitRects).toHaveLength(1);
+    const [posterHit] = poster.hitRects!;
+    expect(posterHit).toEqual({
+      x: MONSTER_POSTER.at.x + 1,
+      y: MONSTER_POSTER.at.y + 1,
+      w: MONSTER_POSTER.rect.w - 2,
+      h: MONSTER_POSTER.rect.h - 2,
+    });
+
+    const scrap = hotspot(scene, 'clue:archive');
+    expect(scrap.hitRects).toHaveLength(1);
+    expect(scrap.hitRects![0]).toEqual(scrap.rect);
+  });
+
+  it('the_scrap_in_the_file_box_carries_the_archive_clue', async () => {    const store = createStore(null);
     const scene = createArchive(store);
     const api = fakeApi(store);
     const run = Promise.resolve(hotspot(scene, 'clue:archive').onInteract(api)).then(() => undefined);

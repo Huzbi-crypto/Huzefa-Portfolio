@@ -261,8 +261,17 @@ describe('workshop exhibits', () => {
     expect(rect.y + rect.h).toBeLessThanOrEqual(board.rect.y + board.rect.h);
   });
 
-  it('the_scrap_in_the_jars_carries_the_workshop_clue', async () => {
-    const env = setup();
+  it('the_paper_scrap_only_claims_the_paper_not_the_wall_above_it', () => {
+    const { scene } = setup();
+    const scrap = byId(scene, 'clue:workshop');
+    expect(scrap.hitRects).toHaveLength(1);
+    const [hit] = scrap.hitRects!;
+    expect(hit.y).toBe(scrap.rect.y + 6);
+    expect(hit.y + hit.h).toBe(scrap.rect.y + 16);
+    expect(hit.y + hit.h).toBeLessThan(scrap.rect.y + scrap.rect.h);
+  });
+
+  it('the_scrap_in_the_jars_carries_the_workshop_clue', async () => {    const env = setup();
     const said = (await interact(env, byId(env.scene, 'clue:workshop'))).join(' ');
     expect(env.store.hasClue('clue:workshop')).toBe(true);
     expect(said).toContain(copy.clues.workshop.lines[1]);

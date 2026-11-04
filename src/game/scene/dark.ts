@@ -157,6 +157,7 @@ function buildProps(): SpaceProp[] {
       draw: (g) => drawSprite(g, sprite('clueScrap'), AT.clueHall.x, AT.clueHall.y),
       interact: {
         rect: { x: AT.clueHall.x, y: AT.clueHall.y, w: 12, h: 10 },
+        hitRects: [{ x: AT.clueHall.x, y: AT.clueHall.y, w: 12, h: 10 }],
         stand: { x: 20, y: 18 },
         label: copy.clues.hall.label,
         use: readClue,
@@ -173,6 +174,7 @@ function buildProps(): SpaceProp[] {
       footY: WALL_BOTTOM,
       interact: {
         rect: { x: AT.noteOne.x - 4, y: 20, w: 18, h: 30 },
+        hitRects: [{ x: AT.noteOne.x, y: AT.noteOne.y, w: 10, h: 12 }],
         stand: { x: 13, y: 6 },
         label: copy.dark.noteOne.label,
         use: (api) => sayOnce(api, 'dark-note-one', copy.dark.noteOne.lines, copy.dark.noteOne.again),
@@ -203,6 +205,7 @@ function buildProps(): SpaceProp[] {
       },
       interact: {
         rect: { x: AT.monitor.x, y: AT.monitor.y, w: 32, h: 40 },
+        hitRects: [{ x: AT.monitor.x, y: AT.monitor.y, w: 32, h: 32 }],
         stand: { x: 19, y: 7 },
         label: copy.dark.monitor.label,
         use: (api) => sayOnce(api, 'dark-eye', copy.dark.monitor.lines, copy.dark.monitor.again),
@@ -213,6 +216,7 @@ function buildProps(): SpaceProp[] {
       footY: WALL_BOTTOM,
       interact: {
         rect: { x: AT.noteTwo.x - 6, y: 20, w: 22, h: 30 },
+        hitRects: [{ x: AT.noteTwo.x, y: AT.noteTwo.y, w: 10, h: 12 }],
         stand: { x: 24, y: 6 },
         label: copy.dark.noteTwo.label,
         use: (api) => sayOnce(api, 'dark-note-two', copy.dark.noteTwo.lines, copy.dark.noteTwo.again),
@@ -232,6 +236,7 @@ function buildProps(): SpaceProp[] {
       },
       interact: {
         rect: { x: AT.cat.x, y: AT.cat.y, w: 16, h: 14 },
+        hitRects: [{ x: AT.cat.x + 1, y: AT.cat.y + 1, w: 14, h: 12 }],
         stand: { x: 4, y: 17 },
         label: copy.dark.cat.label,
         use: (api) => sayOnce(api, 'dark-cat', copy.dark.cat.lines, copy.dark.cat.again),

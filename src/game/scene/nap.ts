@@ -120,6 +120,9 @@ function buildSleeperProp(ref: PoseRef): SpaceProp {
       ),
     interact: {
       rect: { x: AT.sleeper.x, y: AT.sleeper.y, w: 64, h: 70 },
+      // Only the sofa and the sleeping Huzbi are clickable; the floor below
+      // the sofa is walking space, not part of the sleeper.
+      hitRects: [{ x: AT.sleeper.x, y: AT.sleeper.y, w: 64, h: 46 }],
       stand: { x: 20, y: 19 },
       label: copy.nap.sleeper.label,
       use: (api) => talkToSleeper(api, ref),
@@ -249,6 +252,7 @@ function buildProps(ref: PoseRef): SpaceProp[] {
       draw: drawManga,
       interact: {
         rect: { x: AT.manga.x, y: AT.manga.y, w: 24, h: 18 },
+        hitRects: [{ x: AT.manga.x + 1, y: AT.manga.y + 1, w: 22, h: 16 }],
         stand: { x: 9, y: 17 },
         label: copy.nap.manga.label,
         use: (api) =>
@@ -260,6 +264,7 @@ function buildProps(ref: PoseRef): SpaceProp[] {
       footY: AT.clock.y + 14,
       interact: {
         rect: { x: AT.clock.x, y: AT.clock.y, w: 14, h: 14 },
+        hitRects: [{ x: AT.clock.x + 1, y: AT.clock.y + 1, w: 12, h: 12 }],
         stand: { x: 36, y: 6 },
         label: copy.nap.clock.label,
         use: (api) =>
@@ -272,6 +277,7 @@ function buildProps(ref: PoseRef): SpaceProp[] {
       draw: drawCat,
       interact: {
         rect: { x: AT.cat.x, y: AT.cat.y, w: 16, h: 14 },
+        hitRects: [{ x: AT.cat.x + 1, y: AT.cat.y + 1, w: 14, h: 12 }],
         stand: { x: 38, y: 18 },
         label: copy.nap.cat.label,
         use: (api) => sayOnce(api, 'nap-cat', copy.nap.cat.lines, copy.nap.cat.again),

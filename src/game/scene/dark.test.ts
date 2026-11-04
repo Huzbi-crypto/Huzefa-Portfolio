@@ -213,6 +213,24 @@ describe('dark layout', () => {
     }
   });
 
+  it('every_object_hotspot_has_a_tight_pointer_target_inside_its_bounds', () => {
+    const { scene } = setup();
+    for (const id of ['clue:hall', 'note-one', 'eye', 'note-two', 'cat', 'routing-sim']) {
+      const h = byId(scene, id);
+      expect(h.hitRects, `${id} has no hitRects`).toBeDefined();
+      expect(h.hitRects!.length, `${id} has no pointer target`).toBeGreaterThan(0);
+      for (const rect of h.hitRects!) {
+        expect(rect.x, id).toBeGreaterThanOrEqual(h.rect.x);
+        expect(rect.y, id).toBeGreaterThanOrEqual(h.rect.y);
+        expect(rect.x + rect.w, id).toBeLessThanOrEqual(h.rect.x + h.rect.w);
+        expect(rect.y + rect.h, id).toBeLessThanOrEqual(h.rect.y + h.rect.h);
+      }
+    }
+    // The wall below the two notes used to select them; it walks now.
+    const note = byId(scene, 'note-one');
+    expect(note.hitRects![0].y + note.hitRects![0].h).toBeLessThan(note.rect.y + note.rect.h);
+  });
+
   it('every_stand_is_close_enough_to_use_its_hotspot', () => {
     const { scene } = setup();
     for (const h of scene.hotspots) {

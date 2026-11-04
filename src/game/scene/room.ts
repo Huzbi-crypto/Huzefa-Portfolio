@@ -233,6 +233,7 @@ function windowHotspot(id: string, at: { x: number; y: number }, standX: number)
   return {
     id,
     rect: { x: at.x, y: at.y, w: 32, h: 44 },
+    hitRects: [{ x: at.x, y: at.y, w: 32, h: 32 }],
     stand: { x: standX, y: 6 },
     label: 'Look outside',
     onInteract: readWindow,
@@ -246,10 +247,12 @@ function silly(
   stand: Hotspot['stand'],
   text: { label: string; lines: readonly string[]; again: readonly string[] },
   star: string,
+  hitRects?: Hotspot['hitRects'],
 ): Hotspot {
   return {
     id,
     rect,
+    hitRects,
     stand,
     label: text.label,
     async onInteract(api) {
@@ -264,6 +267,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'note',
       rect: { x: AT.note.x, y: AT.note.y, w: 10, h: 26 },
+      hitRects: [{ x: AT.note.x, y: AT.note.y, w: 10, h: 11 }],
       stand: { x: 19, y: 7 },
       label: 'Read the note',
       async onInteract(api) {
@@ -279,6 +283,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'clue:note',
       rect: { x: AT.clueNote.x, y: AT.clueNote.y, w: 10, h: 22 },
+      hitRects: [{ x: AT.clueNote.x, y: AT.clueNote.y, w: 10, h: 11 }],
       stand: { x: 27, y: 7 },
       label: copy.clues.note.label,
       onInteract: readClueNote,
@@ -286,6 +291,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'tea',
       rect: { x: AT.tea.x, y: AT.tea.y, w: 12, h: 26 },
+      hitRects: [{ x: AT.tea.x, y: AT.tea.y, w: 12, h: 10 }],
       stand: { x: 24, y: 7 },
       label: 'Check the tea',
       async onInteract(api) {
@@ -305,6 +311,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'monitor',
       rect: { x: AT.crt.x, y: AT.crt.y, w: 20, h: 44 },
+      hitRects: [{ x: AT.crt.x, y: AT.crt.y, w: 20, h: 20 }],
       stand: { x: 21, y: 7 },
       label: 'Use the monitor',
       async onInteract(api) {
@@ -315,6 +322,7 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'shelf',
       rect: { x: AT.shelf.x, y: AT.shelf.y, w: 32, h: 40 },
+      hitRects: [{ x: AT.shelf.x + 1, y: AT.shelf.y + 1, w: 30, h: 38 }],
       stand: { x: 13, y: 6 },
       label: 'Browse the shelf',
       onInteract: browseShelf,
@@ -322,18 +330,26 @@ function buildHotspots(): Hotspot[] {
     {
       id: 'cat',
       rect: { x: AT.cat.x, y: AT.cat.y, w: 16, h: 14 },
+      hitRects: [{ x: AT.cat.x + 1, y: AT.cat.y + 1, w: 14, h: 12 }],
       stand: { x: 25, y: 16 },
       label: 'Pet the cat',
       onInteract: petCat,
     },
-    silly('sofa', { x: AT.sofa.x, y: AT.sofa.y, w: 40, h: 26 }, { x: 5, y: 16 }, copy.sofa, 'silly:sofa'),
-    silly('lamp', { x: AT.lamp.x, y: AT.lamp.y, w: 12, h: 34 }, { x: 33, y: 16 }, copy.lamp, 'silly:lamp'),
-    silly('rug', { x: AT.rug.x, y: AT.rug.y, w: 48, h: 32 }, { x: 22, y: 16 }, copy.rug, 'silly:rug'),
+    silly('sofa', { x: AT.sofa.x, y: AT.sofa.y, w: 40, h: 26 }, { x: 5, y: 16 }, copy.sofa, 'silly:sofa', [
+      { x: AT.sofa.x + 1, y: AT.sofa.y + 1, w: 38, h: 24 },
+    ]),
+    silly('lamp', { x: AT.lamp.x, y: AT.lamp.y, w: 12, h: 34 }, { x: 33, y: 16 }, copy.lamp, 'silly:lamp', [
+      { x: AT.lamp.x + 1, y: AT.lamp.y + 1, w: 10, h: 28 },
+    ]),
+    silly('rug', { x: AT.rug.x, y: AT.rug.y, w: 48, h: 32 }, { x: 22, y: 16 }, copy.rug, 'silly:rug', [
+      { x: AT.rug.x + 1, y: AT.rug.y + 1, w: 46, h: 30 },
+    ]),
     windowHotspot('window', AT.window, 4),
     windowHotspot('window-two', AT.windowTwo, 30),
     {
       id: 'door',
       rect: { x: AT.door.x, y: AT.door.y, w: 24, h: 40 },
+      hitRects: [{ x: AT.door.x + 1, y: AT.door.y + 1, w: 22, h: 38 }],
       stand: { x: 37, y: 6 },
       label: 'Check the door',
       onInteract: openDoor,
