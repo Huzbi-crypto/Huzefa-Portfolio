@@ -339,6 +339,7 @@ function buildSpaceDef(ref: PoseRef): SpaceDef {
 }
 
 export function createNap(store: GameStore): Scene {
-  const ref: PoseRef = { current: 'asleep' };
+  // Coming back after the ending must not replay the comic wake-up beats.
+  const ref: PoseRef = { current: store.seenEndingLine() === null ? 'asleep' : 'awake' };
   return createDarkSpace(buildSpaceDef(ref), store);
 }

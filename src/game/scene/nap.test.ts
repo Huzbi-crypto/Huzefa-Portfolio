@@ -118,6 +118,20 @@ describe('the ending', () => {
     expect(said).toContain(copy.nap.wake.full[2]);
   });
 
+  it('reentering_the_nap_room_does_not_replay_the_wake_up', async () => {
+    const store = createStore(null);
+    const first = harness(createNap, { store });
+    await interact(first, byId(first.scene, 'sleeper'), ['wake', 'leave-alone']);
+
+    const second = harness(createNap, { store });
+    const said = (
+      await interact(second, byId(second.scene, 'sleeper'), ['wake', 'say-hi'])
+    ).join(' ');
+    expect(said).not.toContain(copy.nap.sleeper.stir[0]);
+    expect(said).not.toContain(copy.nap.sleeper.slide[0]);
+    expect(said).toContain(copy.nap.again.few[0]);
+  });
+
   it('the_wake_up_has_its_comic_beats_before_the_line', async () => {
     const env = setup();
     const said = await interact(env, byId(env.scene, 'sleeper'), ['wake', 'leave-alone']);
