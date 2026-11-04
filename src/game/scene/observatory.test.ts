@@ -77,6 +77,38 @@ describe('observatory layout', () => {
     }
   });
 
+  it('the_plaque_stand_is_below_the_brass_not_on_it', () => {
+    const { scene } = setup();
+    const plaque = byId(scene, 'stats-plaque');
+    const brassTop = plaque.rect.y;
+    const brassBottom = brassTop + PLAQUE.h;
+    const standX = plaque.stand.x * TILE + TILE / 2;
+    const standY = plaque.stand.y * TILE + TILE / 2;
+    // The 24px visitor is drawn from its feet up, and the feet sit 3px below
+    // the stand's centre. The whole head must start under the plaque's edge.
+    const footY = standY + 3;
+    const headY = footY - 24;
+    expect(plaque.stand.y * TILE, 'the stand tile starts below the brass').toBeGreaterThanOrEqual(
+      brassBottom,
+    );
+    expect(headY, 'the visitor head is clear of the brass').toBeGreaterThanOrEqual(brassBottom);
+
+    // A tall interaction rect bridges the empty wall between brass and stand,
+    // so the plaque stays usable from that clear tile.
+    expect(plaque.rect.y + plaque.rect.h).toBeGreaterThan(brassBottom);
+    const dx = Math.max(plaque.rect.x - standX, 0, standX - (plaque.rect.x + plaque.rect.w));
+    const dy = Math.max(plaque.rect.y - standY, 0, standY - (plaque.rect.y + plaque.rect.h));
+    expect(Math.hypot(dx, dy)).toBeLessThanOrEqual(14);
+  });
+
+  it('the_plaque_foot_line_sits_at_its_visible_bottom_border', () => {
+    const { scene } = setup();
+    const plaque = byId(scene, 'stats-plaque');
+    const standFoot = plaque.stand.y * TILE + TILE / 2 + 3;
+    // Walking past below the brass must draw the visitor over it, never under.
+    expect(standFoot).toBeGreaterThan(plaque.rect.y + PLAQUE.h);
+  });
+
   it('the_stairs_lead_back_to_the_hall_and_can_be_declined', async () => {
     const env = setup();
     await interact(env, byId(env.scene, 'exit'), 'stay');

@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { SPRITES } from '@/game/art';
+import snapshot from '@/data/github-snapshot.json';
+import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import type { Input } from '@/game/core/input';
 import { createStore } from '@/game/state/store';
 import { createEntity } from '@/game/world/entity';
-import { createObservatory } from './observatory';
+import { createObservatory, plaqueLayout, PLAQUE_AT } from './observatory';
 import type { SceneCtx } from './types';
 
 /**
@@ -14,7 +15,7 @@ const recorder = vi.hoisted(() => ({
   events: [] as Array<
     | { kind: 'sprite'; sprite: { w: number; h: number }; x: number; y: number }
     | { kind: 'image'; source: { width: number; height: number } }
-    | { kind: 'fill'; x: number; y: number; w: number; h: number }
+    | { kind: 'fill'; x: number; y: number; w: number; h: number; color: string }
   >,
 }));
 
@@ -56,8 +57,15 @@ function fakeCanvas(): FakeCanvas {
     globalCompositeOperation: 'source-over',
     fillStyle: '#000000',
     setTransform: () => undefined,
-    fillRect: (x: number, y: number, w: number, h: number) => {
-      recorder.events.push({ kind: 'fill', x, y, w, h });
+    fillRect(this: FakeContext, x: number, y: number, w: number, h: number) {
+      recorder.events.push({
+        kind: 'fill',
+        x,
+        y,
+        w,
+        h,
+        color: String(this.fillStyle).toLowerCase(),
+      });
     },
     drawImage: (source: { width: number; height: number }) => {
       recorder.events.push({ kind: 'image', source });
@@ -131,9 +139,16 @@ function fillIndex(
   events: (typeof recorder.events)[number][],
   x: number,
   y: number,
+  color?: string,
 ): number {
   return events.findIndex(
-    (event) => event.kind === 'fill' && event.x === x && event.y === y && event.w === 1 && event.h === 1,
+    (event) =>
+      event.kind === 'fill' &&
+      event.x === x &&
+      event.y === y &&
+      event.w === 1 &&
+      event.h === 1 &&
+      (color === undefined || event.color === color.toLowerCase()),
   );
 }
 
@@ -163,8 +178,21 @@ describe('the observatory paints the whole moon door', () => {
 });
 
 describe('the observatory paints the visitor in front of the plaque', () => {
-  // The stats-plaque stand: the visitor's feet are below the plaque's base.
-  const STAND = { x: 14 * 8 + 4, y: 15 * 8 + 4 };
+  // The stats-plaque stand: the visitor's feet are a clear tile below the brass.
+  const STAND = { x: 14 * 8 + 4, y: 17 * 8 + 4 };
+  const { stats } = snapshot;
+  const layout = plaqueLayout(
+    [
+      String(stats.totalRepos),
+      String(stats.totalStarsReceived),
+      String(stats.totalFollowers),
+    ],
+    stats.snapshotDate,
+  );
+  const firstDigit = {
+    x: PLAQUE_AT.x + layout.rows[0].x,
+    y: PLAQUE_AT.y + layout.rows[0].y,
+  };
 
   it('the_visitor_is_drawn_after_the_plaque_from_its_own_stand', () => {
     const events = drawAt(STAND.x, STAND.y);
@@ -178,8 +206,8 @@ describe('the observatory paints the visitor in front of the plaque', () => {
 
   it('the_engraved_digits_also_stay_behind_the_visitor_from_the_stand', () => {
     const events = drawAt(STAND.x, STAND.y);
-    // First pixel of the first digit ("3" in "38"), in plaque space (27, 8).
-    const digits = fillIndex(events, 80 + 27, 84 + 8);
+    // First pixel of the first digit, in plaque space.
+    const digits = fillIndex(events, firstDigit.x, firstDigit.y, ACTIVE_PALETTE.C);
     const blit = visitorBlitIndex(events);
 
     expect(digits).toBeGreaterThanOrEqual(0);
@@ -201,8 +229,8 @@ describe('the observatory paints the visitor in front of the plaque', () => {
     const above = drawAt(STAND.x, 100);
     const belowBlit = visitorBlitIndex(below);
     const aboveBlit = visitorBlitIndex(above);
-    const belowDigits = fillIndex(below, 80 + 27, 84 + 8);
-    const aboveDigits = fillIndex(above, 80 + 27, 84 + 8);
+    const belowDigits = fillIndex(below, firstDigit.x, firstDigit.y, ACTIVE_PALETTE.C);
+    const aboveDigits = fillIndex(above, firstDigit.x, firstDigit.y, ACTIVE_PALETTE.C);
 
     // Below the foot line the visitor is painted over the digits; above it the
     // digits are part of the plaque in front of the visitor.

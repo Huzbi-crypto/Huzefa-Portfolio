@@ -29,7 +29,8 @@ const AT = {
   exit: { x: 20, y: 72 },
   table: { x: 136, y: 96 },
   telescope: { x: 280, y: 72 },
-  plaque: { x: 80, y: 84 },
+  // High enough that a visitor on the stand below is clear of the brass.
+  plaque: { x: 80, y: 74 },
   napDoor: { x: 340, y: 24 },
   charts: { x: 344, y: 76 },
   stool: { x: 256, y: 120 },
@@ -38,6 +39,9 @@ const AT = {
 
 /** The glass of the star table, where the repo stars are allowed to sit. */
 export const MAP_BOUNDS = { x: 148, y: 108, w: 88, h: 26 } as const;
+
+/** The top-left of the brass plaque, for tests and the screenshot harness. */
+export const PLAQUE_AT = AT.plaque;
 
 /** The night above the dome. */
 const SKY_BOUNDS = { x: 16, y: 6, w: 352, h: 40 } as const;
@@ -448,14 +452,16 @@ function buildProps(store: GameStore): SpaceProp[] {
     },
     {
       id: 'stats-plaque',
-      // Its base is the line the visitor stands below, not the bottom of the
-      // brass frame: standing at the plaque's own stand must put them in front.
-      footY: AT.plaque.y + 40,
+      // The plaque hangs above the visitor's head. The visible brass ends at
+      // PLAQUE.h; the interaction rect carries on down to the stand so the
+      // plaque stays in reach without putting the stand on the frame.
+      footY: AT.plaque.y + PLAQUE.h,
       draw: (g) => drawSprite(g, sprite('obsPlaque'), AT.plaque.x, AT.plaque.y),
       glow: drawPlaqueDigits,
       interact: {
-        rect: { x: AT.plaque.x, y: AT.plaque.y, w: 60, h: 44 },
-        stand: { x: 14, y: 15 },
+        rect: { x: AT.plaque.x, y: AT.plaque.y, w: 60, h: 58 },
+        // One clear tile below the plaque's bottom border, head clear of it.
+        stand: { x: 14, y: 17 },
         label: copy.observatory.stats.label,
         use: readPlaque,
       },
