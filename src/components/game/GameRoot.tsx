@@ -30,6 +30,7 @@ import { ProjectPanel } from './ProjectPanel';
 import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
 import { TermPrompt } from './TermPrompt';
+import { ThemeSelector } from './ThemeSelector';
 import { hasWalked, noteWalked } from './controlsHint';
 import { useFocusTrap } from './useFocusTrap';
 import './game.css';
@@ -301,6 +302,7 @@ export default function GameRoot() {
 
       {store ? <StarsFromStore store={store} /> : null}
       {store && audio ? <SoundFromStore store={store} audio={audio} /> : null}
+      <ThemeSelector className="game-theme-selector" />
 
       {walked === null ? null : (
         <div className="controls-hint px-panel" data-gone={walked} aria-hidden="true">

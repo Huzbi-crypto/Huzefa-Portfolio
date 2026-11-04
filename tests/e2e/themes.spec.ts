@@ -139,6 +139,41 @@ test.describe('themes and terminal', () => {
     expect(await page.evaluate(() => (window as Window & { __probe?: number }).__probe)).toBe(11);
   });
 
+  test('home_theme_and_crt_controls_work_without_reload', async ({ page }) => {
+    await openGame(page);
+    await page.evaluate(() => {
+      (window as Window & { __probe?: number }).__probe = 13;
+    });
+
+    const selector = page.locator('.theme-selector');
+    await expect(selector).toBeVisible();
+    await expect(page.locator('[data-theme-id="warm-apartment"]')).toBeVisible();
+    await expect(page.locator('[data-crt-toggle]')).toBeVisible();
+
+    const patch = () =>
+      page.evaluate(() => {
+        const canvas = document.querySelector('canvas');
+        if (!canvas) throw new Error('no game canvas');
+        const g = canvas.getContext('2d');
+        if (!g) throw new Error('no 2d context');
+        return Array.from(g.getImageData(0, 0, 24, 40).data);
+      });
+    const before = await patch();
+
+    await page.locator('[data-theme-id="warm-apartment"]').click();
+    await page.waitForTimeout(400);
+    expect(await page.evaluate(() => document.documentElement.getAttribute('data-theme'))).toBe(
+      'warm-apartment',
+    );
+    expect(await patch()).not.toEqual(before);
+    expect(await page.evaluate(() => (window as Window & { __probe?: number }).__probe)).toBe(13);
+
+    await expect(page.locator('[data-crt-overlay]')).toHaveCount(1);
+    await page.locator('[data-crt-toggle]').click();
+    await expect(page.locator('[data-crt-overlay]')).toHaveCount(0);
+    expect(await page.evaluate(() => window.location.pathname)).toBe('/');
+  });
+
   test('terminal_blocks_player_input', async ({ page }) => {
     await openGame(page);
 

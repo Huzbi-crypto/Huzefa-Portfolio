@@ -450,6 +450,37 @@ body {
   box-shadow: inset 0 0 0 2px var(--ts-amber);
 }
 
+.theme-option:focus-visible,
+.theme-crt:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* The game HUD copy of the selector, under the sound toggle. */
+.game-theme-selector {
+  position: absolute;
+  top: calc(max(12px, env(safe-area-inset-top)) + 58px);
+  right: var(--g-gutter);
+  z-index: 20;
+  width: min(420px, calc(100% - 2 * var(--g-gutter)));
+}
+
+@media (max-width: 700px) {
+  .game-theme-selector {
+    width: calc(100% - 2 * var(--g-gutter));
+    left: var(--g-gutter);
+    right: auto;
+  }
+
+  .game-theme-selector .theme-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .game-theme-selector .theme-option-short {
+    display: none;
+  }
+}
+
 /* The in-game terminal: a hard-edged CRT shell in the site's own palette. */
 
 .term-backdrop {

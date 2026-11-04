@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { PALETTES } from '@/game/art/palette';
 import type { Theme } from '@/types/portfolio';
@@ -57,9 +57,24 @@ export function ThemeSelector({
   const setTheme = onThemeChange ?? app.setTheme;
   const crtOn = crtEffect ?? app.crtEffect ?? true;
   const toggleCrt = onToggleCrt ?? app.toggleCrtEffect;
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // The selector lives inside the game stage too. A press or Enter here is a
+  // control, never a walk or a world interaction.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const stop = (event: Event): void => event.stopPropagation();
+    const types = ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'keyup'] as const;
+    for (const type of types) root.addEventListener(type, stop);
+    return () => {
+      for (const type of types) root.removeEventListener(type, stop);
+    };
+  }, []);
 
   return (
     <div
+      ref={rootRef}
       className={`theme-selector ${className}`.trim()}
       role="group"
       aria-label="Room light and screen"
