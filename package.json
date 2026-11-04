@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "refresh:github": "node scripts/refresh-github.mjs"
   },
   "packageManager": "pnpm@9.15.5",
   "onlyBuiltDependencies": [

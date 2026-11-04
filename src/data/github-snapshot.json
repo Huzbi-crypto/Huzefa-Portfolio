@@ -11,16 +11,16 @@
     "email": null,
     "bio": "I'm Huzbi. I like to code and read manga 'n books.",
     "twitter_username": null,
-    "public_repos": 38,
+    "public_repos": 40,
     "public_gists": 4,
     "followers": 20,
     "following": 17,
     "created_at": "2020-12-21T14:29:59Z",
-    "updated_at": "2026-09-19T09:04:01Z"
+    "updated_at": "2026-10-11T02:55:32Z"
   },
   "stats": {
-    "totalRepos": 38,
-    "totalStarsGiven": 349,
+    "totalRepos": 40,
+    "totalStarsGiven": 351,
     "totalStarsReceived": 36,
     "totalFollowers": 20,
     "totalFollowing": 17,
@@ -28,93 +28,146 @@
       {
         "language": "Python",
         "count": 9,
-        "percentage": 25.7
+        "percentage": 25
       },
       {
         "language": "JavaScript",
         "count": 8,
-        "percentage": 22.9
+        "percentage": 22.2
       },
       {
         "language": "C++",
-        "count": 4,
-        "percentage": 11.4
+        "count": 5,
+        "percentage": 13.9
       },
       {
         "language": "HTML",
         "count": 4,
-        "percentage": 11.4
-      },
-      {
-        "language": "CSS",
-        "count": 2,
-        "percentage": 5.7
+        "percentage": 11.1
       },
       {
         "language": "C",
         "count": 2,
-        "percentage": 5.7
+        "percentage": 5.6
+      },
+      {
+        "language": "CSS",
+        "count": 2,
+        "percentage": 5.6
+      },
+      {
+        "language": "TypeScript",
+        "count": 2,
+        "percentage": 5.6
       },
       {
         "language": "Java",
         "count": 1,
-        "percentage": 2.9
-      },
-      {
-        "language": "SCSS",
-        "count": 1,
-        "percentage": 2.9
-      },
-      {
-        "language": "Shell",
-        "count": 1,
-        "percentage": 2.9
-      },
-      {
-        "language": "TypeScript",
-        "count": 1,
-        "percentage": 2.9
-      },
-      {
-        "language": "Nix",
-        "count": 1,
-        "percentage": 2.9
+        "percentage": 2.8
       },
       {
         "language": "Lua",
         "count": 1,
-        "percentage": 2.9
+        "percentage": 2.8
+      },
+      {
+        "language": "Nix",
+        "count": 1,
+        "percentage": 2.8
+      },
+      {
+        "language": "Shell",
+        "count": 1,
+        "percentage": 2.8
       }
     ],
-    "snapshotDate": "2026-09-19"
+    "snapshotDate": "2026-11-05"
   },
   "repositories": [
     {
-      "id": 1213766428,
-      "name": "ASCII-Art-TUI",
-      "full_name": "Huzbi-crypto/ASCII-Art-TUI",
-      "html_url": "https://github.com/Huzbi-crypto/ASCII-Art-TUI",
-      "description": "Convert your images to ASCII inside the terminal.",
+      "id": 697898268,
+      "name": "Huzefa-Portfolio",
+      "full_name": "Huzbi-crypto/Huzefa-Portfolio",
+      "html_url": "https://github.com/Huzbi-crypto/Huzefa-Portfolio",
+      "description": "A portfolio site for Huzefa Huzbi. Made with HTML, CSS, JS, and GSAP.",
       "fork": false,
-      "homepage": null,
-      "size": 20,
+      "homepage": "https://huzefa.vercel.app",
+      "size": 1474,
       "stargazers_count": 1,
       "watchers_count": 1,
-      "language": "Python",
+      "language": "TypeScript",
       "forks_count": 0,
       "open_issues_count": 0,
-      "topics": [],
+      "topics": [
+        "gsap",
+        "html-css-javascript"
+      ],
       "visibility": "public",
       "default_branch": "main",
-      "created_at": "2026-04-17T18:33:07Z",
-      "updated_at": "2026-07-28T02:19:14Z",
-      "pushed_at": "2026-04-17T18:42:43Z",
+      "created_at": "2023-09-28T17:43:45Z",
+      "updated_at": "2026-10-03T18:17:38Z",
+      "pushed_at": "2026-11-04T22:06:14Z",
       "license": {
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
+    },
+    {
+      "id": 1441323598,
+      "name": "brightness-control",
+      "full_name": "Huzbi-crypto/brightness-control",
+      "html_url": "https://github.com/Huzbi-crypto/brightness-control",
+      "description": "Control an external monitor's brightness over DDC/CI and keep it in sync with the laptop panel on Windows.",
+      "fork": false,
+      "homepage": null,
+      "size": 1495,
+      "stargazers_count": 0,
+      "watchers_count": 0,
+      "language": "C++",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "master",
+      "created_at": "2026-10-31T23:04:05Z",
+      "updated_at": "2026-11-01T19:17:45Z",
+      "pushed_at": "2026-11-01T19:17:42Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 1389753414,
+      "name": "anjou-san-fast-fetch-config",
+      "full_name": "Huzbi-crypto/anjou-san-fast-fetch-config",
+      "html_url": "https://github.com/Huzbi-crypto/anjou-san-fast-fetch-config",
+      "description": "A fast fetch config based on Anjou-san.",
+      "fork": false,
+      "homepage": "",
+      "size": 176,
+      "stargazers_count": 0,
+      "watchers_count": 0,
+      "language": null,
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [
+        "fast-fetch",
+        "fastfetch-config",
+        "fastfetch-configuration"
+      ],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2026-09-26T20:13:49Z",
+      "updated_at": "2026-09-27T08:49:26Z",
+      "pushed_at": "2026-09-26T20:36:12Z",
+      "license": null
     },
     {
       "id": 1235580530,
@@ -161,33 +214,31 @@
       "license": null
     },
     {
-      "id": 686265398,
-      "name": "aiAnime-ImageGenerator-site",
-      "full_name": "Huzbi-crypto/aiAnime-ImageGenerator-site",
-      "html_url": "https://github.com/Huzbi-crypto/aiAnime-ImageGenerator-site",
-      "description": "A public repo for the AI generated anime images website that I've created.",
+      "id": 1213766428,
+      "name": "ASCII-Art-TUI",
+      "full_name": "Huzbi-crypto/ASCII-Art-TUI",
+      "html_url": "https://github.com/Huzbi-crypto/ASCII-Art-TUI",
+      "description": "Convert your images to ASCII inside the terminal.",
       "fork": false,
-      "homepage": "https://huzbi-animeartai.vercel.app/",
-      "size": 16,
-      "stargazers_count": 6,
-      "watchers_count": 6,
-      "language": "CSS",
-      "forks_count": 2,
-      "open_issues_count": 1,
-      "topics": [
-        "ai-image-generation",
-        "html-css-javascript"
-      ],
+      "homepage": null,
+      "size": 20,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": "Python",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
       "visibility": "public",
       "default_branch": "main",
-      "created_at": "2023-09-02T08:03:46Z",
-      "updated_at": "2026-04-08T05:35:23Z",
-      "pushed_at": "2025-04-04T20:06:13Z",
+      "created_at": "2026-04-17T18:33:07Z",
+      "updated_at": "2026-07-28T02:19:14Z",
+      "pushed_at": "2026-04-17T18:42:43Z",
       "license": {
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -313,7 +364,8 @@
         "key": "gpl-3.0",
         "name": "GNU General Public License v3.0",
         "spdx_id": "GPL-3.0",
-        "url": "https://api.github.com/licenses/gpl-3.0"
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
       }
     },
     {
@@ -340,38 +392,62 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
-      "id": 697898268,
-      "name": "Huzefa-Portfolio",
-      "full_name": "Huzbi-crypto/Huzefa-Portfolio",
-      "html_url": "https://github.com/Huzbi-crypto/Huzefa-Portfolio",
-      "description": "A portfolio site for Huzefa Huzbi. Made with HTML, CSS, JS, and GSAP.",
+      "id": 686265398,
+      "name": "aiAnime-ImageGenerator-site",
+      "full_name": "Huzbi-crypto/aiAnime-ImageGenerator-site",
+      "html_url": "https://github.com/Huzbi-crypto/aiAnime-ImageGenerator-site",
+      "description": "A public repo for the AI generated anime images website that I've created.",
       "fork": false,
-      "homepage": "https://huzefa.vercel.app",
-      "size": 547,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": "SCSS",
-      "forks_count": 0,
-      "open_issues_count": 0,
+      "homepage": "https://huzbi-animeartai.vercel.app/",
+      "size": 16,
+      "stargazers_count": 6,
+      "watchers_count": 6,
+      "language": "CSS",
+      "forks_count": 2,
+      "open_issues_count": 1,
       "topics": [
-        "gsap",
+        "ai-image-generation",
         "html-css-javascript"
       ],
       "visibility": "public",
       "default_branch": "main",
-      "created_at": "2023-09-28T17:43:45Z",
-      "updated_at": "2025-02-19T07:19:59Z",
-      "pushed_at": "2025-02-19T07:19:55Z",
+      "created_at": "2023-09-02T08:03:46Z",
+      "updated_at": "2026-04-08T05:35:23Z",
+      "pushed_at": "2025-04-04T20:06:13Z",
       "license": {
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
+    },
+    {
+      "id": 577316701,
+      "name": "effective-waffle",
+      "full_name": "Huzbi-crypto/effective-waffle",
+      "html_url": "https://github.com/Huzbi-crypto/effective-waffle",
+      "description": "My collection of hoarded wallpapers from online.",
+      "fork": false,
+      "homepage": "",
+      "size": 471118,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": null,
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2022-12-12T13:23:28Z",
+      "updated_at": "2023-08-19T18:11:23Z",
+      "pushed_at": "2025-01-31T15:09:25Z",
+      "license": null
     },
     {
       "id": 889137895,
@@ -397,7 +473,8 @@
         "key": "gpl-3.0",
         "name": "GNU General Public License v3.0",
         "spdx_id": "GPL-3.0",
-        "url": "https://api.github.com/licenses/gpl-3.0"
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
       }
     },
     {
@@ -424,7 +501,8 @@
         "key": "gpl-3.0",
         "name": "GNU General Public License v3.0",
         "spdx_id": "GPL-3.0",
-        "url": "https://api.github.com/licenses/gpl-3.0"
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
       }
     },
     {
@@ -451,7 +529,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -478,7 +557,8 @@
         "key": "gpl-3.0",
         "name": "GNU General Public License v3.0",
         "spdx_id": "GPL-3.0",
-        "url": "https://api.github.com/licenses/gpl-3.0"
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
       }
     },
     {
@@ -505,7 +585,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -532,7 +613,36 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 724738191,
+      "name": "Read-Cookies.Sqlite",
+      "full_name": "Huzbi-crypto/Read-Cookies.Sqlite",
+      "html_url": "https://github.com/Huzbi-crypto/Read-Cookies.Sqlite",
+      "description": "A basic program that outputs cookies data of firefox browser's cookies.sqlite based on website input from user.",
+      "fork": false,
+      "homepage": "",
+      "size": 11,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": "Python",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2023-11-28T17:37:02Z",
+      "updated_at": "2023-11-29T19:23:42Z",
+      "pushed_at": "2023-12-16T14:22:02Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -563,7 +673,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -594,88 +705,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
-      }
-    },
-    {
-      "id": 723055529,
-      "name": "GitHub-Profiler",
-      "full_name": "Huzbi-crypto/GitHub-Profiler",
-      "html_url": "https://github.com/Huzbi-crypto/GitHub-Profiler",
-      "description": "A program to find info regarding a GitHub user.",
-      "fork": false,
-      "homepage": "",
-      "size": 11,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": "Python",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2023-11-24T15:15:28Z",
-      "updated_at": "2023-12-11T10:12:18Z",
-      "pushed_at": "2023-12-07T16:12:15Z",
-      "license": {
-        "key": "mit",
-        "name": "MIT License",
-        "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
-      }
-    },
-    {
-      "id": 724738191,
-      "name": "Read-Cookies.Sqlite",
-      "full_name": "Huzbi-crypto/Read-Cookies.Sqlite",
-      "html_url": "https://github.com/Huzbi-crypto/Read-Cookies.Sqlite",
-      "description": "A basic program that outputs cookies data of firefox browser's cookies.sqlite based on website input from user.",
-      "fork": false,
-      "homepage": "",
-      "size": 11,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": "Python",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2023-11-28T17:37:02Z",
-      "updated_at": "2023-11-29T19:23:42Z",
-      "pushed_at": "2023-12-16T14:22:02Z",
-      "license": {
-        "key": "mit",
-        "name": "MIT License",
-        "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
-      }
-    },
-    {
-      "id": 562533040,
-      "name": "FAST-NU",
-      "full_name": "Huzbi-crypto/FAST-NU",
-      "html_url": "https://github.com/Huzbi-crypto/FAST-NU",
-      "description": "All of the codes that were given as  tasks, mids, finals, and such in my University are done and will be stored here",
-      "fork": false,
-      "homepage": "",
-      "size": 223954,
-      "stargazers_count": 2,
-      "watchers_count": 2,
-      "language": "C++",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2022-11-06T16:43:52Z",
-      "updated_at": "2023-10-26T17:25:34Z",
-      "pushed_at": "2023-12-06T16:08:54Z",
-      "license": {
-        "key": "mit",
-        "name": "MIT License",
-        "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -702,7 +733,64 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 723055529,
+      "name": "GitHub-Profiler",
+      "full_name": "Huzbi-crypto/GitHub-Profiler",
+      "html_url": "https://github.com/Huzbi-crypto/GitHub-Profiler",
+      "description": "A program to find info regarding a GitHub user.",
+      "fork": false,
+      "homepage": "",
+      "size": 11,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": "Python",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2023-11-24T15:15:28Z",
+      "updated_at": "2023-12-11T10:12:18Z",
+      "pushed_at": "2023-12-07T16:12:15Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 562533040,
+      "name": "FAST-NU",
+      "full_name": "Huzbi-crypto/FAST-NU",
+      "html_url": "https://github.com/Huzbi-crypto/FAST-NU",
+      "description": "All of the codes that were given as  tasks, mids, finals, and such in my University are done and will be stored here",
+      "fork": false,
+      "homepage": "",
+      "size": 223954,
+      "stargazers_count": 2,
+      "watchers_count": 2,
+      "language": "C++",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2022-11-06T16:43:52Z",
+      "updated_at": "2023-10-26T17:25:34Z",
+      "pushed_at": "2023-12-06T16:08:54Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -729,7 +817,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -756,37 +845,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
-      }
-    },
-    {
-      "id": 704202437,
-      "name": "Art-ScrollBased-Gallery",
-      "full_name": "Huzbi-crypto/Art-ScrollBased-Gallery",
-      "html_url": "https://github.com/Huzbi-crypto/Art-ScrollBased-Gallery",
-      "description": "An attempt to create a scroll perspective gallery of artworks with the help of GSAP, scrolltrigger, and lenis.",
-      "fork": false,
-      "homepage": "https://huzbi-artperspective.vercel.app",
-      "size": 7107,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": "HTML",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [
-        "html-css-javascript",
-        "ui"
-      ],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2023-10-12T18:51:47Z",
-      "updated_at": "2023-10-15T07:17:47Z",
-      "pushed_at": "2023-10-14T16:22:37Z",
-      "license": {
-        "key": "mit",
-        "name": "MIT License",
-        "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -816,7 +876,39 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 704202437,
+      "name": "Art-ScrollBased-Gallery",
+      "full_name": "Huzbi-crypto/Art-ScrollBased-Gallery",
+      "html_url": "https://github.com/Huzbi-crypto/Art-ScrollBased-Gallery",
+      "description": "An attempt to create a scroll perspective gallery of artworks with the help of GSAP, scrolltrigger, and lenis.",
+      "fork": false,
+      "homepage": "https://huzbi-artperspective.vercel.app",
+      "size": 7107,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": "HTML",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [
+        "html-css-javascript",
+        "ui"
+      ],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2023-10-12T18:51:47Z",
+      "updated_at": "2023-10-15T07:17:47Z",
+      "pushed_at": "2023-10-14T16:22:37Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -846,7 +938,36 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 678926240,
+      "name": "Creative-coding-site",
+      "full_name": "Huzbi-crypto/Creative-coding-site",
+      "html_url": "https://github.com/Huzbi-crypto/Creative-coding-site",
+      "description": "A repo that consists all creative coding projects that are to be displayed on a site as well.",
+      "fork": false,
+      "homepage": "https://huzbi-creativecoding.vercel.app",
+      "size": 67,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": "HTML",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2023-08-15T17:50:34Z",
+      "updated_at": "2023-08-26T06:28:51Z",
+      "pushed_at": "2023-08-26T06:57:08Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -877,34 +998,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
-      }
-    },
-    {
-      "id": 678926240,
-      "name": "Creative-coding-site",
-      "full_name": "Huzbi-crypto/Creative-coding-site",
-      "html_url": "https://github.com/Huzbi-crypto/Creative-coding-site",
-      "description": "A repo that consists all creative coding projects that are to be displayed on a site as well.",
-      "fork": false,
-      "homepage": "https://huzbi-creativecoding.vercel.app",
-      "size": 67,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": "HTML",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2023-08-15T17:50:34Z",
-      "updated_at": "2023-08-26T06:28:51Z",
-      "pushed_at": "2023-08-26T06:57:08Z",
-      "license": {
-        "key": "mit",
-        "name": "MIT License",
-        "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -933,82 +1028,6 @@
       "license": null
     },
     {
-      "id": 577316701,
-      "name": "effective-waffle",
-      "full_name": "Huzbi-crypto/effective-waffle",
-      "html_url": "https://github.com/Huzbi-crypto/effective-waffle",
-      "description": "My collection of hoarded wallpapers from online.",
-      "fork": false,
-      "homepage": "",
-      "size": 471118,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": null,
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2022-12-12T13:23:28Z",
-      "updated_at": "2023-08-19T18:11:23Z",
-      "pushed_at": "2025-01-31T15:09:25Z",
-      "license": null
-    },
-    {
-      "id": 657150051,
-      "name": "HuzbiGPT",
-      "full_name": "Huzbi-crypto/HuzbiGPT",
-      "html_url": "https://github.com/Huzbi-crypto/HuzbiGPT",
-      "description": "A repository that contains several types of HuzbiGPT for different platforms, such as, Discord, Slack, etc.",
-      "fork": false,
-      "homepage": null,
-      "size": 19,
-      "stargazers_count": 2,
-      "watchers_count": 2,
-      "language": "JavaScript",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2023-06-22T12:30:19Z",
-      "updated_at": "2023-08-19T09:16:34Z",
-      "pushed_at": "2023-06-22T12:43:29Z",
-      "license": {
-        "key": "gpl-3.0",
-        "name": "GNU General Public License v3.0",
-        "spdx_id": "GPL-3.0",
-        "url": "https://api.github.com/licenses/gpl-3.0"
-      }
-    },
-    {
-      "id": 671853025,
-      "name": "C-and-C-Plus-Plus-Scripts",
-      "full_name": "Huzbi-crypto/C-and-C-Plus-Plus-Scripts",
-      "html_url": "https://github.com/Huzbi-crypto/C-and-C-Plus-Plus-Scripts",
-      "description": "A repository containing C and C++ scripts that I create for fun, automation, etc.",
-      "fork": false,
-      "homepage": null,
-      "size": 9,
-      "stargazers_count": 1,
-      "watchers_count": 1,
-      "language": "C",
-      "forks_count": 0,
-      "open_issues_count": 0,
-      "topics": [],
-      "visibility": "public",
-      "default_branch": "main",
-      "created_at": "2023-07-28T09:38:28Z",
-      "updated_at": "2023-08-19T09:16:27Z",
-      "pushed_at": "2023-08-01T19:08:48Z",
-      "license": {
-        "key": "mit",
-        "name": "MIT License",
-        "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
-      }
-    },
-    {
       "id": 680263253,
       "name": "Parallax-Project-Smooth-Scroll",
       "full_name": "Huzbi-crypto/Parallax-Project-Smooth-Scroll",
@@ -1032,7 +1051,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     },
     {
@@ -1064,7 +1084,64 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 671853025,
+      "name": "C-and-C-Plus-Plus-Scripts",
+      "full_name": "Huzbi-crypto/C-and-C-Plus-Plus-Scripts",
+      "html_url": "https://github.com/Huzbi-crypto/C-and-C-Plus-Plus-Scripts",
+      "description": "A repository containing C and C++ scripts that I create for fun, automation, etc.",
+      "fork": false,
+      "homepage": null,
+      "size": 9,
+      "stargazers_count": 1,
+      "watchers_count": 1,
+      "language": "C",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2023-07-28T09:38:28Z",
+      "updated_at": "2023-08-19T09:16:27Z",
+      "pushed_at": "2023-08-01T19:08:48Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      }
+    },
+    {
+      "id": 657150051,
+      "name": "HuzbiGPT",
+      "full_name": "Huzbi-crypto/HuzbiGPT",
+      "html_url": "https://github.com/Huzbi-crypto/HuzbiGPT",
+      "description": "A repository that contains several types of HuzbiGPT for different platforms, such as, Discord, Slack, etc.",
+      "fork": false,
+      "homepage": null,
+      "size": 19,
+      "stargazers_count": 2,
+      "watchers_count": 2,
+      "language": "JavaScript",
+      "forks_count": 0,
+      "open_issues_count": 0,
+      "topics": [],
+      "visibility": "public",
+      "default_branch": "main",
+      "created_at": "2023-06-22T12:30:19Z",
+      "updated_at": "2023-08-19T09:16:34Z",
+      "pushed_at": "2023-06-22T12:43:29Z",
+      "license": {
+        "key": "gpl-3.0",
+        "name": "GNU General Public License v3.0",
+        "spdx_id": "GPL-3.0",
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
       }
     },
     {
@@ -1091,7 +1168,8 @@
         "key": "gpl-3.0",
         "name": "GNU General Public License v3.0",
         "spdx_id": "GPL-3.0",
-        "url": "https://api.github.com/licenses/gpl-3.0"
+        "url": "https://api.github.com/licenses/gpl-3.0",
+        "node_id": "MDc6TGljZW5zZTk="
       }
     },
     {
@@ -1099,7 +1177,7 @@
       "name": "windows-terminal",
       "full_name": "Huzbi-crypto/windows-terminal",
       "html_url": "https://github.com/Huzbi-crypto/windows-terminal",
-      "description": "\ud83e\ude9f Soothing pastel theme for Windows Terminal",
+      "description": "🪟 Soothing pastel theme for Windows Terminal",
       "fork": true,
       "homepage": "",
       "size": 948,
@@ -1118,7 +1196,8 @@
         "key": "mit",
         "name": "MIT License",
         "spdx_id": "MIT",
-        "url": "https://api.github.com/licenses/mit"
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
       }
     }
   ]

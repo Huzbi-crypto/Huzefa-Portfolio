@@ -57,6 +57,22 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Refreshing the GitHub snapshot
+
+The GitHub page and the Observatory plaque read a committed snapshot, not a
+live API. When Huzbi's numbers change, refresh that file from an authenticated
+machine:
+
+```bash
+pnpm refresh:github
+```
+
+The script asks the authenticated `gh` CLI first (falling back to the REST API
+with `GITHUB_TOKEN` or `GH_TOKEN`) for the profile, every public repository and
+the number of starred repos, then rewrites `src/data/github-snapshot.json` with
+today's date. If any request fails it prints the real error and leaves the old
+snapshot in place. Nothing on the site makes a live GitHub request.
+
 ## Verification
 
 ```bash
