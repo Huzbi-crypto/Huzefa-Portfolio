@@ -94,7 +94,7 @@ export function setContactCardOpen(open: boolean): void {
 // --- speaking to Huzbi -------------------------------------------------------
 
 function sleeperFrame(pose: SleepPose, t: number, reducedMotion: boolean): string {
-  if (pose === 'stir') return 'sleeperStir';
+  if (pose === 'stir') return reducedMotion ? 'sleeperAsleep0' : 'sleeperAsleep1';
   if (pose === 'slide') return 'sleeperStir';
   if (pose === 'sitUp') return 'sleeperSitUp';
   if (pose === 'awake') return 'sleeperAwake';
@@ -116,8 +116,8 @@ function buildSleeperProp(ref: PoseRef): SpaceProp {
         AT.sleeper.y,
       ),
     interact: {
-      rect: { x: AT.sleeper.x, y: AT.sleeper.y, w: 64, h: 46 },
-      stand: { x: 20, y: 17 },
+      rect: { x: AT.sleeper.x, y: AT.sleeper.y, w: 64, h: 70 },
+      stand: { x: 20, y: 19 },
       label: copy.nap.sleeper.label,
       use: (api) => talkToSleeper(api, ref),
     },
@@ -322,7 +322,10 @@ function buildSpaceDef(ref: PoseRef): SpaceDef {
     props: buildProps(ref),
     exhibits: [],
     lights: [
-      { x: AT.lamp.x + 6, y: AT.lamp.y + 14, radius: 92, tint: 'warm' },
+      // One generous lamp, so the whole nap is readable, plus its warm spill
+      // over the sofa and a little moonlight from the window.
+      { x: AT.lamp.x + 6, y: AT.lamp.y + 14, radius: 150, tint: 'warm' },
+      { x: AT.sleeper.x + 32, y: AT.sleeper.y + 18, radius: 44, tint: 'warm' },
       { x: AT.window.x + 18, y: AT.window.y + 20, radius: 24, tint: 'cool' },
     ],
     drawBackdrop,
