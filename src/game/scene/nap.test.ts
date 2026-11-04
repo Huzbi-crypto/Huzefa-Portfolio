@@ -126,6 +126,18 @@ describe('the ending', () => {
     expect(said.indexOf(beats[2])).toBeLessThan(said.indexOf(copy.nap.wake.few[0]));
   });
 
+  it('a_return_with_more_stars_gets_the_full_line_not_the_short_one', async () => {
+    const store = createStore(null);
+    store.markEndingSeen('few');
+    for (const id of allStarIds()) store.award(id);
+    const env = harness(createNap, { store });
+    const said = (
+      await interact(env, byId(env.scene, 'sleeper'), ['wake', 'leave-alone'])
+    ).join(' ');
+    expect(said).toContain(copy.nap.wake.full[2]);
+    expect(said).not.toContain(copy.nap.again.full[0]);
+  });
+
   it('the_ending_is_remembered_so_the_second_visit_is_short', async () => {
     const env = setup();
     await interact(env, byId(env.scene, 'sleeper'), ['wake', 'leave-alone']);

@@ -126,14 +126,20 @@ function buildSleeperProp(ref: PoseRef): SpaceProp {
 
 // --- the ending sequence -----------------------------------------------------
 
+const ENDING_RANK = { few: 1, most: 2, full: 3 } as const;
+
 async function contactBeat(api: GameApi): Promise<void> {
   const { store } = api;
   const { found, total } = store.getState();
   const line = endingLine(found.length, total);
-  const first = store.seenEndingLine() === null;
+  const previous = store.seenEndingLine();
+  const first = previous === null;
+  // Coming back with more stars earns the proper version of the conversation,
+  // not just the short "you again" line.
+  const upgraded = previous !== null && ENDING_RANK[line] > ENDING_RANK[previous];
 
   await store.say([
-    ...(first ? copy.nap.wake[line] : copy.nap.again[line]),
+    ...(first || upgraded ? copy.nap.wake[line] : copy.nap.again[line]),
   ]);
   store.markEndingSeen(line);
 
