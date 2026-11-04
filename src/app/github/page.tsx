@@ -1,567 +1,379 @@
-'use client';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import snapshot from '@/data/github-snapshot.json';
+import contributionData from '@/data/github-contributions.json';
+import type {
+  GitHubContributionDay,
+  GitHubContributionsResponse,
+  GitHubRepo,
+  GitHubSnapshot,
+} from '@/types/github';
+import { JournalPage } from '@/components/journal/JournalPage';
+import { PixelPanel } from '@/components/journal/PixelPanel';
+import { PixelArt } from '@/components/journal/PixelArt';
+import { ICONS } from '@/components/journal/journalArt';
 
-import React, { useState, useMemo } from 'react';
-import Image from 'next/image';
-import { useGitHubData } from '@/hooks/useGitHubData';
-import { ContributionWall } from '@/components/github/ContributionWall';
-import { StarCluster } from '@/components/github/StarCluster';
-import {
-  Star,
-  GitFork,
-  BookOpen,
-  ExternalLink,
-  Search,
-  RefreshCw,
-  Users,
-  Code2,
-  Flame,
-  Radio,
-} from 'lucide-react';
-import { GithubIcon } from '@/components/icons';
-
-const LANGUAGE_DOT_COLORS: Record<string, string> = {
-  Python: '#3572A5',
-  JavaScript: '#F1E05A',
-  'C++': '#F34B7D',
-  C: '#555555',
-  HTML: '#E34C26',
-  CSS: '#563D7C',
-  Java: '#B07219',
-  default: '#8C929D',
+export const metadata: Metadata = {
+  title: 'GitHub Log | Huzbi',
+  description:
+    'The honest GitHub snapshot: 38 public repositories, the language breakdown, and a year of lit contribution windows.',
 };
 
-type SortOption = 'stars' | 'updated' | 'name' | 'size';
+const HEAT_CELL = 11;
+const HEAT_LEFT = 30;
+const HEAT_TOP = 20;
 
+function formatDay(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function formatMonth(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+/** Group a year of days into calendar weeks, Sunday first, with honest gaps. */
+function toWeeks(days: GitHubContributionDay[]): (GitHubContributionDay | null)[][] {
+  const weeks: (GitHubContributionDay | null)[][] = [];
+  let week: (GitHubContributionDay | null)[] = [];
+
+  if (days.length === 0) return weeks;
+
+  const firstDow = new Date(`${days[0].date}T00:00:00Z`).getUTCDay();
+  for (let index = 0; index < firstDow; index += 1) week.push(null);
+
+  for (const day of days) {
+    week.push(day);
+    if (week.length === 7) {
+      weeks.push(week);
+      week = [];
+    }
+  }
+
+  if (week.length > 0) {
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
+  }
+
+  return weeks;
+}
+
+function streakStats(days: GitHubContributionDay[]) {
+  let activeDays = 0;
+  let longest = 0;
+  let run = 0;
+
+  for (const day of days) {
+    if (day.count > 0) {
+      activeDays += 1;
+      run += 1;
+      if (run > longest) longest = run;
+    } else {
+      run = 0;
+    }
+  }
+
+  let current = 0;
+  for (let index = days.length - 1; index >= 0; index -= 1) {
+    if (days[index].count > 0) current += 1;
+    else break;
+  }
+
+  return { activeDays, longest, current };
+}
+
+/**
+ * The GitHub log: the same real snapshot the game's observatory reads, drawn
+ * as a journal spread. Static on purpose — it reads in full with no scripts,
+ * and the snapshot date is always shown so nothing pretends to be live.
+ */
 export default function GitHubHubPage() {
-  const {
-    user,
-    stats,
-    repositories,
-    statusLabel,
-    isLive,
-    isLoading,
-    error,
-    lastUpdated,
-    refetch,
-  } = useGitHubData();
+  const data = snapshot as GitHubSnapshot;
+  const contributions = contributionData as GitHubContributionsResponse;
+  const days = contributions.contributions;
+  const weeks = toWeeks(days);
+  const streaks = streakStats(days);
+  const totalContributions =
+    contributions.total.lastYear || days.reduce((sum, day) => sum + day.count, 0);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('all');
-  const [sortBy, setSortBy] = useState<SortOption>('stars');
+  const monthLabels: { label: string; column: number }[] = [];
+  let lastLabelColumn = -10;
+  weeks.forEach((week, column) => {
+    const firstOfMonth = week.find(
+      (day) => day && new Date(`${day.date}T00:00:00Z`).getUTCDate() === 1,
+    );
+    if (!firstOfMonth) return;
+    if (column === 0 || column - lastLabelColumn >= 3) {
+      monthLabels.push({ label: formatMonth(firstOfMonth.date), column });
+      lastLabelColumn = column;
+    }
+  });
 
-  // Distinct languages from repositories
-  const availableLanguages = useMemo(() => {
-    const set = new Set<string>();
-    repositories.forEach((r) => {
-      if (r.language) set.add(r.language);
-    });
-    return Array.from(set).sort();
-  }, [repositories]);
-
-  // Filtered and sorted repositories
-  const filteredRepos = useMemo(() => {
-    return repositories
-      .filter((repo) => {
-        if (selectedLanguage !== 'all' && repo.language !== selectedLanguage) {
-          return false;
-        }
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchName = repo.name.toLowerCase().includes(q);
-          const matchDesc = (repo.description || '').toLowerCase().includes(q);
-          const matchLang = (repo.language || '').toLowerCase().includes(q);
-          const matchTopic = repo.topics?.some((t) => t.toLowerCase().includes(q));
-          if (!matchName && !matchDesc && !matchLang && !matchTopic) {
-            return false;
-          }
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'stars') {
-          const diff = (b.stargazers_count || 0) - (a.stargazers_count || 0);
-          if (diff !== 0) return diff;
-          return new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime();
-        }
-        if (sortBy === 'updated') {
-          return new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime();
-        }
-        if (sortBy === 'size') {
-          return (b.size || 0) - (a.size || 0);
-        }
-        if (sortBy === 'name') {
-          return a.name.localeCompare(b.name);
-        }
-        return 0;
-      });
-  }, [repositories, selectedLanguage, searchQuery, sortBy]);
+  const heatWidth = HEAT_LEFT + weeks.length * HEAT_CELL;
+  const heatHeight = HEAT_TOP + 7 * HEAT_CELL;
+  const languages = data.stats.topLanguages;
 
   return (
-    <main className="min-h-screen bg-bg text-fg font-sans selection:bg-accent selection:text-bg pb-24">
-      {/* Page Hero: Profile & Snapshot Meta */}
-      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-6 sm:pt-10 pb-8">
-        {/* Error / Nap Banner if API rate limited or unreachable */}
-        {error && (
-          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-accent-secondary/15 border border-accent-secondary/40 mb-6 text-xs font-mono">
-            <div className="flex items-center gap-2.5">
-              <Radio className="w-4 h-4 text-accent-secondary animate-pulse" />
-              <div>
-                <span className="font-bold text-fg">GitHub data is taking a nap.</span>{' '}
-                <span className="text-fg-muted hidden sm:inline">
-                  (Showing cached snapshot archive). You can still visit the profile directly.
-                </span>
-              </div>
-            </div>
-            <a
-              href={user.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-bg-surface hover:bg-bg-hover text-accent-secondary font-bold border border-accent-secondary/40 transition-colors"
-            >
-              <span>OPEN GITHUB</span>
-              <ExternalLink className="w-3 h-3" />
+    <JournalPage
+      title={data.user.name}
+      lede={data.user.bio}
+      art={
+        <div className="j-page-art">
+          <PixelArt grid={ICONS.star} scale={9} label="A lit GitHub star" />
+        </div>
+      }
+    >
+      <PixelPanel as="section" aria-labelledby="profile-heading">
+        <p className="j-kicker">GitHub profile / @{data.user.login}</p>
+        <h2 id="profile-heading">The account behind the commits</h2>
+        <p>
+          Public repos: {data.user.public_repos}. Gists: {data.user.public_gists}.
+          Member since{' '}
+          {new Date(data.user.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            timeZone: 'UTC',
+          })}
+          . This is the same snapshot the constellation in the dark reads, taken{' '}
+          {formatDay(data.stats.snapshotDate)}.
+        </p>
+        <ul className="j-meta">
+          <li>
+            <a href={data.user.html_url} target="_blank" rel="noopener noreferrer">
+              github.com/{data.user.login}
             </a>
-          </div>
-        )}
-
-        {/* Sync Status Banner */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-bg-surface border border-border mb-8 text-xs font-mono">
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isLive ? 'bg-accent shadow-crt animate-pulse-subtle' : 'bg-accent-secondary'
-              }`}
-            />
-            <span className="text-fg font-medium">STATUS: {statusLabel}</span>
-            <span className="text-fg-subtle hidden sm:inline">
-              (Synced: {lastUpdated})
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => refetch()}
-            disabled={isLoading}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-bg-deep hover:bg-bg-hover text-fg-muted hover:text-fg border border-border transition-colors disabled:opacity-50"
-            title="Fetch fresh data from GitHub API"
+          </li>
+          <li>
+            <a href={data.user.blog} target="_blank" rel="noopener noreferrer">
+              {data.user.blog.replace('https://', '')}
+            </a>
+          </li>
+        </ul>
+        <div className="j-row">
+          <a
+            href={data.user.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="j-btn"
           >
-            <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin text-accent' : ''}`} />
-            <span>{isLoading ? 'Syncing...' : 'Refresh API'}</span>
-          </button>
+            Follow on GitHub
+          </a>
+          <a
+            href="https://github.com/Huzbi-crypto?tab=stars"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="j-btn"
+            data-kind="ghost"
+          >
+            View {data.stats.totalStarsGiven} starred repos
+          </a>
         </div>
+      </PixelPanel>
 
-        {/* Profile Card Header */}
-        <div className="p-6 sm:p-8 rounded-2xl bg-bg-surface border border-border shadow-subtle grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          {/* Avatar and Identity */}
-          <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-border bg-bg-deep flex-shrink-0">
-              <Image
-                src={user.avatar_url}
-                alt={user.name}
-                fill
-                sizes="96px"
-                className="object-cover"
-                priority
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-fg">
-                  {user.name}
-                </h1>
-                <a
-                  href={user.html_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2 py-0.5 rounded text-xs font-mono bg-bg-deep border border-border text-accent hover:underline flex items-center gap-1"
-                >
-                  <GithubIcon className="w-3.5 h-3.5" />
-                  <span>@{user.login}</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-
-              <p className="text-sm text-fg-muted font-sans max-w-xl">
-                {user.bio}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-fg-subtle pt-1">
-                {user.blog && (
-                  <a
-                    href={user.blog}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-accent transition-colors underline decoration-accent/30"
-                  >
-                    {user.blog.replace('https://', '')}
-                  </a>
-                )}
-                <span>Member since {new Date(user.created_at).getFullYear()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Direct CTA */}
-          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5 justify-end">
-            <a
-              href={user.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-accent text-bg font-mono text-xs font-bold shadow-crt hover:opacity-95 transition-all"
-            >
-              <GithubIcon className="w-4 h-4" />
-              <span>Follow on GitHub</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-
-            <a
-              href="https://github.com/Huzbi-crypto?tab=stars"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-bg-deep hover:bg-bg-hover text-fg border border-border font-mono text-xs transition-colors"
-            >
-              <Star className="w-3.5 h-3.5 text-accent-secondary" />
-              <span>View 349 Starred Repos</span>
-            </a>
-          </div>
-        </div>
-
-        {/* Key GitHub Metrics Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-          <div className="p-4 rounded-xl bg-bg-surface border border-border">
-            <div className="flex items-center justify-between text-fg-subtle font-mono text-xs">
-              <span>REPOSITORIES</span>
-              <BookOpen className="w-3.5 h-3.5 text-accent" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-fg mt-1">
-              {stats.totalRepos}
-            </div>
-            <div className="text-[11px] font-mono text-fg-muted mt-0.5">Public projects</div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-bg-surface border border-border">
-            <div className="flex items-center justify-between text-fg-subtle font-mono text-xs">
-              <span>GITHUB STARS</span>
-              <Star className="w-3.5 h-3.5 text-accent-secondary fill-accent-secondary" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-accent-secondary mt-1">
-              {stats.totalStarsGiven}
-            </div>
-            <div className="text-[11px] font-mono text-fg-muted mt-0.5">
-              Profile Stars ({stats.totalStarsReceived} on repos)
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-bg-surface border border-border">
-            <div className="flex items-center justify-between text-fg-subtle font-mono text-xs">
-              <span>STARS RECEIVED</span>
-              <Flame className="w-3.5 h-3.5 text-accent-tertiary" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-accent-tertiary mt-1">
-              {stats.totalStarsReceived}
-            </div>
-            <div className="text-[11px] font-mono text-fg-muted mt-0.5">Across public repositories</div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-bg-surface border border-border">
-            <div className="flex items-center justify-between text-fg-subtle font-mono text-xs">
-              <span>COMMUNITY</span>
-              <Users className="w-3.5 h-3.5 text-accent-cream" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-fg mt-1">
-              {stats.totalFollowers}
-            </div>
-            <div className="text-[11px] font-mono text-fg-muted mt-0.5">
-              {stats.totalFollowing} following
-            </div>
-          </div>
-        </div>
-
-        {/* Languages Breakdown Bar */}
-        <div className="mt-6 p-5 rounded-xl bg-bg-surface border border-border">
-          <div className="flex items-center justify-between font-mono text-xs text-fg-muted mb-3">
-            <div className="flex items-center gap-2 text-accent">
-              <Code2 className="w-4 h-4" />
-              <span>PRIMARY LANGUAGES SPECTRUM</span>
-            </div>
-            <span>{stats.topLanguages.length} Languages Detected</span>
-          </div>
-
-          {/* Multi-segmented Progress Bar */}
-          <div className="h-3 w-full rounded-full bg-bg-deep overflow-hidden flex mb-4">
-            {stats.topLanguages.map((lang) => (
-              <div
-                key={lang.language}
-                style={{
-                  width: `${lang.percentage}%`,
-                  backgroundColor:
-                    LANGUAGE_DOT_COLORS[lang.language] || LANGUAGE_DOT_COLORS.default,
-                }}
-                title={`${lang.language}: ${lang.percentage}% (${lang.count} repos)`}
-                className="h-full transition-all duration-300 first:rounded-l-full last:rounded-r-full hover:opacity-80"
-              />
-            ))}
-          </div>
-
-          {/* Language Pills */}
-          <div className="flex flex-wrap gap-2.5">
-            {stats.topLanguages.map((lang) => (
-              <button
-                key={lang.language}
-                type="button"
-                onClick={() =>
-                  setSelectedLanguage(
-                    selectedLanguage === lang.language ? 'all' : lang.language
-                  )
-                }
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border transition-colors ${
-                  selectedLanguage === lang.language
-                    ? 'bg-accent/20 text-accent border-accent font-bold'
-                    : 'bg-bg-deep text-fg-muted border-border hover:text-fg'
-                }`}
-              >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor:
-                      LANGUAGE_DOT_COLORS[lang.language] || LANGUAGE_DOT_COLORS.default,
-                  }}
-                />
-                <span>{lang.language}</span>
-                <span className="text-fg-subtle text-[11px]">
-                  {lang.percentage}% ({lang.count})
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 1: PIXEL CONTRIBUTION WALL */}
-      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-6">
-        <ContributionWall repositories={repositories} />
-      </section>
-
-      {/* SECTION 2: CELESTIAL STAR CLUSTER */}
-      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-6">
-        <StarCluster repositories={repositories} />
-      </section>
-
-      {/* SECTION 3: ALL 38 REPOSITORIES EXPLORER */}
-      <section className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8">
-        <div className="border-b border-border/70 pb-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-fg flex items-center gap-2">
-                <GithubIcon className="w-5 h-5 text-accent" />
-                <span>All {repositories.length} Public Repositories</span>
-              </h2>
-              <p className="text-xs font-mono text-fg-muted mt-1">
-                Search, filter, and inspect Huzbi&apos;s full open-source codebase archive.
-              </p>
-            </div>
-
-            {/* Filter by language quick dropdown or pills */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-fg-subtle hidden md:inline">Sort:</span>
-              <div className="flex items-center gap-1 text-xs font-mono bg-bg-surface p-1 rounded-lg border border-border">
-                <button
-                  type="button"
-                  onClick={() => setSortBy('stars')}
-                  className={`px-2 py-1 rounded transition-colors ${
-                    sortBy === 'stars'
-                      ? 'bg-accent text-bg font-bold'
-                      : 'text-fg-muted hover:text-fg'
-                  }`}
-                >
-                  Most Stars
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSortBy('updated')}
-                  className={`px-2 py-1 rounded transition-colors ${
-                    sortBy === 'updated'
-                      ? 'bg-accent text-bg font-bold'
-                      : 'text-fg-muted hover:text-fg'
-                  }`}
-                >
-                  Recent Push
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSortBy('name')}
-                  className={`px-2 py-1 rounded transition-colors ${
-                    sortBy === 'name'
-                      ? 'bg-accent text-bg font-bold'
-                      : 'text-fg-muted hover:text-fg'
-                  }`}
-                >
-                  Name (A-Z)
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Search bar & Language Pills */}
-          <div className="mt-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by repo name, keyword, or topic..."
-                className="w-full pl-9 pr-4 py-2 rounded-lg bg-bg-surface border border-border focus:border-accent focus:ring-1 focus:ring-accent text-xs font-mono text-fg placeholder:text-fg-subtle outline-none"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-fg-subtle hover:text-fg"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            {/* Language filter buttons */}
-            <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
-              <button
-                type="button"
-                onClick={() => setSelectedLanguage('all')}
-                className={`px-2.5 py-1 rounded-md transition-colors ${
-                  selectedLanguage === 'all'
-                    ? 'bg-accent text-bg font-bold shadow-crt'
-                    : 'bg-bg-surface text-fg-muted hover:text-fg border border-border'
-                }`}
-              >
-                All Languages
-              </button>
-              {(availableLanguages.length > 0 ? availableLanguages : ['Python', 'JavaScript', 'C++', 'C', 'Java']).map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() =>
-                    setSelectedLanguage(selectedLanguage === lang ? 'all' : lang)
-                  }
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    selectedLanguage === lang
-                      ? 'bg-accent text-bg font-bold shadow-crt'
-                      : 'bg-bg-surface text-fg-muted hover:text-fg border border-border'
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Repository Cards Grid */}
-        {filteredRepos.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredRepos.map((repo) => {
-              const langColor =
-                LANGUAGE_DOT_COLORS[repo.language || ''] || LANGUAGE_DOT_COLORS.default;
-
-              return (
-                <div
-                  key={repo.id}
-                  className="p-5 rounded-xl bg-bg-surface border border-border hover:border-accent/60 transition-all duration-200 flex flex-col justify-between group shadow-subtle hover:shadow-crt"
-                >
-                  <div>
-                    {/* Top line: Name & Stars */}
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <a
-                        href={repo.html_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-bold text-sm text-fg group-hover:text-accent transition-colors flex items-center gap-1.5 break-all"
-                      >
-                        <span>{repo.name}</span>
-                        <ExternalLink className="w-3 h-3 text-fg-subtle opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                      </a>
-
-                      <div className="flex items-center gap-2 flex-shrink-0 text-xs font-mono">
-                        {repo.stargazers_count > 0 && (
-                          <span className="flex items-center gap-1 text-accent-secondary font-semibold">
-                            <Star className="w-3 h-3 fill-current" />
-                            <span>{repo.stargazers_count}</span>
-                          </span>
-                        )}
-                        {repo.forks_count > 0 && (
-                          <span className="flex items-center gap-1 text-fg-subtle">
-                            <GitFork className="w-3 h-3" />
-                            <span>{repo.forks_count}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-xs text-fg-muted font-sans line-clamp-3 leading-relaxed">
-                      {repo.description || 'No description provided in repository manifest.'}
-                    </p>
-
-                    {/* Topic Tags */}
-                    {repo.topics && repo.topics.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {repo.topics.slice(0, 3).map((topic) => (
-                          <span
-                            key={topic}
-                            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg-deep text-accent-tertiary border border-border/50"
-                          >
-                            #{topic}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Footer: Language & Pushed At */}
-                  <div className="pt-4 mt-4 border-t border-border/50 flex items-center justify-between text-xs font-mono text-fg-subtle">
-                    <span className="flex items-center gap-1.5 text-fg">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: langColor }}
-                      />
-                      <span>{repo.language || 'Markdown'}</span>
-                    </span>
-
-                    <span title={`Last pushed: ${repo.pushed_at}`}>
-                      {new Date(repo.pushed_at).toLocaleDateString('en-US', {
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          /* Empty Search Result */
-          <div className="p-12 text-center rounded-2xl bg-bg-surface border border-dashed border-border/80">
-            <h3 className="font-mono text-base font-bold text-fg">
-              No matching repositories found
-            </h3>
-            <p className="text-xs text-fg-muted font-sans mt-1">
-              Try adjusting your search terms or reset the language filter.
+      <section className="j-section" aria-labelledby="numbers-heading">
+        <h2 id="numbers-heading">The numbers</h2>
+        <div className="j-grid" data-cols="4">
+          <PixelPanel tone="dim">
+            <p className="j-stat">
+              <span className="j-stat-num">{data.stats.totalRepos}</span>
+              <span className="j-stat-label">Public repositories</span>
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedLanguage('all');
-              }}
-              className="mt-4 px-4 py-1.5 rounded-lg bg-bg-deep border border-border text-accent text-xs font-mono"
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
+          </PixelPanel>
+          <PixelPanel tone="dim">
+            <p className="j-stat">
+              <span className="j-stat-num">{data.stats.totalStarsGiven}</span>
+              <span className="j-stat-label">Repos starred by Huzbi</span>
+            </p>
+          </PixelPanel>
+          <PixelPanel tone="dim">
+            <p className="j-stat">
+              <span className="j-stat-num">{data.stats.totalStarsReceived}</span>
+              <span className="j-stat-label">Stars received on repos</span>
+            </p>
+          </PixelPanel>
+          <PixelPanel tone="dim">
+            <p className="j-stat">
+              <span className="j-stat-num">{data.stats.totalFollowers}</span>
+              <span className="j-stat-label">
+                Followers · {data.stats.totalFollowing} following
+              </span>
+            </p>
+          </PixelPanel>
+        </div>
       </section>
-    </main>
+
+      <PixelPanel as="section" aria-labelledby="languages-heading">
+        <p className="j-kicker">Primary languages spectrum</p>
+        <h2 id="languages-heading">{languages.length} languages detected</h2>
+        <div className="j-bar" aria-hidden="true">
+          {languages.map((language, index) => (
+            <span
+              key={language.language}
+              data-i={index % 8}
+              style={{ width: `${language.percentage}%` }}
+            />
+          ))}
+        </div>
+        <ul className="j-key">
+          {languages.map((language, index) => (
+            <li key={language.language}>
+              <i data-i={index % 8} aria-hidden="true" />
+              <span>
+                {language.language} · {language.percentage}% ({language.count} repos)
+              </span>
+            </li>
+          ))}
+        </ul>
+      </PixelPanel>
+
+      <PixelPanel as="section" aria-labelledby="wall-heading">
+        <p className="j-kicker">Pixel activity / illuminated habitat</p>
+        <h2 id="wall-heading">The year&apos;s lit windows</h2>
+        <p className="j-muted">
+          Every square is one day of commits, experiments and code activity.
+          Brighter windows held more work.
+        </p>
+        <div className="j-grid" data-cols="3">
+          <p className="j-stat">
+            <span className="j-stat-num">{totalContributions.toLocaleString('en-US')}</span>
+            <span className="j-stat-label">Contributions in the year</span>
+          </p>
+          <p className="j-stat">
+            <span className="j-stat-num">{streaks.longest}</span>
+            <span className="j-stat-label">Longest streak, days</span>
+          </p>
+          <p className="j-stat">
+            <span className="j-stat-num">{streaks.activeDays}</span>
+            <span className="j-stat-label">Days with work</span>
+          </p>
+        </div>
+        <figure className="j-figure">
+          <div className="j-heat-scroll" tabIndex={0}>
+            <svg
+              className="j-heat"
+              viewBox={`0 0 ${heatWidth} ${heatHeight}`}
+              role="img"
+              aria-labelledby="heat-title heat-desc"
+              shapeRendering="crispEdges"
+            >
+              <title id="heat-title">Contribution windows for the last year</title>
+              <desc id="heat-desc">
+                {totalContributions} contributions across {streaks.activeDays} active days,
+                between {formatDay(days[0].date)} and {formatDay(days[days.length - 1].date)}.
+              </desc>
+              {monthLabels.map((label) => (
+                <text
+                  key={`${label.label}-${label.column}`}
+                  x={HEAT_LEFT + label.column * HEAT_CELL}
+                  y={10}
+                >
+                  {label.label}
+                </text>
+              ))}
+              {['Sun', 'Tue', 'Thu', 'Sat'].map((label, index) => (
+                <text key={label} x={0} y={HEAT_TOP + index * 2 * HEAT_CELL + 8}>
+                  {label}
+                </text>
+              ))}
+              {weeks.map((week, column) =>
+                week.map((day, row) =>
+                  day ? (
+                    <rect
+                      key={day.date}
+                      x={HEAT_LEFT + column * HEAT_CELL}
+                      y={HEAT_TOP + row * HEAT_CELL}
+                      width={9}
+                      height={9}
+                      data-l={day.level}
+                    >
+                      <title>
+                        {day.count} contributions on {formatDay(day.date)}
+                      </title>
+                    </rect>
+                  ) : null,
+                ),
+              )}
+            </svg>
+          </div>
+          <figcaption className="j-figcaption">
+            {formatDay(days[0].date)} to {formatDay(days[days.length - 1].date)}.
+            Current streak: {streaks.current} {streaks.current === 1 ? 'day' : 'days'}.
+          </figcaption>
+        </figure>
+      </PixelPanel>
+
+      <section className="j-section" aria-labelledby="repos-heading">
+        <h2 id="repos-heading">All {data.repositories.length} public repositories</h2>
+        <p className="j-muted">
+          The full catalog, exactly as the snapshot recorded it. Names open the
+          real repository.
+        </p>
+        <div className="j-grid">
+          {data.repositories.map((repo: GitHubRepo) => (
+            <PixelPanel as="article" key={repo.id} className="j-repo">
+              <div className="j-repo-head">
+                <h3 className="j-repo-name">
+                  <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
+                    {repo.name}
+                  </a>
+                </h3>
+                <span className="j-repo-meta">
+                  <span>
+                    <strong>{repo.stargazers_count}</strong> stars
+                  </span>
+                  <span>
+                    <strong>{repo.forks_count}</strong> forks
+                  </span>
+                </span>
+              </div>
+              <p>{repo.description || 'No description in the repository manifest.'}</p>
+              {repo.topics.length > 0 ? (
+                <div className="j-row">
+                  {repo.topics.slice(0, 3).map((topic) => (
+                    <span className="j-chip" key={topic}>
+                      #{topic}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <p className="j-repo-meta">
+                <span>{repo.language || 'Markdown'}</span>
+                <span>Last push {formatDay(repo.pushed_at.slice(0, 10))}</span>
+              </p>
+            </PixelPanel>
+          ))}
+        </div>
+      </section>
+
+      <PixelPanel as="section" tone="note" aria-labelledby="snapshot-heading">
+        <p className="j-kicker">Snapshot, not a live feed</p>
+        <h2 id="snapshot-heading">Taken {formatDay(data.stats.snapshotDate)}.</h2>
+        <p>
+          This page reads the committed snapshot so it stays readable and honest
+          with scripts off. The room&apos;s observatory draws the same stars, and
+          the profile itself is always live over on GitHub.
+        </p>
+        <div className="j-row">
+          <a
+            href={data.user.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="j-btn"
+          >
+            Open the live profile
+          </a>
+          <Link href="/projects/" className="j-btn" data-kind="ghost">
+            The project lab
+          </Link>
+        </div>
+      </PixelPanel>
+    </JournalPage>
   );
 }
