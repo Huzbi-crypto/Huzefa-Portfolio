@@ -448,7 +448,9 @@ function buildProps(store: GameStore): SpaceProp[] {
     },
     {
       id: 'stats-plaque',
-      footY: AT.plaque.y + 44,
+      // Its base is the line the visitor stands below, not the bottom of the
+      // brass frame: standing at the plaque's own stand must put them in front.
+      footY: AT.plaque.y + 40,
       draw: (g) => drawSprite(g, sprite('obsPlaque'), AT.plaque.x, AT.plaque.y),
       glow: drawPlaqueDigits,
       interact: {
