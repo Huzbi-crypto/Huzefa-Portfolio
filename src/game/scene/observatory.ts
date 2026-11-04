@@ -11,7 +11,7 @@ import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
 import type { GameStore } from '@/game/state/store';
 import { endingUnlocked, nextClue } from '@/game/state/story';
-import { TILE, type Tile } from '@/game/world/grid';
+import { TILE } from '@/game/world/grid';
 import { createDarkSpace, type SpaceDef, type SpaceProp } from './space';
 import type { GameApi, Scene } from './types';
 
@@ -532,5 +532,3 @@ export function createObservatory(store: GameStore): Scene {
   return createDarkSpace(buildSpaceDef(store), store);
 }
 
-/** The telescope's stand, for tests and nudges that need to name it. */
-export const OBSERVATORY_STAND: Tile = { x: 33, y: 17 };
