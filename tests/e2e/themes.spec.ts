@@ -77,6 +77,7 @@ test.describe('themes and terminal', () => {
     const before = await page.evaluate(() => ({
       theme: document.documentElement.getAttribute('data-theme'),
       ink: getComputedStyle(document.querySelector('.journal-root')!).getPropertyValue('--j-ink').trim(),
+      art: document.querySelector('.pixel-art path')?.getAttribute('fill') ?? null,
       url: window.location.href,
       probe: (window as Window & { __probe?: number }).__probe,
     }));
@@ -91,12 +92,14 @@ test.describe('themes and terminal', () => {
     const after = await page.evaluate(() => ({
       theme: document.documentElement.getAttribute('data-theme'),
       ink: getComputedStyle(document.querySelector('.journal-root')!).getPropertyValue('--j-ink').trim(),
+      art: document.querySelector('.pixel-art path')?.getAttribute('fill') ?? null,
       url: window.location.href,
       probe: (window as Window & { __probe?: number }).__probe,
     }));
 
     expect(after.theme).toBe('warm-apartment');
     expect(after.ink).not.toBe(before.ink);
+    expect(after.art).not.toBe(before.art);
     expect(after.url).toBe(before.url);
     // A reload would have thrown the probe away.
     expect(after.probe).toBe(7);

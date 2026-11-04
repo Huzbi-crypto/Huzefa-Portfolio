@@ -81,7 +81,7 @@ export default function RootLayout({
           {/* Skip link for keyboard accessibility */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent focus:text-bg focus:font-mono focus:text-xs focus:rounded-md focus:shadow-crt focus:outline-none"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent focus:text-bg focus:text-xs focus:[font-family:var(--font-pixel)] focus:outline-none"
           >
             Skip to main content
           </a>

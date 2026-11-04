@@ -1,3 +1,6 @@
+'use client';
+
+import { useApp } from '@/context/AppContext';
 import { PALETTES } from '@/game/art/palette';
 
 type Props = {
@@ -15,7 +18,8 @@ type Props = {
  * 24 by 38 door is a few dozen path segments and not a thousand rects.
  */
 export function PixelArt({ grid, scale = 4, label, className }: Props) {
-  const palette = PALETTES['cozy-crt'];
+  const { theme } = useApp();
+  const palette = PALETTES[theme];
   const width = Math.max(...grid.map((row) => row.length));
   const height = grid.length;
   const byColor = new Map<string, string>();
