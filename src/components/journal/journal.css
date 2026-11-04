@@ -807,6 +807,162 @@ body:has(.journal-root) {
   font-size: 18px;
 }
 
+/* Page furniture: a kicker, a framed vignette and one line of facts. */
+
+.j-kicker {
+  margin: 0;
+  color: var(--j-amber);
+  font-size: 18px;
+}
+
+.j-page-art {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--j-ink);
+  box-shadow: inset 0 0 0 3px var(--j-panel-hi);
+}
+
+.j-page-art .pixel-art {
+  width: auto;
+  max-height: 132px;
+}
+
+.j-page-art .pixel-art + .pixel-art {
+  margin-left: -4px;
+}
+
+.j-meta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  color: var(--j-dim);
+  font-size: 18px;
+}
+
+.j-meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+/* The reading shelf: a coloured spine, then the book's note. */
+
+.j-book {
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 0 18px;
+}
+
+.j-book-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+}
+
+.j-book-title {
+  margin: 0;
+  color: var(--j-text);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.j-book-author {
+  color: var(--j-dim);
+  font-size: 18px;
+}
+
+.j-book-status {
+  margin-left: auto;
+  color: var(--j-amber);
+  font-size: 17px;
+}
+
+.j-book-note {
+  margin: 8px 0 0;
+  color: var(--j-dim);
+  font-size: 19px;
+}
+
+/* Repository entries in the GitHub log. */
+
+.j-repo {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.j-repo-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.j-repo-name {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.j-repo-name a {
+  color: var(--j-text);
+  text-decoration: none;
+}
+
+.j-repo-name a:hover {
+  color: var(--j-amber-hi);
+}
+
+.j-repo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: var(--j-dim);
+  font-size: 17px;
+}
+
+.j-repo-meta strong {
+  color: var(--j-text);
+  font-weight: 700;
+}
+
+/* A figure that holds the year's lit windows. */
+
+.j-figure {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  min-width: 0;
+}
+
+.j-figcaption {
+  color: var(--j-dim);
+  font-size: 17px;
+}
+
+.j-panel h2 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--j-text);
+}
+
+.j-panel[data-tone='note'] h2 {
+  color: var(--j-ink);
+}
+
 /* Phones */
 
 @media (max-width: 860px) {
@@ -860,8 +1016,20 @@ body:has(.journal-root) {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .j-grid[data-cols='4'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .j-panel {
     padding: 16px 16px;
+  }
+
+  .j-book-status {
+    margin-left: 0;
+  }
+
+  .j-page-art .pixel-art {
+    max-height: 104px;
   }
 
   .j-card {
