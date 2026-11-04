@@ -12,6 +12,7 @@ import {
   createObservatory,
   MAP_BOUNDS,
   plaqueLayout,
+  PLAQUE_LABELS,
   skyStars,
 } from './observatory';
 import {
@@ -187,7 +188,9 @@ describe('the star map of real repos', () => {
     const inner = { x: 6, y: 6, w: PLAQUE.w - 12, h: PLAQUE.h - 12 };
     const glyphHeight = 5;
 
-    expect(layout.rows.map((row) => row.text)).toEqual(numbers);
+    expect(layout.rows.map((row) => row.text)).toEqual(
+      numbers.map((number, index) => `${number} ${PLAQUE_LABELS[index]}`),
+    );
     expect(layout.date.text).toBe(stats.snapshotDate);
     for (const row of [...layout.rows, layout.date]) {
       expect(row.x, row.text).toBeGreaterThanOrEqual(inner.x);

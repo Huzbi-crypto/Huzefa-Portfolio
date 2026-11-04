@@ -177,34 +177,139 @@ function starTable(): string[] {
   return rows(cv);
 }
 
-/** A brass plate on the wall, with room for three real numbers and a date. */
+/**
+ * A brass plate on the wall: layered frame, corner rivets, an engraved inner
+ * border and a little patina. The real numbers and date are engraved at draw
+ * time into the dark field (see PLAQUE_ROWS).
+ */
 export const PLAQUE = { w: 60, h: 44 } as const;
+
+/** A five-point star in plaque space, with a bright centre. */
+function plaqueStar(cv: Canvas, x: number, y: number): void {
+  const shape = [
+    '..i..',
+    '.iii.',
+    'iiCii',
+    '.iii.',
+    '..i..',
+  ];
+  shape.forEach((row, j) => {
+    for (let i = 0; i < row.length; i += 1) if (row[i] !== '.') plot(cv, x + i, y + j, row[i]);
+  });
+}
+
+/** A crescent moon: a disc with a bite out of its right side. */
+function plaqueMoon(cv: Canvas, x: number, y: number): void {
+  const shape = [
+    '..ii.',
+    '.iCCi',
+    'iCC..',
+    '.iCCi',
+    '..ii.',
+  ];
+  shape.forEach((row, j) => {
+    for (let i = 0; i < row.length; i += 1) if (row[i] !== '.') plot(cv, x + i, y + j, row[i]);
+  });
+}
+
+/** A raised rivet: a bright head with a shadow under its right side. */
+function rivet(cv: Canvas, x: number, y: number): void {
+  plot(cv, x, y, 'i');
+  plot(cv, x + 1, y, 'C');
+  plot(cv, x, y + 1, 'h');
+  plot(cv, x + 1, y + 1, 'a');
+}
 
 function plaque(): string[] {
   const cv = blank(PLAQUE.w, PLAQUE.h);
+
+  // 1. The ink outline.
   rect(cv, 0, 0, PLAQUE.w, PLAQUE.h, 'a');
+
+  // 2. The outer brass: light on the top-left, shadow on the bottom-right.
   rect(cv, 1, 1, PLAQUE.w - 2, PLAQUE.h - 2, 'h');
-  rect(cv, 2, 2, PLAQUE.w - 4, PLAQUE.h - 4, 'r');
-  rect(cv, 2, 2, PLAQUE.w - 4, 1, 's');
-  rect(cv, 2, 2, 1, PLAQUE.h - 4, 's');
-  rect(cv, PLAQUE.w - 3, 3, 1, PLAQUE.h - 5, 'h');
-  rect(cv, 3, PLAQUE.h - 3, PLAQUE.w - 5, 1, 'h');
-  rect(cv, 5, 5, PLAQUE.w - 10, PLAQUE.h - 10, 'e');
-  rect(cv, 6, 6, PLAQUE.w - 12, PLAQUE.h - 12, 'f');
-  // Four screws.
-  for (const [x, y] of [[4, 4], [PLAQUE.w - 5, 4], [4, PLAQUE.h - 5], [PLAQUE.w - 5, PLAQUE.h - 5]]) {
-    plot(cv, x, y, 'i');
+  rect(cv, 1, 1, PLAQUE.w - 2, 1, 'i');
+  rect(cv, 1, 1, 1, PLAQUE.h - 2, 'i');
+  rect(cv, 1, PLAQUE.h - 2, PLAQUE.w - 2, 1, 'f');
+  rect(cv, PLAQUE.w - 2, 1, 1, PLAQUE.h - 2, 'f');
+
+  // 3. A second, raised band.
+  rect(cv, 2, 2, PLAQUE.w - 4, PLAQUE.h - 4, 'g');
+  rect(cv, 2, 2, PLAQUE.w - 4, 1, 'i');
+  rect(cv, 2, 2, 1, PLAQUE.h - 4, 'i');
+  rect(cv, 2, PLAQUE.h - 3, PLAQUE.w - 4, 1, 'f');
+  rect(cv, PLAQUE.w - 3, 2, 1, PLAQUE.h - 4, 'f');
+
+  // 4. A recessed gutter, then the engraved border around the dark field.
+  rect(cv, 4, 4, PLAQUE.w - 8, PLAQUE.h - 8, 'f');
+  rect(cv, 5, 5, PLAQUE.w - 10, PLAQUE.h - 10, 'a');
+  rect(cv, 6, 6, PLAQUE.w - 12, PLAQUE.h - 12, 'e');
+  // The light catches the cut edge inside the engraved line.
+  rect(cv, 6, 6, PLAQUE.w - 12, 1, 'g');
+  rect(cv, 6, 6, 1, PLAQUE.h - 12, 'g');
+
+  // 5. Age: a deterministic scatter of darker and lighter specks, no gradient.
+  for (let y = 7; y < PLAQUE.h - 7; y += 1) {
+    for (let x = 7; x < PLAQUE.w - 7; x += 1) {
+      const h = hash(x, y);
+      if (h % 37 === 0) plot(cv, x, y, 'f');
+      else if (h % 53 === 0) plot(cv, x, y, 'g');
+      else if (h % 89 === 0) plot(cv, x, y, 'h');
+    }
   }
+  // The brass frame wears a little too, but only near its edges.
+  for (let y = 2; y < PLAQUE.h - 2; y += 1) {
+    for (let x = 2; x < PLAQUE.w - 2; x += 1) {
+      if (x > 4 && x < PLAQUE.w - 5 && y > 4 && y < PLAQUE.h - 5) continue;
+      const h = hash(x + 41, y + 17);
+      if (h % 61 === 0) plot(cv, x, y, 'f');
+      else if (h % 97 === 0) plot(cv, x, y, 'i');
+    }
+  }
+
+  // 6. A little verdigris where the brass has been handled, then the divider.
+  for (const [x, y, c] of [
+    [8, 34, 'n'],
+    [9, 34, 'o'],
+    [8, 35, 'n'],
+    [50, 35, 'n'],
+    [51, 36, 'o'],
+    [7, 18, 'n'],
+    [52, 26, 'n'],
+    [54, 6, 'n'],
+    [5, 38, 'o'],
+    [30, 41, 'n'],
+  ] as const) {
+    plot(cv, x, y, c);
+  }
+  rect(cv, 14, 28, 32, 1, 'a');
+  rect(cv, 27, 28, 6, 1, 'i');
+
+  // 7. Corner studs and two mid-edge rivets.
+  for (const [x, y] of [
+    [3, 3],
+    [PLAQUE.w - 5, 3],
+    [3, PLAQUE.h - 5],
+    [PLAQUE.w - 5, PLAQUE.h - 5],
+  ]) {
+    rivet(cv, x, y);
+  }
+  rivet(cv, 2, Math.floor(PLAQUE.h / 2) - 1);
+  rivet(cv, PLAQUE.w - 4, Math.floor(PLAQUE.h / 2) - 1);
+
+  // 8. A star and a crescent flank the first engraved line.
+  plaqueStar(cv, 8, 8);
+  plaqueMoon(cv, 47, 8);
+
   return rows(cv);
 }
 
 /**
- * Where the plaque's engraved rows sit, relative to the plaque. The three
- * numbers sit close together and the date goes under them, all inside the
- * brass: rows are five pixels tall, so 8/15/22 and a date at 30 leave a clear
- * margin at the bottom (the old 36 put the date over the frame).
+ * Where the plaque's engraved lines sit, relative to the plaque. Each stat is
+ * a number plus its label on one 5px line; the date sits alone below them.
+ * The widest line ("20 FOLLOWERS", 47px) still leaves a pixel of brass.
  */
-export const PLAQUE_ROWS = { y: [8, 15, 22], dateY: 30 } as const;
+export const PLAQUE_ROWS = { y: [8, 15, 22], dateY: 31 } as const;
 
 /** The little door with a moon on it. 28 by 48, round-topped. */
 export const NAP_DOOR = { w: 28, h: 48 } as const;
@@ -685,8 +790,13 @@ export const ENDING_SPRITE_GRIDS: Record<string, string[]> = {
 
 export const ENDING_NAMES = Object.keys(ENDING_SPRITE_GRIDS);
 
-/** A 3 by 5 digit font for the plaque's real numbers. Original drawing. */
-export const DIGIT_GLYPHS: Record<string, string[]> = {
+/**
+ * A 3 by 5 engraved font for the plaque's numbers, labels and date. Original
+ * drawing. Digits, A-Z, dash and space; anything else is skipped but keeps
+ * its advance, so a bad character can never shift the rest of a line off the
+ * brass.
+ */
+export const ENGRAVED_GLYPHS: Record<string, string[]> = {
   '0': ['###', '#.#', '#.#', '#.#', '###'],
   '1': ['.#.', '##.', '.#.', '.#.', '###'],
   '2': ['##.', '..#', '.#.', '#..', '###'],
@@ -698,14 +808,43 @@ export const DIGIT_GLYPHS: Record<string, string[]> = {
   '8': ['###', '#.#', '###', '#.#', '###'],
   '9': ['###', '#.#', '###', '..#', '##.'],
   '-': ['...', '...', '###', '...', '...'],
+  A: ['.##', '#.#', '###', '#.#', '#.#'],
+  B: ['##.', '#.#', '##.', '#.#', '##.'],
+  C: ['.##', '#..', '#..', '#..', '.##'],
+  D: ['##.', '#.#', '#.#', '#.#', '##.'],
+  E: ['###', '#..', '##.', '#..', '###'],
+  F: ['###', '#..', '##.', '#..', '#..'],
+  G: ['.##', '#..', '#.#', '#.#', '.##'],
+  H: ['#.#', '#.#', '###', '#.#', '#.#'],
+  I: ['###', '.#.', '.#.', '.#.', '###'],
+  J: ['..#', '..#', '..#', '#.#', '.#.'],
+  K: ['#.#', '#.#', '##.', '#.#', '#.#'],
+  L: ['#..', '#..', '#..', '#..', '###'],
+  M: ['#.#', '###', '###', '#.#', '#.#'],
+  N: ['##.', '#.#', '#.#', '#.#', '#.#'],
+  O: ['.#.', '#.#', '#.#', '#.#', '.#.'],
+  P: ['##.', '#.#', '##.', '#..', '#..'],
+  Q: ['.#.', '#.#', '#.#', '##.', '..#'],
+  R: ['##.', '#.#', '##.', '#.#', '#.#'],
+  S: ['.##', '#..', '.#.', '..#', '##.'],
+  T: ['###', '.#.', '.#.', '.#.', '.#.'],
+  U: ['#.#', '#.#', '#.#', '#.#', '###'],
+  V: ['#.#', '#.#', '#.#', '#.#', '.#.'],
+  W: ['#.#', '#.#', '###', '###', '#.#'],
+  X: ['#.#', '#.#', '.#.', '#.#', '#.#'],
+  Y: ['#.#', '#.#', '.#.', '.#.', '.#.'],
+  Z: ['###', '..#', '.#.', '#..', '###'],
 };
 
-/** The pixels of a run of digits (and dashes), `[x, y]` pairs, 4 pixels per character. */
+/** Kept for existing callers: the same font, under its old name. */
+export const DIGIT_GLYPHS = ENGRAVED_GLYPHS;
+
+/** The pixels of a run of engraved text, `[x, y]` pairs, 4 pixels per character. */
 export function digitPixels(text: string): { points: [number, number][]; w: number } {
   const points: [number, number][] = [];
   let x = 0;
   for (const ch of text) {
-    const glyph = DIGIT_GLYPHS[ch];
+    const glyph = ENGRAVED_GLYPHS[ch];
     if (glyph) {
       glyph.forEach((row, y) => {
         for (let i = 0; i < 3; i += 1) if (row[i] === '#') points.push([x + i, y]);

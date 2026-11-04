@@ -335,30 +335,47 @@ function drawFloorRose(g: CanvasRenderingContext2D): void {
 /** One engraved line on the plaque, in plaque-local pixels. */
 export type PlaqueRow = { text: string; x: number; y: number; w: number };
 
-/** The three real numbers, centred, then the date they were taken. */
+/** The labels under each real number, short enough to stay on the brass. */
+export const PLAQUE_LABELS = ['REPOS', 'STARS', 'FOLLOWERS'] as const;
+
+/** The three real numbers with their labels, then the date they were taken. */
 export function plaqueLayout(numbers: readonly string[], date: string): {
   rows: PlaqueRow[];
   date: PlaqueRow;
 } {
   const centred = (text: string, y: number): PlaqueRow => {
     const w = digitPixels(text).w;
-    return { text, w, x: Math.round((PLAQUE.w - w) / 2), y };
+    return { text, w, x: Math.floor((PLAQUE.w - w) / 2), y };
   };
 
   return {
-    rows: numbers.map((text, index) => centred(text, PLAQUE_ROWS.y[index])),
+    rows: numbers.map((text, index) =>
+      centred(
+        `${text} ${PLAQUE_LABELS[index] ?? ''}`.trim(),
+        PLAQUE_ROWS.y[index],
+      ),
+    ),
     date: centred(date, PLAQUE_ROWS.dateY),
   };
 }
 
+/**
+ * Engrave a line: a dark cut one pixel down-right, then the bright face.
+ * Two hard steps, no blur, the way the rest of the pixel world is drawn.
+ */
 function drawDigits(
   g: CanvasRenderingContext2D,
   text: string,
   x: number,
   y: number,
 ): void {
+  const pixels = digitPixels(text).points;
+  g.fillStyle = COLORS.a;
+  for (const [dx, dy] of pixels) {
+    g.fillRect(x + dx + 1, y + dy + 1, 1, 1);
+  }
   g.fillStyle = COLORS.C;
-  for (const [dx, dy] of digitPixels(text).points) {
+  for (const [dx, dy] of pixels) {
     g.fillRect(x + dx, y + dy, 1, 1);
   }
 }
