@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Input, InputEvent } from '@/game/core/input';
 import { createGameController } from './game';
 import { createDarkScene } from './scene/dark';
@@ -16,7 +16,7 @@ function setup(opts: {
   dark?: boolean;
   storage?: Storage | null;
   scenes?: (store: GameStore) => Scene[];
-  onNudge?: (target: string | null) => void;
+  onNudge?: (target: { id: string; label: string } | null) => void;
 } = {}) {
   const store = createStore(opts.storage ?? null);
   const queue: InputEvent[] = [];
