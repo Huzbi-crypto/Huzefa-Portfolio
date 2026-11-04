@@ -147,17 +147,21 @@ export function constellationStars(): ConstellationStar[] {
   return constellationCache;
 }
 
-/** One slot in the sky for every star in the game, lit once it is found. */
-export function skyStars(found: readonly string[]): SkyStar[] {
+let skyLayoutCache: { id: string; x: number; y: number }[] | null = null;
+
+function skyLayout(): { id: string; x: number; y: number }[] {
+  if (skyLayoutCache) return skyLayoutCache;
+
   const ids = allStarIds();
   const points = scatter(ids, SKY_BOUNDS, SKY_GLASS);
+  skyLayoutCache = ids.map((id, index) => ({ id, x: points[index].x, y: points[index].y }));
+  return skyLayoutCache;
+}
+
+/** One slot in the sky for every star in the game, lit once it is found. */
+export function skyStars(found: readonly string[]): SkyStar[] {
   const lit = new Set(found);
-  return ids.map((id, index) => ({
-    id,
-    x: points[index].x,
-    y: points[index].y,
-    lit: lit.has(id),
-  }));
+  return skyLayout().map((star) => ({ ...star, lit: lit.has(star.id) }));
 }
 
 // --- talking to the room -----------------------------------------------------
@@ -230,13 +234,46 @@ async function tryNapDoor(api: GameApi): Promise<void> {
 
 // --- drawing -----------------------------------------------------------------
 
-function drawStars(g: CanvasRenderingContext2D): void {
-  // The faint ones are where stars will be; they are part of the sky already.
-  g.fillStyle = COLORS.b;
-  for (const star of skyStars([])) g.fillRect(star.x, star.y, 1, 1);
+/** A hard-edged moon: cream disc, one dark bite, no blur. */
+function drawMoon(g: CanvasRenderingContext2D, cx: number, cy: number, radius: number): void {
+  for (let y = -radius; y <= radius; y += 1) {
+    const span = Math.round(Math.sqrt(Math.max(0, radius * radius - y * y)));
+    g.fillStyle = COLORS.q;
+    g.fillRect(cx - span, cy + y, span * 2 + 1, 1);
+  }
+  for (let y = -radius + 1; y <= radius - 1; y += 1) {
+    const span = Math.round(Math.sqrt(Math.max(0, (radius - 1) * (radius - 1) - y * y)));
+    g.fillStyle = COLORS.p;
+    g.fillRect(cx - span, cy + y, span * 2 + 1, 1);
+  }
+  // The bite that makes it a moon rather than a lamp.
+  for (let y = -radius; y <= radius; y += 1) {
+    const span = Math.round(Math.sqrt(Math.max(0, (radius - 3) * (radius - 3) - y * y)));
+    g.fillStyle = COLORS.D;
+    g.fillRect(cx - span + 5, cy + y, span * 2 + 1, 1);
+  }
+  g.fillStyle = COLORS.C;
+  g.fillRect(cx - radius + 1, cy - 2, 1, 1);
 }
 
-function drawSkyGlow(g: CanvasRenderingContext2D, store: GameStore): void {
+function drawSky(g: CanvasRenderingContext2D, store: GameStore): void {
+  // The sky makes its own light, so it is painted after the lantern pass.
+  g.fillStyle = COLORS.D;
+  g.fillRect(0, 0, WORLD_W, SKY_BOTTOM);
+
+  drawMoon(g, 192, 16, 7);
+
+  // The faint ones are where stars will go: part of the sky from the start.
+  skyStars([]).forEach((star, index) => {
+    g.fillStyle = index % 3 === 0 ? COLORS.A : COLORS.c;
+    g.fillRect(star.x, star.y, 1, 1);
+    if (index % 11 === 0) {
+      g.fillStyle = COLORS.c;
+      g.fillRect(star.x - 1, star.y, 1, 1);
+      g.fillRect(star.x + 1, star.y, 1, 1);
+    }
+  });
+
   for (const star of skyStars(store.getState().found)) {
     if (!star.lit) continue;
     g.fillStyle = COLORS.C;
@@ -247,11 +284,20 @@ function drawSkyGlow(g: CanvasRenderingContext2D, store: GameStore): void {
     g.fillRect(star.x, star.y - 1, 1, 1);
     g.fillRect(star.x, star.y + 1, 1, 1);
   }
+
+  // A brass line where the sky meets the dome.
+  g.fillStyle = COLORS.h;
+  g.fillRect(0, SKY_BOTTOM - 2, WORLD_W, 1);
+  g.fillStyle = COLORS.g;
+  g.fillRect(0, SKY_BOTTOM - 1, WORLD_W, 1);
 }
 
 function drawStarMap(g: CanvasRenderingContext2D): void {
   drawSprite(g, sprite('obsTable'), AT.table.x, AT.table.y);
+}
 
+/** The glass map glows: every real repo as a star, brighter when it has more. */
+function drawConstellation(g: CanvasRenderingContext2D): void {
   for (const star of constellationStars()) {
     const bright = star.stars > 0;
     g.fillStyle = bright ? COLORS.C : COLORS.q;
@@ -265,21 +311,35 @@ function drawStarMap(g: CanvasRenderingContext2D): void {
   }
 }
 
+/** A compass rose worn into the slate, so the big floor has somewhere to look. */
+function drawFloorRose(g: CanvasRenderingContext2D): void {
+  const ring = (rx: number, ry: number, color: string): void => {
+    for (let step = 0; step < 240; step += 1) {
+      const angle = (step / 240) * Math.PI * 2;
+      const x = Math.round(MAP_GLASS.cx + Math.cos(angle) * rx);
+      const y = Math.round(MAP_GLASS.cy + 54 + Math.sin(angle) * ry);
+      g.fillStyle = color;
+      g.fillRect(x, y, 1, 1);
+    }
+  };
+  ring(58, 15, COLORS.d);
+  ring(42, 11, COLORS.c);
+  ring(18, 5, COLORS.d);
+}
+
 function drawDigits(
   g: CanvasRenderingContext2D,
   text: string,
   x: number,
   y: number,
 ): void {
-  g.fillStyle = COLORS.q;
+  g.fillStyle = COLORS.C;
   for (const [dx, dy] of digitPixels(text).points) {
     g.fillRect(x + dx, y + dy, 1, 1);
   }
 }
 
-function drawPlaque(g: CanvasRenderingContext2D): void {
-  drawSprite(g, sprite('obsPlaque'), AT.plaque.x, AT.plaque.y);
-
+function drawPlaqueDigits(g: CanvasRenderingContext2D): void {
   const { stats } = snapshot;
   const rows = [
     String(stats.totalRepos),
@@ -310,10 +370,9 @@ function drawNapDoor(g: CanvasRenderingContext2D, store: GameStore): void {
 }
 
 function drawBackdrop(g: CanvasRenderingContext2D): void {
-  // The open sky where the ceiling should be.
+  // The sky itself is painted in the glow pass, but keep the ink underneath.
   g.fillStyle = COLORS.D;
   g.fillRect(0, 0, WORLD_W, SKY_BOTTOM);
-  drawStars(g);
 
   // The dome wall under it.
   for (let x = 0; x < WORLD_W; x += 16) {
@@ -328,6 +387,12 @@ function drawBackdrop(g: CanvasRenderingContext2D): void {
     }
   }
 
+  drawFloorRose(g);
+
+  // The way back down, and the light that leaks up it.
+  drawSprite(g, sprite('darkArch'), AT.exit.x, AT.exit.y);
+  drawSprite(g, sprite('darkExitSpill'), AT.exit.x, WALL_BOTTOM + 8);
+
   // The same inky border every dark space ends with.
   g.fillStyle = COLORS.a;
   g.fillRect(0, WALL_BOTTOM, TILE, WORLD_H - WALL_BOTTOM);
@@ -336,9 +401,11 @@ function drawBackdrop(g: CanvasRenderingContext2D): void {
 }
 
 const LIGHTS: Light[] = [
-  { x: AT.table.x + 56, y: AT.table.y + 28, radius: 26, tint: 'cool' },
-  { x: AT.telescope.x + 22, y: AT.telescope.y + 18, radius: 20, tint: 'cool' },
-  { x: AT.napDoor.x + 14, y: AT.napDoor.y + 48, radius: 18, tint: 'warm' },
+  { x: AT.table.x + 56, y: AT.table.y + 28, radius: 30, tint: 'cool' },
+  { x: AT.telescope.x + 22, y: AT.telescope.y + 18, radius: 24, tint: 'cool' },
+  { x: AT.napDoor.x + 14, y: AT.napDoor.y + 48, radius: 20, tint: 'warm' },
+  { x: AT.plaque.x + 30, y: AT.plaque.y + 22, radius: 30, tint: 'warm' },
+  { x: AT.exit.x + 12, y: AT.exit.y + 30, radius: 30, tint: 'warm' },
 ];
 
 function buildProps(store: GameStore): SpaceProp[] {
@@ -346,7 +413,7 @@ function buildProps(store: GameStore): SpaceProp[] {
     {
       id: 'sky',
       footY: 0,
-      glow: (g) => drawSkyGlow(g, store),
+      glow: (g) => drawSky(g, store),
       interact: {
         rect: { x: 144, y: 4, w: 150, h: 70 },
         stand: { x: 27, y: 10 },
@@ -358,6 +425,7 @@ function buildProps(store: GameStore): SpaceProp[] {
       id: 'star-map',
       footY: AT.table.y + 62,
       draw: drawStarMap,
+      glow: drawConstellation,
       interact: {
         rect: { x: AT.table.x, y: AT.table.y, w: 112, h: 62 },
         stand: { x: 23, y: 20 },
@@ -368,7 +436,8 @@ function buildProps(store: GameStore): SpaceProp[] {
     {
       id: 'stats-plaque',
       footY: AT.plaque.y + 44,
-      draw: drawPlaque,
+      draw: (g) => drawSprite(g, sprite('obsPlaque'), AT.plaque.x, AT.plaque.y),
+      glow: drawPlaqueDigits,
       interact: {
         rect: { x: AT.plaque.x, y: AT.plaque.y, w: 60, h: 44 },
         stand: { x: 14, y: 15 },
@@ -397,6 +466,12 @@ function buildProps(store: GameStore): SpaceProp[] {
         label: copy.observatory.napDoor.label,
         use: tryNapDoor,
       },
+    },
+    {
+      id: 'exit-glow',
+      footY: AT.exit.y + 40,
+      glow: (g) =>
+        drawSprite(g, sprite('darkExitGlow'), AT.exit.x + 4, AT.exit.y + 3),
     },
     {
       id: 'charts',
