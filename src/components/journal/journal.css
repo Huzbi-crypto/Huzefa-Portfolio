@@ -380,6 +380,44 @@ body:has(.journal-root) {
   color: var(--j-wood);
 }
 
+.j-panel[data-tone='note'] .j-kicker {
+  color: var(--j-wood);
+}
+
+.j-panel[data-tone='note'] .j-meta {
+  color: var(--j-wood);
+}
+
+.j-panel[data-tone='note'] .j-facts dt {
+  color: var(--j-wood);
+}
+
+.j-address {
+  margin: 8px 0 4px;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* A whole panel that is one external link. */
+
+.journal-root a.j-social {
+  color: var(--j-text);
+  text-decoration: none;
+}
+
+.journal-root a.j-social:hover {
+  background: var(--j-panel-hi);
+  color: var(--j-text);
+}
+
+.j-social-go {
+  color: var(--j-amber-hi);
+  font-size: 18px;
+}
+
 .j-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -768,6 +806,12 @@ body:has(.journal-root) {
   text-wrap: pretty;
 }
 
+.j-panel[data-tone='note'] .j-quote {
+  color: var(--j-ink);
+  font-size: 22px;
+  line-height: 1.4;
+}
+
 /* Fact lists */
 
 .j-facts {
@@ -888,6 +932,7 @@ body:has(.journal-root) {
 }
 
 .j-book-note {
+  display: block;
   margin: 8px 0 0;
   color: var(--j-dim);
   font-size: 19px;
