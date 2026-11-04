@@ -597,29 +597,29 @@ export default function TerminalModal() {
               {entry.output ? <div className="term-body">{entry.output}</div> : null}
             </div>
           ))}
+        </div>
 
-          <div className="term-echo" style={{ marginTop: 10 }}>
-            <Prompt />
-            <div className="term-inputwrap">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputVal}
-                onChange={(event) => setInputVal(event.target.value)}
-                onKeyDown={handleKeyDown}
-                className="term-input"
-                autoFocus
-                spellCheck={false}
-                autoComplete="off"
-                aria-label="Terminal command prompt input"
-              />
-              {suggestion && inputVal && suggestion.startsWith(inputVal) ? (
-                <span className="term-suggestion" aria-hidden="true">
-                  <span className="term-suggestion-prefix">{inputVal}</span>
-                  <span>{suggestion.slice(inputVal.length)}</span>
-                </span>
-              ) : null}
-            </div>
+        <div className="term-inputrow">
+          <Prompt />
+          <div className="term-inputwrap">
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputVal}
+              onChange={(event) => setInputVal(event.target.value)}
+              onKeyDown={handleKeyDown}
+              className="term-input"
+              autoFocus
+              spellCheck={false}
+              autoComplete="off"
+              aria-label="Terminal command prompt input"
+            />
+            {suggestion && inputVal && suggestion.startsWith(inputVal) ? (
+              <span className="term-suggestion" aria-hidden="true">
+                <span className="term-suggestion-prefix">{inputVal}</span>
+                <span>{suggestion.slice(inputVal.length)}</span>
+              </span>
+            ) : null}
           </div>
         </div>
 
