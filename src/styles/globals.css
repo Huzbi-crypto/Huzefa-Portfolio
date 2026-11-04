@@ -414,19 +414,23 @@ body {
   outline-offset: 2px;
 }
 
-/* The game HUD copy of the selector, under the sound toggle. */
+/* The game HUD copy of the selector, clear of the room's top-row hotspots. */
 .game-theme-selector {
   position: absolute;
-  top: calc(max(12px, env(safe-area-inset-top)) + 58px);
-  right: var(--g-gutter);
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: var(--g-gutter);
   z-index: 20;
-  width: min(420px, calc(100% - 2 * var(--g-gutter)));
+  width: min(360px, calc(100% - 2 * var(--g-gutter)));
+  pointer-events: none;
+}
+
+.game-theme-selector button {
+  pointer-events: auto;
 }
 
 @media (max-width: 700px) {
   .game-theme-selector {
     width: calc(100% - 2 * var(--g-gutter));
-    left: var(--g-gutter);
     right: auto;
   }
 
