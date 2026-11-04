@@ -67,6 +67,18 @@ describe('journalEntries', () => {
     expect(b?.body).toContain(book.note ?? '');
   });
 
+  it('found_projects_and_books_link_to_their_journal_pages', () => {
+    const project = projects[0];
+    const book = personalInfo.readingList[0];
+    const entries = journalEntries([projectStarId(project.id), readStarId(book.title)]);
+    expect(entries.find((e) => e.id === projectStarId(project.id))?.pageUrl).toBe(
+      `/projects/${project.slug}/`,
+    );
+    expect(entries.find((e) => e.id === readStarId(book.title))?.pageUrl).toBe(
+      '/about/#reading-heading',
+    );
+  });
+
   it('every_silly_star_has_its_own_words', () => {
     // Every silly star must have authored copy, not the generic fallback that
     // `openEntry` uses when an id is added without journal words.

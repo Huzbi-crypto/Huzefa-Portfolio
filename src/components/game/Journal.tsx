@@ -13,6 +13,8 @@ export type JournalEntry = {
   title: string;
   body: string;
   url?: string;
+  /** The full journal page for this find, rather than the outside source. */
+  pageUrl?: string;
   found: boolean;
 };
 
@@ -29,13 +31,24 @@ function sectionOf(id: string): Section {
 function openEntry(id: string): Omit<JournalEntry, 'found'> {
   const project = projects.find((item) => projectStarId(item.id) === id);
   if (project) {
-    return { id, title: project.title, body: project.description, url: project.githubUrl };
+    return {
+      id,
+      title: project.title,
+      body: project.description,
+      url: project.githubUrl,
+      pageUrl: `/projects/${project.slug}/`,
+    };
   }
 
   const book = personalInfo.readingList.find((item) => readStarId(item.title) === id);
   if (book) {
     const by = book.author ? `${book.author}. ` : '';
-    return { id, title: book.title, body: `${by}${book.note ?? ''}`.trim() };
+    return {
+      id,
+      title: book.title,
+      body: `${by}${book.note ?? ''}`.trim(),
+      pageUrl: '/about/#reading-heading',
+    };
   }
 
   const silly = copy.journal.silly[id];
@@ -277,16 +290,23 @@ export function Journal({
                           <div className="journal-entry-text">
                             <h4 className="journal-entry-title">{entry.title}</h4>
                             <p className="journal-entry-body">{entry.body}</p>
-                            {entry.url ? (
-                              <a
-                                className="journal-link"
-                                href={entry.url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {copy.journal.repo}
-                              </a>
-                            ) : null}
+                            <div className="journal-entry-links">
+                              {entry.pageUrl ? (
+                                <a className="journal-link" href={entry.pageUrl}>
+                                  {copy.journal.page}
+                                </a>
+                              ) : null}
+                              {entry.url ? (
+                                <a
+                                  className="journal-link"
+                                  href={entry.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {copy.journal.repo}
+                                </a>
+                              ) : null}
+                            </div>
                           </div>
                         </li>
                       ))}

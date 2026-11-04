@@ -884,6 +884,12 @@ body {
   overflow-wrap: break-word;
 }
 
+.journal-entry-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+}
+
 .journal-link {
   display: inline-flex;
   align-items: center;

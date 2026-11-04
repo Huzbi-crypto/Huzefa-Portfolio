@@ -35,6 +35,7 @@ export const copy = {
     hiddenBody: 'Not found yet. Keep poking around.',
     sections: { projects: 'Things Huzbi built', books: 'The shelf', silly: 'Silly things' },
     repo: 'Repo',
+    page: 'Full page',
     fallbackBody: 'You found this one. It is too silly to describe.',
     /** One line per silly star, in Huzbi's voice, for Huzbi to edit. */
     silly: {
