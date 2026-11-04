@@ -35,6 +35,7 @@ type FakeContext = {
   globalCompositeOperation: string;
   setTransform: (...args: number[]) => void;
   fillRect: (x: number, y: number, w: number, h: number) => void;
+  createPattern: () => CanvasPattern | null;
   drawImage: (source: { width: number; height: number }, ...args: number[]) => void;
   getImageData: (x: number, y: number, w: number, h: number) => ImageData;
   createImageData: (w: number, h: number) => ImageData;
@@ -68,6 +69,7 @@ function fakeCanvas(): FakeCanvas {
     globalCompositeOperation: 'source-over',
     setTransform: () => undefined,
     fillRect: () => undefined,
+    createPattern: () => ({}) as CanvasPattern,
     drawImage: () => undefined,
     getImageData: (_x, _y, w, h) => imageData(w, h),
     createImageData: (w, h) => imageData(w, h),

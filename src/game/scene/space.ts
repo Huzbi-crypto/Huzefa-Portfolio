@@ -235,6 +235,82 @@ type Layers = {
   viewLights: Light[];
 };
 
+const BAYER_4 = [
+  0, 8, 2, 10,
+  12, 4, 14, 6,
+  3, 11, 1, 9,
+  15, 7, 13, 5,
+] as const;
+
+type VoidPattern = { ink: string; panel: string; accent: string; pattern: CanvasPattern | null };
+
+/** One cached dither pattern per canvas, rebuilt when the theme changes. */
+const voidPatterns = new WeakMap<CanvasRenderingContext2D, VoidPattern>();
+
+function voidPatternFor(g: CanvasRenderingContext2D): CanvasPattern | null {
+  const ink = ACTIVE_PALETTE.a;
+  const panel = ACTIVE_PALETTE.b;
+  const accent = ACTIVE_PALETTE.g;
+  const cached = voidPatterns.get(g);
+  if (cached && cached.ink === ink && cached.panel === panel && cached.accent === accent) {
+    return cached.pattern;
+  }
+
+  const tile = document.createElement('canvas');
+  tile.width = 4;
+  tile.height = 4;
+  const t = tile.getContext('2d');
+  let pattern: CanvasPattern | null = null;
+  if (t) {
+    t.fillStyle = ink;
+    t.fillRect(0, 0, 4, 4);
+    t.fillStyle = panel;
+    BAYER_4.forEach((threshold, index) => {
+      if (threshold < 5) t.fillRect(index % 4, Math.floor(index / 4), 1, 1);
+    });
+    t.fillStyle = accent;
+    t.fillRect(3, 3, 1, 1);
+    pattern =
+      typeof g.createPattern === 'function' ? g.createPattern(tile, 'repeat') : null;
+  }
+  voidPatterns.set(g, { ink, panel, accent, pattern });
+  return pattern;
+}
+
+/**
+ * A deliberate dithered frame for view areas beyond the world. Tall phones
+ * centre a short world with room above and below; this keeps that space part
+ * of the art instead of leaving flat ink.
+ */
+function drawOutOfWorld(g: CanvasRenderingContext2D, ctx: SceneCtx, w: number, h: number): void {
+  const { camera, viewW, viewH } = ctx;
+  const left = Math.round(-camera.x);
+  const top = Math.round(-camera.y);
+  const right = left + w;
+  const bottom = top + h;
+  const outside =
+    left > 0 || top > 0 || right < viewW || bottom < viewH;
+  if (!outside) return;
+
+  const pattern = voidPatternFor(g);
+  g.save();
+  g.fillStyle = pattern ?? ACTIVE_PALETTE.a;
+  if (top > 0) g.fillRect(0, 0, viewW, top);
+  if (bottom < viewH) g.fillRect(0, bottom, viewW, viewH - bottom);
+  const bandTop = Math.max(0, top);
+  const bandBottom = Math.min(viewH, bottom);
+  if (left > 0) g.fillRect(0, bandTop, left, bandBottom - bandTop);
+  if (right < viewW) g.fillRect(right, bandTop, viewW - right, bandBottom - bandTop);
+
+  // A hard step where the world begins, so the frame reads as intentional.
+  g.fillStyle = ACTIVE_PALETTE.q;
+  g.fillRect(left, top - 1, w, 1);
+  g.fillRect(left, bottom, w, 1);
+  g.fillRect(left - 1, top, 1, h);
+  g.fillRect(right, top, 1, h);
+  g.restore();
+}
+
 function makeLayers(w: number, h: number, lightCount: number): Layers {
   const canvas = document.createElement('canvas');
   canvas.width = w;
@@ -401,6 +477,7 @@ export function createDarkSpace(def: SpaceDef, _store: GameStore): Scene {
       l.src = s.getImageData(0, 0, viewW, viewH);
       applyLighting(l.src, l.dst, l.viewLights);
       s.putImageData(l.dst, 0, 0);
+      drawOutOfWorld(s, ctx, def.worldW, def.worldH);
 
       // 3. What glows by itself, at full brightness, with the visitor layered
       // in by foot line so a doorway never paints over their head.

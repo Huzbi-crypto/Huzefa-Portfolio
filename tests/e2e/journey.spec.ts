@@ -1341,6 +1341,41 @@ test.describe('phone journey', () => {
     isMobile: true,
   });
 
+  test('tall_phone_dark_space_has_a_dithered_frame', async ({ page }) => {
+    await openGame(page);
+    await goToScene(page, 'dark');
+    await page.waitForTimeout(500);
+
+    const stats = await page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>('canvas');
+      const g = canvas?.getContext('2d');
+      if (!canvas || !g) throw new Error('The game canvas is missing');
+
+      const measure = (top: number, height: number) => {
+        const data = g.getImageData(0, top, canvas.width, height).data;
+        const colors = new Set<string>();
+        let total = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          colors.add(`${data[i]},${data[i + 1]},${data[i + 2]}`);
+          total += data[i] + data[i + 1] + data[i + 2];
+        }
+        return { colors: colors.size, average: total / (data.length / 4) };
+      };
+
+      return {
+        top: measure(0, 40),
+        bottom: measure(canvas.height - 40, 40),
+      };
+    });
+
+    // Not flat ink: the shared dark-space frame is a dither of two palette
+    // colours plus the hard step where the world starts.
+    expect(stats.top.colors).toBeGreaterThan(2);
+    expect(stats.bottom.colors).toBeGreaterThan(2);
+    expect(stats.top.average).toBeGreaterThan(20);
+    expect(stats.bottom.average).toBeGreaterThan(20);
+  });
+
   test('phone_full_trail', async ({ page }) => {
     test.setTimeout(180_000);
     const lines: string[] = [];
