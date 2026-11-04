@@ -10,26 +10,26 @@ import { PixelArt } from '@/components/journal/PixelArt';
 export const metadata: Metadata = {
   title: 'About Huzbi | Huzbi',
   description:
-    'Huzefa Saifuddin, known online as Huzbi: a FAST NU computer science graduate building systems, agents and cozy retro experiments.',
+    'Huzefa Saifuddin, known online as Huzbi: a Karachi-based FAST NU computer science graduate building systems, agents and cozy retro experiments.',
 };
 
 const INTERESTS = [
   {
     title: 'Low-level & systems',
     icon: PROJECT_ICONS.network,
-    body: 'Deeply curious about packet routing, dynamic topologies (Dijkstra SPF & Bellman-Ford), course compiler pipelines (ASTs, lexing with Flex/Bison, assembly output), and OS internals in C and Python.',
+    body: 'I\u2019m curious about packet routing and dynamic topologies (Dijkstra SPF and Bellman-Ford), course compiler pipelines with ASTs, Flex/Bison and assembly output, and OS internals in C and Python.',
     tags: ['C/C++', 'Networking', 'Compilers', 'SQLite'],
   },
   {
     title: 'Modern AI & agents',
     icon: PROJECT_ICONS.module,
-    body: 'Building autonomous reasoning loops, stateful multi-agent graphs with LangGraph, Whisper speech-to-speech translation pipelines, and prompt-driven diffusion generation platforms.',
+    body: 'I build autonomous reasoning loops, stateful multi-agent graphs with LangGraph, Whisper speech-to-speech pipelines, and prompt-driven diffusion generation.',
     tags: ['LangChain', 'LangGraph', 'Whisper', 'Diffusion'],
   },
   {
     title: 'Creative & retro coding',
     icon: PROJECT_ICONS.canvas,
-    body: 'Bringing back the cozy tactile feel of 80s/90s computing: interactive browser terminals, CRT scanline shaders, canvas physics engines, and ASCII dithering terminal user interfaces.',
+    body: 'I like the cozy, tactile feel of 80s and 90s computing: interactive browser terminals, CRT scanline shaders, canvas physics engines and ASCII dithering terminal UIs.',
     tags: ['TTYs', 'Canvas', 'ASCII Art', 'CRT Shaders'],
   },
 ] as const;
@@ -63,14 +63,13 @@ export default function AboutPage() {
         <h2 id="story-heading">The short version</h2>
         <p>
           I graduated with a Bachelor&apos;s in Computer Science from FAST National
-          University (NUCES) in Karachi. When I&apos;m not working, I build random
-          experiments that occasionally get a little out of hand—spanning low-level
-          systems and packet routing to modern multi-agent AI loops and retro
-          creative coding.
+          University (NUCES) in Karachi. When I&apos;m not working, I build whatever
+          I&apos;m curious about: low-level systems and packet routing, multi-agent AI
+          loops, and retro creative coding that takes longer than it should.
         </p>
         <p className="j-muted">
-          Current coordinates: {personalInfo.location}. The rest of this page is
-          either a project, a book, or an opinion about one of them.
+          Current coordinates: {personalInfo.location}. Everything else on this page
+          is a project, a book, or an opinion about one of them.
         </p>
       </PixelPanel>
 
@@ -82,18 +81,18 @@ export default function AboutPage() {
           weekends.”
         </p>
         <p>
-          I don&apos;t sound like a corporate LinkedIn robot because I genuinely
-          care about how things work underneath. I don&apos;t care about buzzwords
-          like “synergistic end-to-end paradigm accelerators.” I care about memory
-          layouts, cache behavior, clean abstraction boundaries, and having enough
-          peace of mind to enjoy a weekend manga binge.
+          Phrases like “synergistic end-to-end paradigm accelerators” don&apos;t do
+          much for me. I&apos;d rather understand how something works underneath:
+          memory layouts, cache behavior, clean abstraction boundaries. The point is
+          code that doesn&apos;t need fixing on a weekend, which leaves enough peace
+          of mind for a manga binge.
         </p>
       </PixelPanel>
 
       <section className="j-section" aria-labelledby="builds-heading">
         <h2 id="builds-heading">What I actually build &amp; explore</h2>
         <p className="j-muted">
-          No marketing speak—just systems, algorithms, models, and craft.
+          No marketing speak. Just systems, algorithms, models and craft.
         </p>
         <div className="j-grid" data-cols="3">
           {INTERESTS.map((interest) => (
@@ -130,25 +129,25 @@ export default function AboutPage() {
       <section className="j-section" aria-labelledby="fiction-heading">
         <h2 id="fiction-heading">Fiction, manga &amp; creative fuels</h2>
         <p className="j-muted">
-          Why storytelling and manga inspire deeper engineering and perseverance.
+          Storytelling and manga keep the engineering engine running.
         </p>
         <div className="j-grid">
           <PixelPanel as="article">
             <p>
-              People often think of technical engineering and reading fiction as
-              separate worlds. To me, they feed the exact same engine.
+              People treat engineering and fiction as separate worlds. For me they
+              run on the same engine.
             </p>
             <p>
-              In <strong>One Piece</strong>, Eiichiro Oda demonstrates narrative
-              scale and worldbuilding on an absurd, awe-inspiring level. In{' '}
-              <strong>Naruto</strong>, the core theme of relentless grit mirrors
-              the stubborn endurance required to solve intractable software bugs.
+              <strong>One Piece</strong> is the obvious one: Eiichiro Oda builds
+              narrative scale and worldbuilding at a level that shouldn&apos;t be
+              possible. <strong>Naruto</strong>&apos;s relentless grit is the same
+              stubbornness it takes to sit with an intractable software bug.
             </p>
             <p>
-              From <strong>Bleach</strong>&apos;s peerless aesthetic style to{' '}
-              <strong>Black Clover</strong>&apos;s anti-magic teamwork and{' '}
-              <strong>One Punch Man</strong>&apos;s god-tier panel craft, manga
-              reminds you to build with passion, style, and relentless curiosity.
+              <strong>Bleach</strong> has the aesthetic,{' '}
+              <strong>Black Clover</strong> has the anti-magic teamwork, and{' '}
+              <strong>One Punch Man</strong> has the panel craft. All of it is a
+              reminder to build with style and stay curious.
             </p>
             <div className="j-row">
               <a
@@ -178,7 +177,7 @@ export default function AboutPage() {
 
       <section className="j-section" aria-labelledby="reading-heading">
         <h2 id="reading-heading">Currently reading &amp; bookshelf</h2>
-        <p className="j-muted">Technical + fiction. Every title gets an opinion.</p>
+        <p className="j-muted">Technical and fiction, each with an opinion attached.</p>
         <ul className="j-list">
           {personalInfo.readingList.map((item, index) => (
             <li key={item.title} className="j-book">
