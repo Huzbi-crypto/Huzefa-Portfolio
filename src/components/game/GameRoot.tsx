@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { personalInfo } from '@/data/personal';
 import { useApp } from '@/context/AppContext';
 import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
@@ -9,6 +10,15 @@ import { isTermPromptOpen } from '@/game/exhibits/termExp';
 import { createGame, type Game, type GameHint } from '@/game/game';
 import { createArchive } from '@/game/scene/archive';
 import { createDarkScene } from '@/game/scene/dark';
+import {
+  CONTACT_LINKS,
+  contactCardOpen,
+  createNap,
+  mailtoHref,
+  setContactCardOpen,
+  subscribeContactCard,
+} from '@/game/scene/nap';
+import { createObservatory } from '@/game/scene/observatory';
 import { createWorkshop } from '@/game/scene/workshop';
 import { createRoomScene } from '@/game/scene/room';
 import { createStore, type GameStore } from '@/game/state/store';
@@ -62,6 +72,81 @@ function SoundFromStore({ store, audio }: { store: GameStore; audio: GameAudio }
   return <SoundToggle enabled={enabled} onToggle={() => audio.setEnabled(!enabled)} />;
 }
 
+/**
+ * The real contact card the ending opens. A prepared mailto, and the places
+ * Huzbi actually reads, straight from `src/data/personal.ts`.
+ */
+function EndingContact() {
+  const open = useSyncExternalStore(subscribeContactCard, contactCardOpen, () => false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    closeRef.current?.focus({ preventScroll: true });
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setContactCardOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="project-panel-backdrop"
+      data-testid="contact-backdrop"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) setContactCardOpen(false);
+      }}
+    >
+      <div
+        className="project-panel px-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={copy.nap.contact.dialogLabel}
+      >
+        <button
+          ref={closeRef}
+          type="button"
+          className="project-panel-close"
+          aria-label={copy.nap.contact.closeLabel}
+          onClick={() => setContactCardOpen(false)}
+        >
+          {copy.nap.contact.close}
+        </button>
+
+        <h2 className="project-panel-title">{copy.nap.contact.title}</h2>
+        <p className="project-panel-body">{copy.nap.contact.lead}</p>
+        <p className="project-panel-tagline">
+          {copy.nap.contact.emailLabel}:{' '}
+          <a className="project-panel-link" href={mailtoHref()}>
+            {personalInfo.email}
+          </a>
+        </p>
+
+        <div className="project-panel-links">
+          {CONTACT_LINKS.map((link) => (
+            <a
+              key={link.id}
+              className="project-panel-link"
+              href={link.href}
+              {...(link.id === 'email'
+                ? {}
+                : { target: '_blank', rel: 'noreferrer' })}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UseHint({ hint }: { hint: GameHint }) {
   if (!hint) return null;
   const verb =
@@ -113,6 +198,8 @@ export default function GameRoot() {
         createDarkScene(gameStore),
         createWorkshop(gameStore),
         createArchive(gameStore),
+        createObservatory(gameStore),
+        createNap(gameStore),
       ],
       audio: gameAudio,
       openTerminal: () => openTerminalRef.current(),
@@ -123,7 +210,8 @@ export default function GameRoot() {
           state.dialogue !== null ||
           state.project !== null ||
           terminalOpenRef.current ||
-          journalOpenRef.current
+          journalOpenRef.current ||
+          contactCardOpen()
         );
       },
       onHint: setHint,
@@ -177,7 +265,8 @@ export default function GameRoot() {
     return (
       isTermPromptOpen() ||
       Boolean(state && (state.dialogue || state.project)) ||
-      terminalOpenRef.current
+      terminalOpenRef.current ||
+      contactCardOpen()
     );
   };
 
@@ -233,6 +322,7 @@ export default function GameRoot() {
       {store ? <TermPrompt /> : null}
       {store ? <DialogueBox store={store} /> : null}
       {store ? <ProjectPanel store={store} /> : null}
+      <EndingContact />
     </div>
   );
 }

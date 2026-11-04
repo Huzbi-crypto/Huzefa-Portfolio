@@ -3,7 +3,6 @@ import snapshot from '@/data/github-snapshot.json';
 import { PALETTES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { allStarIds, starTotal } from '@/game/content/stars';
-import { createStore } from '@/game/state/store';
 import { TRAIL } from '@/game/state/story';
 import { findPath, TILE } from '@/game/world/grid';
 import { navMap } from './nav';
