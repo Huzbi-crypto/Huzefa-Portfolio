@@ -77,6 +77,10 @@ These are biography facts carried over from `src/data/personal.ts`, not invented
 | About story | "I graduated with a Bachelor's in Computer Science from FAST National University (NUCES) in Karachi." | "I graduated with a Bachelor's in Computer Science from FAST National University (NUCES) in Karachi." |
 | About story | "Current coordinates: Karachi, Pakistan." | "Current coordinates: Karachi, Pakistan." |
 
+## Out of scope: About page still carries old project wording
+
+Task B only covered the ten project entries in `src/data/projects.ts`. `src/app/about/page.tsx` still mentions "Dijkstra SPF and Bellman-Ford", "Flex/Bison and assembly output", "Whisper speech-to-speech pipelines" and "prompt-driven diffusion generation", which no longer match the READMEs for `routing-sim`, `compiler-project`, `speech-translator` and `ai-anime`. This is left for the About-text pass in Task 20 rather than changed here.
+
 ## Numbers that disagree with the GitHub snapshot
 
 The `stars` fields were deliberately left unchanged by this task. They disagree with the snapshot for five projects. The old `ai-anime` prose said "Over 6 GitHub stars"; that claim was removed in this rewrite, but the field still says 6.
