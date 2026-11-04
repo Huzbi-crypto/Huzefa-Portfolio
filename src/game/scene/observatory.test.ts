@@ -3,10 +3,17 @@ import snapshot from '@/data/github-snapshot.json';
 import { PALETTES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { allStarIds, starTotal } from '@/game/content/stars';
+import { PLAQUE } from '@/game/art/sprites/ending';
 import { TRAIL } from '@/game/state/story';
 import { findPath, TILE } from '@/game/world/grid';
 import { navMap } from './nav';
-import { constellationStars, createObservatory, MAP_BOUNDS, skyStars } from './observatory';
+import {
+  constellationStars,
+  createObservatory,
+  MAP_BOUNDS,
+  plaqueLayout,
+  skyStars,
+} from './observatory';
 import {
   byId,
   fakeGraphics,
@@ -117,6 +124,27 @@ describe('the star map of real repos', () => {
     expect(said).toContain(copy.observatory.map.count(repos.length));
     const brightest = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count)[0];
     expect(said).toContain(brightest.name);
+  });
+
+  it('the_plaque_numbers_and_date_fit_inside_the_brass', () => {
+    const { stats } = snapshot;
+    const numbers = [
+      String(stats.totalRepos),
+      String(stats.totalStarsReceived),
+      String(stats.totalFollowers),
+    ];
+    const layout = plaqueLayout(numbers, stats.snapshotDate);
+    const inner = { x: 6, y: 6, w: PLAQUE.w - 12, h: PLAQUE.h - 12 };
+    const glyphHeight = 5;
+
+    expect(layout.rows.map((row) => row.text)).toEqual(numbers);
+    expect(layout.date.text).toBe(stats.snapshotDate);
+    for (const row of [...layout.rows, layout.date]) {
+      expect(row.x, row.text).toBeGreaterThanOrEqual(inner.x);
+      expect(row.x + row.w, row.text).toBeLessThanOrEqual(inner.x + inner.w);
+      expect(row.y, row.text).toBeGreaterThanOrEqual(inner.y);
+      expect(row.y + glyphHeight, row.text).toBeLessThanOrEqual(inner.y + inner.h);
+    }
   });
 
   it('the_plaque_gives_honest_numbers_and_the_date_they_were_taken', async () => {

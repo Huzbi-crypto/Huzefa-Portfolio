@@ -198,8 +198,13 @@ function plaque(): string[] {
   return rows(cv);
 }
 
-/** Where the plaque's engraved rows sit, relative to the plaque. */
-export const PLAQUE_ROWS = { x: 9, y: [9, 18, 27], date: { x: 9, y: 36 } } as const;
+/**
+ * Where the plaque's engraved rows sit, relative to the plaque. The three
+ * numbers sit close together and the date goes under them, all inside the
+ * brass: rows are five pixels tall, so 8/15/22 and a date at 30 leave a clear
+ * margin at the bottom (the old 36 put the date over the frame).
+ */
+export const PLAQUE_ROWS = { y: [8, 15, 22], dateY: 30 } as const;
 
 /** The little door with a moon on it. 28 by 48, round-topped. */
 export const NAP_DOOR = { w: 28, h: 48 } as const;

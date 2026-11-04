@@ -2,6 +2,7 @@ import snapshot from '@/data/github-snapshot.json';
 import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import {
   digitPixels,
+  PLAQUE,
   PLAQUE_ROWS,
   TABLE_GLASS,
 } from '@/game/art/sprites/ending';
@@ -327,6 +328,25 @@ function drawFloorRose(g: CanvasRenderingContext2D): void {
   ring(18, 5, COLORS.d);
 }
 
+/** One engraved line on the plaque, in plaque-local pixels. */
+export type PlaqueRow = { text: string; x: number; y: number; w: number };
+
+/** The three real numbers, centred, then the date they were taken. */
+export function plaqueLayout(numbers: readonly string[], date: string): {
+  rows: PlaqueRow[];
+  date: PlaqueRow;
+} {
+  const centred = (text: string, y: number): PlaqueRow => {
+    const w = digitPixels(text).w;
+    return { text, w, x: Math.round((PLAQUE.w - w) / 2), y };
+  };
+
+  return {
+    rows: numbers.map((text, index) => centred(text, PLAQUE_ROWS.y[index])),
+    date: centred(date, PLAQUE_ROWS.dateY),
+  };
+}
+
 function drawDigits(
   g: CanvasRenderingContext2D,
   text: string,
@@ -341,25 +361,18 @@ function drawDigits(
 
 function drawPlaqueDigits(g: CanvasRenderingContext2D): void {
   const { stats } = snapshot;
-  const rows = [
-    String(stats.totalRepos),
-    String(stats.totalStarsReceived),
-    String(stats.totalFollowers),
-  ];
-  rows.forEach((text, index) => {
-    drawDigits(
-      g,
-      text,
-      AT.plaque.x + PLAQUE_ROWS.x,
-      AT.plaque.y + PLAQUE_ROWS.y[index],
-    );
-  });
-  drawDigits(
-    g,
+  const layout = plaqueLayout(
+    [
+      String(stats.totalRepos),
+      String(stats.totalStarsReceived),
+      String(stats.totalFollowers),
+    ],
     stats.snapshotDate,
-    AT.plaque.x + PLAQUE_ROWS.date.x,
-    AT.plaque.y + PLAQUE_ROWS.date.y,
   );
+
+  for (const row of [...layout.rows, layout.date]) {
+    drawDigits(g, row.text, AT.plaque.x + row.x, AT.plaque.y + row.y);
+  }
 }
 
 function drawNapDoor(g: CanvasRenderingContext2D, store: GameStore): void {
