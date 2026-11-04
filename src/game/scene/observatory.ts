@@ -25,12 +25,12 @@ const COLORS = PALETTES['cozy-crt'];
 
 /** Where everything stands, in world pixels (the top-left of each sprite). */
 const AT = {
-  exit: { x: 20, y: 24 },
+  exit: { x: 20, y: 72 },
   table: { x: 136, y: 96 },
   telescope: { x: 280, y: 72 },
   plaque: { x: 80, y: 84 },
   napDoor: { x: 340, y: 24 },
-  charts: { x: 28, y: 76 },
+  charts: { x: 344, y: 76 },
   stool: { x: 256, y: 120 },
   scrap: { x: 28, y: 156 },
 } as const;
@@ -391,7 +391,7 @@ function drawBackdrop(g: CanvasRenderingContext2D): void {
 
   // The way back down, and the light that leaks up it.
   drawSprite(g, sprite('darkArch'), AT.exit.x, AT.exit.y);
-  drawSprite(g, sprite('darkExitSpill'), AT.exit.x, WALL_BOTTOM + 8);
+  drawSprite(g, sprite('darkExitSpill'), AT.exit.x, AT.exit.y + 40);
 
   // The same inky border every dark space ends with.
   g.fillStyle = COLORS.a;
