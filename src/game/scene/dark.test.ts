@@ -7,6 +7,7 @@ import { findPath, TILE } from '@/game/world/grid';
 import type { Input } from '@/game/core/input';
 import { createDarkScene, darkLights, LANTERN_RADIUS } from './dark';
 import { navMap } from './nav';
+import { createSpaceLights } from './space';
 import type { GameApi, Hotspot, SceneCtx } from './types';
 import { createEntity, type Facing } from '@/game/world/entity';
 
@@ -331,6 +332,16 @@ describe('the lantern', () => {
     const lantern = darkLights(ctx)[0];
     expect(lantern.x).toBe(400 / 4 + 10);
     expect(lantern.y).toBe(200 / 4 + 4);
+  });
+
+  it('a_panel_open_on_the_very_first_frame_still_lights_the_visitor', () => {
+    // A fresh space enters behind a transition, before any pointer frame.
+    const lights = createSpaceLights([]);
+    const ctx = ctxFor({ mode: 'mouse', pointer: { x: 800, y: 400 }, blocked: true });
+    const lantern = lights(ctx)[0];
+
+    expect(lantern.x).toBe(ctx.player.x);
+    expect(lantern.y).toBe(ctx.player.y - 10);
   });
 
   it('the_pointer_light_freezes_while_a_panel_is_open_then_resumes', () => {

@@ -86,13 +86,24 @@ export function createSpaceLights(fixed: Light[]): (ctx: SceneCtx) => Light[] {
   const pointerWorld = { x: 0, y: 0 };
   const dragWorld = { x: 0, y: 0 };
   const bodyPoint = { x: 0, y: 0 };
+  // A space can be drawn for the first time behind a transition. Give the
+  // flame a sensible home on the visitor instead of leaving it at 0,0.
+  let placed = false;
 
   return (ctx) => {
     const { input, player, camera, scale, drag, t, reducedMotion, blocked } = ctx;
 
     // A panel or dialogue owns the room now: freeze the flame where it was so
     // the pointer no longer pulls the light around behind the UI.
-    if (blocked) return lights;
+    if (blocked) {
+      if (!placed) {
+        lantern.x = Math.floor(player.x);
+        lantern.y = Math.floor(player.y) - 10;
+        lantern.radius = LANTERN_RADIUS;
+        placed = true;
+      }
+      return lights;
+    }
 
     const pointer = input.pointer;
     if (pointer) {
@@ -118,6 +129,7 @@ export function createSpaceLights(fixed: Light[]): (ctx: SceneCtx) => Light[] {
     lantern.radius =
       LANTERN_RADIUS +
       (reducedMotion ? 0 : FLICKER[Math.floor(t / FLICKER_MS) % FLICKER.length]);
+    placed = true;
 
     return lights;
   };
