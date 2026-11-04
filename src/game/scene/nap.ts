@@ -29,6 +29,9 @@ const AT = {
   cat: { x: 292, y: 136 },
 } as const;
 
+/** Where the moon door back to the Observatory hangs on the wall. */
+export const RETURN_DOOR_AT = { x: AT.exit.x, y: AT.exit.y } as const;
+
 type SleepPose = 'asleep' | 'stir' | 'slide' | 'sitUp' | 'awake';
 
 function sprite(name: string) {
@@ -230,6 +233,15 @@ function drawCat(g: CanvasRenderingContext2D, ctx: { t: number; reducedMotion: b
 
 function buildProps(ref: PoseRef): SpaceProp[] {
   return [
+    // The exit hotspot had no visible door. Reuse the Observatory's moon door
+    // so the way back reads before the visitor walks into it.
+    {
+      id: 'return-door',
+      footY: RETURN_DOOR_AT.y + 48,
+      // The nap lamp is far away, so paint the door in the glow pass like the
+      // Observatory's moon door; it stays readable without adding another light.
+      glow: (g) => drawSprite(g, sprite('obsNapDoor'), RETURN_DOOR_AT.x, RETURN_DOOR_AT.y),
+    },
     buildSleeperProp(ref),
     {
       id: 'manga',
