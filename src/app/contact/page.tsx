@@ -1,12 +1,16 @@
-'use client';
-
-import React, { useState } from 'react';
-import { useApp } from '@/context/AppContext';
+import React from 'react';
+import type { Metadata } from 'next';
 import { personalInfo } from '@/data/personal';
 import { ICONS } from '@/components/journal/journalArt';
 import { JournalPage } from '@/components/journal/JournalPage';
 import { PixelPanel } from '@/components/journal/PixelPanel';
 import { PixelArt } from '@/components/journal/PixelArt';
+
+export const metadata: Metadata = {
+  title: 'Contact Huzbi | Huzbi',
+  description:
+    'Email Huzbi about a project, systems, multi-agent AI, or a good manga recommendation. Real addresses, no forms.',
+};
 
 const SOCIAL_CHANNELS = [
   {
@@ -48,27 +52,6 @@ const SOCIAL_CHANNELS = [
  * places Huzbi wanders, and the telegraph log that runs at 9600 baud.
  */
 export default function ContactPage() {
-  const { openTerminal } = useApp();
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText(personalInfo.email);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = personalInfo.email;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    }
-  };
-
   return (
     <JournalPage
       title="Get in touch."
@@ -87,15 +70,6 @@ export default function ContactPage() {
           <a href={`mailto:${personalInfo.email}`} className="j-btn">
             Send mail
           </a>
-          <button
-            type="button"
-            className="j-btn"
-            data-kind="ghost"
-            onClick={handleCopyEmail}
-            aria-label="Copy email address to clipboard"
-          >
-            {copied ? 'Copied to clipboard' : 'Copy address'}
-          </button>
         </div>
         <ul className="j-meta">
           <li>Response: usually &lt; 24h</li>
@@ -153,15 +127,10 @@ export default function ContactPage() {
         <p className="j-kicker">Prefer a command line?</p>
         <h2 id="cli-heading">The room has a terminal.</h2>
         <p className="j-muted">
-          Run <code>cat contact</code> or inspect the server specs. It also
-          remembers whether you like your CRT scanlines.
+          Every page carries a CLI in the top bar once scripts are on. Run{' '}
+          <code>cat contact</code> or inspect the server specs. It also remembers
+          whether you like your CRT scanlines.
         </p>
-        <div className="j-row">
-          <button type="button" className="j-btn" data-kind="ghost" onClick={openTerminal}>
-            <PixelArt grid={ICONS.mail} scale={2} />
-            Open terminal
-          </button>
-        </div>
       </PixelPanel>
     </JournalPage>
   );
