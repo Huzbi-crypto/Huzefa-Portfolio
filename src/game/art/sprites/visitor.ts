@@ -80,7 +80,7 @@ function headFront(g: Grid, dy = 0): void {
   lay(g, dy, HEAD_FRONT);
   dots(g, [
     // the tuft that never lies flat, and a loose strand
-    [8, dy, 'a'], [9, dy, 'a'], [7, 1 + dy, 'a'], [8, 1 + dy, 'b'], [9, 1 + dy, 'b'], [10, 1 + dy, 'a'],
+    [7, dy, 'a'], [8, dy, 'a'], [10, dy, 'a'], [8, 1 + dy, 'b'], [9, 1 + dy, 'a'], [10, 1 + dy, 'b'],
     [12, 1 + dy, 'a'], [11, 2 + dy, 'a'], [12, 2 + dy, 'a'],
     // a side lock over the right eye, a crooked tired smile
     [10, 5 + dy, 'b'], [10, 6 + dy, 'b'], [5, 5 + dy, 'v'], [7, 9 + dy, 'w'], [8, 9 + dy, 'w'], [9, 9 + dy, 'v'], [6, 9 + dy, 'v'],
@@ -92,7 +92,7 @@ function headFront(g: Grid, dy = 0): void {
 function headBack(g: Grid, dy = 0): void {
   lay(g, dy, HEAD_BACK);
   dots(g, [
-    [8, dy, 'a'], [9, dy, 'a'], [7, 1 + dy, 'a'], [8, 1 + dy, 'b'], [9, 1 + dy, 'b'], [10, 1 + dy, 'a'],
+    [7, dy, 'a'], [8, dy, 'a'], [10, dy, 'a'], [8, 1 + dy, 'b'], [9, 1 + dy, 'a'], [10, 1 + dy, 'b'],
     [12, 1 + dy, 'a'], [11, 2 + dy, 'a'], [12, 2 + dy, 'a'],
     [6, 7 + dy, 'c'], [9, 6 + dy, 'c'], [7, 5 + dy, 'c'], [10, 8 + dy, 'c'], [5, 8 + dy, 'c'], [2, 5 + dy, 'A'], [12, 5 + dy, 'A'],
   ]);
@@ -322,16 +322,16 @@ function idleFrame(facing: Facing): string[] {
     headFront(g);
     handToCup(g);
     // the head tips a little toward the raised hand: the tuft slides over
-    dots(g, [[8, 0, '.'], [9, 0, '.'], [9, 0, 'a'], [10, 0, 'a']]);
+    dots(g, [[8, 0, '.'], [9, 0, 'a'], [10, 0, '.'], [11, 0, 'a']]);
   } else if (facing === 'up') {
     legsFV(g, 0);
     bodyBack(g, 0);
     headBack(g);
-    dots(g, [[8, 0, '.'], [9, 0, '.'], [10, 0, 'a'], [11, 0, 'a'], [10, 1, 'b']]);
+    dots(g, [[8, 0, '.'], [9, 0, 'a'], [10, 0, '.'], [11, 0, 'a']]);
   } else {
     sideLegs(g, 0);
     sideBody(g, 0);
-    dots(g, [[6, 0, '.'], [7, 0, '.'], [8, 0, 'a'], [9, 0, 'a'], [8, 1, 'b']]);
+    dots(g, [[6, 0, 'a'], [7, 0, '.'], [8, 0, 'a'], [9, 0, 'a']]);
   }
   return g.map((r) => r.join(''));
 }
