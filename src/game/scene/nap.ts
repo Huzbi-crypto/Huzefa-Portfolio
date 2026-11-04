@@ -97,7 +97,7 @@ export function setContactCardOpen(open: boolean): void {
 // --- speaking to Huzbi -------------------------------------------------------
 
 function sleeperFrame(pose: SleepPose, t: number, reducedMotion: boolean): string {
-  if (pose === 'stir') return reducedMotion ? 'sleeperAsleep0' : 'sleeperAsleep1';
+  if (pose === 'stir') return reducedMotion || t % 360 < 180 ? 'sleeperCough0' : 'sleeperCough1';
   if (pose === 'slide') return 'sleeperStir';
   if (pose === 'sitUp') return 'sleeperSitUp';
   if (pose === 'awake') return 'sleeperAwake';
@@ -285,7 +285,11 @@ function buildProps(ref: PoseRef): SpaceProp[] {
     {
       id: 'fallen-manga',
       footY: AT.fallen.y + 10,
-      draw: (g) => drawSprite(g, sprite('napMangaFallen'), AT.fallen.x, AT.fallen.y),
+      // It only lands on the floor once it has slid off the sleeper's face.
+      draw: (g) => {
+        if (ref.current === 'asleep' || ref.current === 'stir') return;
+        drawSprite(g, sprite('napMangaFallen'), AT.fallen.x, AT.fallen.y);
+      },
     },
     {
       id: 'mug',
