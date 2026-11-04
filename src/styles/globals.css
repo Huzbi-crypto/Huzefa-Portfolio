@@ -240,48 +240,6 @@ body {
   background: var(--color-accent);
 }
 
-/* CRT and Retro Effects */
-.crt-scanlines {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 3px, 4px 100%;
-  pointer-events: none;
-}
-
-.crt-vignette {
-  background: radial-gradient(
-    circle at center,
-    transparent 65%,
-    rgba(0, 0, 0, 0.45) 100%
-  );
-  pointer-events: none;
-}
-
-.crt-glow {
-  text-shadow: 0 0 10px var(--color-glow);
-}
-
-.crt-box-glow {
-  box-shadow: 0 0 16px var(--color-glow);
-}
-
-.crt-flicker {
-  animation: crtFlicker 0.15s infinite;
-}
-
-@keyframes crtFlicker {
-  0% { opacity: 0.985; }
-  50% { opacity: 1; }
-  100% { opacity: 0.99; }
-}
-
 /* Pixel Borders and Badges */
 .pixel-border {
   box-shadow:
@@ -843,7 +801,6 @@ body {
     scroll-behavior: auto !important;
   }
 
-  .crt-flicker,
   .animate-flicker,
   .animate-scanline,
   .animate-pulse-subtle,
