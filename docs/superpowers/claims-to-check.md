@@ -69,17 +69,14 @@ These were checked and removed from the list rather than left as open questions:
 
 ## About copy
 
-These are biography facts carried over from `src/data/personal.ts`, not invented here. They can't be confirmed from the code, so they get a quick read-through rather than a technical check.
+The About page's project cards were brought in line with the README rewrites on 2026-11-05. The old "Dijkstra SPF and Bellman-Ford", "Flex/Bison and assembly output", "Whisper speech-to-speech" and "prompt-driven diffusion" wording is gone; the cards now name the routing algorithms, the hand-written `.cshort` compiler pipeline, the LangChain/LangGraph projects, the speech translator's actual job and FLUX.1-dev. The old "low-latency networking" current-focus line also became "Dynamic routing simulations and network algorithms", because no project README carries a latency claim. The statements below are biography or personal interests that the project repos can't confirm; they were carried over rather than invented.
 
-| Location | Claim (current wording) | Original wording |
+| Location | Claim (current wording) | Why it still needs checking |
 |---|---|---|
-| About metadata | "a Karachi-based FAST NU computer science graduate building systems, agents and cozy retro experiments" | "a Karachi-based FAST NU computer science graduate building systems, agents and cozy retro experiments" |
-| About story | "I graduated with a Bachelor's in Computer Science from FAST National University (NUCES) in Karachi." | "I graduated with a Bachelor's in Computer Science from FAST National University (NUCES) in Karachi." |
-| About story | "Current coordinates: Karachi, Pakistan." | "Current coordinates: Karachi, Pakistan." |
-
-## Out of scope: About page still carries old project wording
-
-Task B only covered the ten project entries in `src/data/projects.ts`. `src/app/about/page.tsx` still mentions "Dijkstra SPF and Bellman-Ford", "Flex/Bison and assembly output", "Whisper speech-to-speech pipelines" and "prompt-driven diffusion generation", which no longer match the READMEs for `routing-sim`, `compiler-project`, `speech-translator` and `ai-anime`. This is left for the About-text pass in Task 20 rather than changed here.
+| About metadata | "a Karachi-based FAST NU computer science graduate building systems, agents and cozy retro experiments" | Biography. Not confirmable from the repos. |
+| About story | "I graduated with a Bachelor's in Computer Science from FAST National University (NUCES) in Karachi." | Biography. Not confirmable from the repos. |
+| About story | "Current coordinates: Karachi, Pakistan." | Biography. Not confirmable from the repos. |
+| Low-level & systems card | "OS internals in C and Python" | Personal interest; there is no OS project in the portfolio repos to check it against. |
 
 ## Numbers that disagree with the GitHub snapshot
 

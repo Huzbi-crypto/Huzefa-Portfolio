@@ -31,7 +31,7 @@ export const personalInfo: PersonalInfo = {
   ],
   currentFocus: [
     'Figuring out multi-agent graph orchestration in LangGraph',
-    'Low-latency networking and software routing simulations',
+    'Dynamic routing simulations and network algorithms',
     'Making cozy, interactive personal web spaces',
   ],
   readingList: [

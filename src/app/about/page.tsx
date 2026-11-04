@@ -17,20 +17,20 @@ const INTERESTS = [
   {
     title: 'Low-level & systems',
     icon: PROJECT_ICONS.network,
-    body: 'I\u2019m curious about packet routing and dynamic topologies (Dijkstra SPF and Bellman-Ford), course compiler pipelines with ASTs, Flex/Bison and assembly output, and OS internals in C and Python.',
-    tags: ['C/C++', 'Networking', 'Compilers', 'SQLite'],
+    body: 'I\u2019m curious about packet routing and dynamic topologies (Dijkstra, Floyd-Warshall, Q-learning when it behaves), a hand-written compiler pipeline that turns .cshort files into result.mp, and OS internals in C and Python.',
+    tags: ['C', 'Networking', 'Compilers', 'SQLite'],
   },
   {
     title: 'Modern AI & agents',
     icon: PROJECT_ICONS.module,
-    body: 'I build autonomous reasoning loops, stateful multi-agent graphs with LangGraph, Whisper speech-to-speech pipelines, and prompt-driven diffusion generation.',
-    tags: ['LangChain', 'LangGraph', 'Whisper', 'Diffusion'],
+    body: 'I build RAG pipelines and reflection agents with LangChain and LangGraph, a small speech translator that records, translates and talks back, and prompt-to-image experiments through Hugging Face and FLUX.1-dev.',
+    tags: ['LangChain', 'LangGraph', 'RAG', 'FLUX'],
   },
   {
     title: 'Creative & retro coding',
     icon: PROJECT_ICONS.canvas,
-    body: 'I like the cozy, tactile feel of 80s and 90s computing: interactive browser terminals, CRT scanline shaders, canvas physics engines and ASCII dithering terminal UIs.',
-    tags: ['TTYs', 'Canvas', 'ASCII Art', 'CRT Shaders'],
+    body: 'I like the cozy, tactile feel of 80s and 90s computing: a terminal that lives in the browser, constellation and image-warping browser toys, an image-to-ASCII tool for the terminal, and a CRT overlay that refuses to be subtle.',
+    tags: ['TTYs', 'JavaScript', 'ASCII Art', 'CRT Shaders'],
   },
 ] as const;
 
@@ -64,8 +64,9 @@ export default function AboutPage() {
         <p>
           I graduated with a Bachelor&apos;s in Computer Science from FAST National
           University (NUCES) in Karachi. When I&apos;m not working, I build whatever
-          I&apos;m curious about: low-level systems and packet routing, multi-agent AI
-          loops, and retro creative coding that takes longer than it should.
+          I&apos;m curious about: low-level systems and packet routing, LangChain and
+          LangGraph experiments, and retro creative coding that takes longer than it
+          should.
         </p>
         <p className="j-muted">
           Current coordinates: {personalInfo.location}. Everything else on this page
