@@ -78,7 +78,7 @@ describe('stepField', () => {
     expectInBounds(f);
   });
 
-  it('no_allocation_per_step', () => {
+  it('step_field_reuses_the_typed_arrays', () => {
     const f = createField(16, 80, 80, 2);
     const x = f.x;
     const y = f.y;

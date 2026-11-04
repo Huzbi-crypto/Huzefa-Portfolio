@@ -78,7 +78,7 @@ describe('sprites', () => {
     expect([s.w, s.h]).toEqual([16, 24]);
   });
 
-  it('every_sprite_has_visible_pixels_and_no_empty_rows_at_edges', () => {
+  it('every_sprite_has_visible_pixels', () => {
     for (const [name, sprite] of Object.entries(SPRITES)) {
       expect(sprite.pixels.some((p) => p !== null), name).toBe(true);
     }

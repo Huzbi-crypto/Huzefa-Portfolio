@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { personalInfo } from '../../src/data/personal';
+import { projects } from '../../src/data/projects';
 import { copy } from '../../src/game/content/copy';
 import { allStarIds, starTotal } from '../../src/game/content/stars';
 import type { SceneId } from '../../src/game/scene/types';
@@ -1066,8 +1067,8 @@ test.describe('the full collection', () => {
       .toBe(starTotal());
     expect([...new Set(await savedFound(page))].sort()).toEqual([...allStarIds()].sort());
 
-    // Every project panel showed real project details, not a spinner or a blank.
-    expect(panels.length).toBeGreaterThanOrEqual(10);
+    // Every project panel showed its own real details, not a spinner or a blank.
+    expect(new Set(panels)).toEqual(new Set(projects.map((project) => project.title)));
   });
 
   test('trail_only_reaches_ending_with_few_stars', async ({ page }) => {

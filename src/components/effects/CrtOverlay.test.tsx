@@ -56,17 +56,12 @@ describe('CRT overlay', () => {
     expect(rule).not.toContain('linear-gradient');
   });
 
-  it('crt_has_no_fast_flicker_under_reduced_motion', () => {
-    // The overlay itself never animates...
+  it('crt_has_no_fast_flicker_under_reduced_motion', async () => {
+    await mount();
     const overlayRule = CSS.match(/\.crt-overlay\s*\{[^}]*\}/)?.[0] ?? '';
     expect(overlayRule).not.toMatch(/\banimation\s*:/);
-
-    // ...and the old flicker hooks are switched off when motion is reduced.
-    const start = CSS.indexOf('@media (prefers-reduced-motion: reduce)');
-    expect(start).toBeGreaterThan(-1);
-    const reduced = CSS.slice(start);
-    expect(reduced).toContain('animation: none !important');
-    expect(reduced).toContain('.crt-flicker');
+    expect(overlay()?.className).not.toMatch(/flicker|animate|pulse|blink/i);
+    expect(CSS).not.toContain('.crt-flicker');
   });
 
   it('remembers_the_switch_and_disappears_when_off', async () => {
