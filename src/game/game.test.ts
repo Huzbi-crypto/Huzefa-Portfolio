@@ -379,7 +379,7 @@ describe('the idle nudge', () => {
   };
 
   it('no_nudge_until_thirty_seconds_have_passed', () => {
-    const nudges: (string | null)[] = [];
+    const nudges: ({ id: string; label: string } | null)[] = [];
     const { game, room } = setup({ onNudge: (target) => nudges.push(target) });
     room.hotspots.push(CLUE);
 
@@ -387,22 +387,36 @@ describe('the idle nudge', () => {
     expect(nudges).toEqual([]);
 
     run(game, Math.ceil(2_000 / STEP));
-    expect(nudges.at(-1)).toBe('clue:note');
+    expect(nudges.at(-1)?.id).toBe('clue:note');
   });
 
   it('moving_clears_the_nudge', () => {
-    const nudges: (string | null)[] = [];
+    const nudges: ({ id: string; label: string } | null)[] = [];
     const { game, room, input } = setup({ onNudge: (target) => nudges.push(target) });
     room.hotspots.push(CLUE);
 
     run(game, Math.ceil(31_000 / STEP));
-    expect(nudges.at(-1)).toBe('clue:note');
+    expect(nudges.at(-1)?.id).toBe('clue:note');
 
     input.move.x = 1;
     run(game, 2);
     input.move.x = 0;
 
     expect(nudges.at(-1)).toBeNull();
+  });
+
+  it('after_the_trail_still_nudges_an_unfound_room_thing_with_its_label', () => {
+    const nudges: ({ id: string; label: string } | null)[] = [];
+    const { game, store } = setup({ onNudge: (target) => nudges.push(target) });
+    for (const clue of ['clue:note', 'clue:hall', 'clue:workshop', 'clue:archive', 'clue:observatory']) {
+      store.markClue(clue);
+    }
+
+    run(game, Math.ceil(31_000 / STEP));
+    const target = nudges.at(-1);
+    expect(target).not.toBeNull();
+    expect(target!.label.length).toBeGreaterThan(0);
+    expect(target!.id.startsWith('clue:')).toBe(false);
   });
 });
 

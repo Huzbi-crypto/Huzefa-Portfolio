@@ -20,6 +20,7 @@ export const copy = {
     soundOnLabel: 'Sound is on. Turn sound off.',
     soundOffLabel: 'Sound is off. Turn sound on.',
     nudge: 'Psst. Something nearby is worth a look.',
+    nudgeTarget: (label: string) => `Psst. ${label}.`,
   },
 
   /** The in-game journal. Entries for stars not found yet stay hidden. */

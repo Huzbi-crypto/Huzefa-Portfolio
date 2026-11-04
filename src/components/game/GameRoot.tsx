@@ -8,7 +8,7 @@ import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
 import { isTermPromptOpen } from '@/game/exhibits/termExp';
-import { createGame, type Game, type GameHint } from '@/game/game';
+import { createGame, type Game, type GameHint, type NudgeTarget } from '@/game/game';
 import { createArchive } from '@/game/scene/archive';
 import { createDarkScene } from '@/game/scene/dark';
 import {
@@ -184,7 +184,7 @@ export default function GameRoot() {
   // Null until the saved progress has been read on the client: no hint on the
   // server render, and none flashed before we know whether it was dismissed.
   const [walked, setWalked] = useState<boolean | null>(null);
-  const [nudge, setNudge] = useState<string | null>(null);
+  const [nudge, setNudge] = useState<NudgeTarget | null>(null);
 
   terminalOpenRef.current = isTerminalOpen;
   openTerminalRef.current = openTerminal;
@@ -331,7 +331,7 @@ export default function GameRoot() {
 
       {store && nudge ? (
         <div className="nudge-hint px-panel" role="status">
-          {copy.ui.nudge}
+          {copy.ui.nudgeTarget(nudge.label)}
         </div>
       ) : null}
       {store ? <UseHint hint={hint} /> : null}

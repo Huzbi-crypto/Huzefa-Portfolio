@@ -1,6 +1,8 @@
+import { personalInfo } from '@/data/personal';
 import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import type { GameAudio } from '@/game/audio/audio';
 import { copy } from '@/game/content/copy';
+import { readStarId } from '@/game/content/stars';
 import { computeViewport } from '@/game/core/viewport';
 import { createInput, DRAG_SLOP, type Input } from '@/game/core/input';
 import { createLoop } from '@/game/core/loop';
@@ -9,7 +11,6 @@ import { doorSwingFrame, drawIris } from '@/game/render/transition';
 import type { GameApi, Hotspot, Scene, SceneCtx, SceneId } from '@/game/scene/types';
 import type { GameStore } from '@/game/state/store';
 import { NUDGE_AFTER_MS, pickNudge } from '@/game/state/nudge';
-import { TRAIL } from '@/game/state/story';
 import { computeCamera } from '@/game/world/camera';
 import {
   createEntity,
@@ -53,6 +54,7 @@ export type TransitionView = {
 };
 
 export type GameHint = { label: string; via: 'key' | 'click' | 'tap' } | null;
+export type NudgeTarget = { id: string; label: string };
 
 export type GameOptions = {
   canvas: HTMLCanvasElement;
@@ -64,8 +66,8 @@ export type GameOptions = {
   audio?: Pick<GameAudio, 'setScene' | 'playSfx'>;
   /** Called when the thing the visitor could use right now changes. */
   onHint?(hint: GameHint): void;
-  /** Called with a clue hotspot id when an idle visitor could use a nudge. */
-  onNudge?(target: string | null): void;
+  /** Called with the hotspot an idle visitor could use next. */
+  onNudge?(target: NudgeTarget | null): void;
 };
 
 export type Game = {
@@ -94,7 +96,7 @@ type ControllerOptions = {
   isBlocked(): boolean;
   audio?: Pick<GameAudio, 'setScene' | 'playSfx'>;
   onHint?(hint: GameHint): void;
-  onNudge?(target: string | null): void;
+  onNudge?(target: NudgeTarget | null): void;
 };
 
 function distanceToRect(
@@ -136,7 +138,7 @@ export function createGameController(opts: ControllerOptions) {
   let dragged = false;
   let transition: Transition | null = null;
   let idleMs = 0;
-  let nudge: string | null = null;
+  let nudge: NudgeTarget | null = null;
   let stepSfxMs = 0;
 
   const api: GameApi = {
@@ -376,7 +378,36 @@ export function createGameController(opts: ControllerOptions) {
     opts.onNudge?.(null);
   }
 
-  /** Point a visitor who has gone quiet at the next clue in this space. */
+  /** Ways out are never the thing to nudge a stuck visitor toward. */
+  const EXIT_HOTSPOTS = new Set(['exit', 'back-to-hall', 'arch', 'workshop-hatch', 'archive-door']);
+  const SILLY_HOTSPOT: Record<string, string> = {
+    note: 'silly:read-note',
+    tea: 'silly:cold-tea',
+    cat: 'silly:pet-cat',
+    sofa: 'silly:sofa',
+    lamp: 'silly:lamp',
+    rug: 'silly:rug',
+    window: 'silly:wave-at-sky',
+    'window-two': 'silly:wave-at-sky',
+    door: 'silly:door-chicken',
+    monitor: 'silly:terminal-secret',
+    'monster-poster': 'silly:monster-poster',
+  };
+
+  function hotspotIsFound(h: Hotspot): boolean {
+    if (EXIT_HOTSPOTS.has(h.id)) return true;
+    if (h.id.startsWith('clue:')) return store.hasClue(h.id);
+    if (h.id === 'shelf') {
+      const found = new Set(store.getState().found);
+      return personalInfo.readingList.every((book) => found.has(readStarId(book.title)));
+    }
+    const found = new Set(store.getState().found);
+    const star = SILLY_HOTSPOT[h.id];
+    if (star) return found.has(star);
+    return found.has(`project:${h.id}`);
+  }
+
+  /** Point a visitor who has gone quiet at the next clue, then anything else. */
   function updateIdle(ms: number, active: boolean): void {
     if (active) {
       idleMs = 0;
@@ -387,14 +418,18 @@ export function createGameController(opts: ControllerOptions) {
     idleMs += ms;
     if (idleMs < NUDGE_AFTER_MS) return;
 
-    const targets = scene.hotspots
-      .filter((h) => (TRAIL as readonly string[]).includes(h.id))
-      .map((h) => ({ id: h.id, found: store.hasClue(h.id) }));
+    const targets = scene.hotspots.map((h) => ({
+      id: h.id,
+      found: hotspotIsFound(h),
+    }));
     const target = pickNudge(store.getProgress(), idleMs, targets);
+    const next = target
+      ? { id: target, label: scene.hotspots.find((h) => h.id === target)?.label ?? target }
+      : null;
 
-    if (target === nudge) return;
-    nudge = target;
-    opts.onNudge?.(target);
+    if (next?.id === nudge?.id) return;
+    nudge = next;
+    opts.onNudge?.(next);
   }
 
   /** Track whether a touch is dragging the light, so a drag never counts as a tap. */
