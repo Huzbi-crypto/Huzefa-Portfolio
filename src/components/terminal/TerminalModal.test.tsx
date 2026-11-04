@@ -4,6 +4,8 @@ import { act, createElement, useEffect } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { AppProvider, useApp } from '@/context/AppContext';
 import { loadProgress } from '@/game/state/progress';
+import { setLiveStore } from '@/game/state/liveStore';
+import { createStore } from '@/game/state/store';
 import TerminalModal, { awardTerminalSecret, TERMINAL_SECRET_STAR } from './TerminalModal';
 
 let container: HTMLDivElement;
@@ -48,6 +50,7 @@ function OpenOnMount() {
 
 beforeEach(() => {
   (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  setLiveStore(null);
   localStorage.clear();
   document.documentElement.setAttribute('data-theme', 'cozy-crt');
   container = document.createElement('div');
@@ -61,6 +64,7 @@ afterEach(async () => {
   });
   container.remove();
   localStorage.clear();
+  setLiveStore(null);
 });
 
 async function mountTerminal(): Promise<void> {
@@ -101,6 +105,26 @@ describe('terminal secret', () => {
     // A second try is remembered as already found.
     expect(awardTerminalSecret(storage)).toBe(false);
     expect(loadProgress(storage).found.filter((id) => id === TERMINAL_SECRET_STAR)).toHaveLength(1);
+  });
+
+  it('terminal_secret_survives_another_award_and_a_reload', () => {
+    const storage = new MemoryStorage();
+    const store = createStore(storage);
+    setLiveStore(store);
+
+    expect(awardTerminalSecret(storage)).toBe(true);
+    expect(store.getState().found).toContain(TERMINAL_SECRET_STAR);
+
+    // Another discovery saves the same in-memory progress: the secret stays.
+    expect(store.award('silly:rug')).toBe(true);
+    expect(store.getState().found).toContain(TERMINAL_SECRET_STAR);
+    expect(loadProgress(storage).found).toContain(TERMINAL_SECRET_STAR);
+
+    // And it is still there after a fresh load, as a reload would do.
+    const reloaded = createStore(storage);
+    expect(reloaded.getState().found).toContain(TERMINAL_SECRET_STAR);
+
+    setLiveStore(null);
   });
 
   it('awards_nothing_when_storage_is_missing', () => {

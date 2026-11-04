@@ -22,6 +22,7 @@ import { createObservatory } from '@/game/scene/observatory';
 import { createWorkshop } from '@/game/scene/workshop';
 import { createRoomScene } from '@/game/scene/room';
 import { createStore, type GameStore } from '@/game/state/store';
+import { clearLiveStore, setLiveStore } from '@/game/state/liveStore';
 import { DialogueBox } from './DialogueBox';
 import { Journal } from './Journal';
 import { ProjectPanel } from './ProjectPanel';
@@ -189,6 +190,7 @@ export default function GameRoot() {
 
     const gameStore = createStore(browserStorage());
     const gameAudio = createAudio(browserAudioContext, gameStore);
+    setLiveStore(gameStore);
     setWalked(hasWalked(gameStore));
     const game: Game = createGame({
       canvas,
@@ -248,6 +250,7 @@ export default function GameRoot() {
       observer.disconnect();
       game.stop();
       gameAudio.dispose();
+      clearLiveStore(gameStore);
     };
   }, []);
 

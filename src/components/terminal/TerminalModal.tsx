@@ -5,6 +5,8 @@ import { useApp } from '@/context/AppContext';
 import { projects } from '@/data/projects';
 import { personalInfo } from '@/data/personal';
 import { award as awardStar, loadProgress, saveProgress } from '@/game/state/progress';
+import { getLiveStore } from '@/game/state/liveStore';
+import type { GameStore } from '@/game/state/store';
 import { Theme } from '@/types/portfolio';
 
 interface TerminalEntry {
@@ -17,11 +19,16 @@ interface TerminalEntry {
 export const TERMINAL_SECRET_STAR = 'silly:terminal-secret';
 
 /**
- * Save the terminal's hidden star. The terminal sits outside the canvas game,
- * so it writes through the same progress store the game loads on its next
- * visit rather than touching the running game's memory.
+ * Save the terminal's hidden star. If the canvas game is running, award it
+ * through that live store so the counter updates now and the next game save
+ * keeps it; otherwise write straight to the saved progress for the next visit.
  */
-export function awardTerminalSecret(storage: Storage | null): boolean {
+export function awardTerminalSecret(
+  storage: Storage | null,
+  live: GameStore | null = getLiveStore(),
+): boolean {
+  if (live) return live.award(TERMINAL_SECRET_STAR);
+
   const progress = loadProgress(storage);
   if (!awardStar(progress, TERMINAL_SECRET_STAR)) return false;
 
