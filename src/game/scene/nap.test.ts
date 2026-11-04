@@ -7,7 +7,7 @@ import { allStarIds } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
 import { findPath, TILE } from '@/game/world/grid';
 import { navMap } from './nav';
-import { CONTACT_LINKS, createNap, mailtoHref } from './nap';
+import { CONTACT_LINKS, createNap, mailtoHref, mangaOnFloor, sleeperFrame } from './nap';
 import {
   byId,
   coversPointer,
@@ -205,5 +205,34 @@ describe('nap art', () => {
   it('draws_every_frame_in_calm_mode_too', () => {
     const env = setup({ reducedMotion: true });
     expect(() => env.scene.draw(fakeGraphics(), env.ctx())).not.toThrow();
+  });
+});
+
+describe('the wake-up beats', () => {
+  it('plays_cough_slide_one_eye_both_eyes_rise_sit_up_then_a_waving_grin_by_time', () => {
+    expect(sleeperFrame('stir', 0, 0, false)).toBe('sleeperCough0');
+    expect(sleeperFrame('stir', 200, 0, false)).toBe('sleeperCough1');
+    expect(sleeperFrame('slide', 0, 0, false)).toBe('sleeperStir');
+    expect(sleeperFrame('slide', 0, 900, false)).toBe('sleeperOneEye');
+    expect(sleeperFrame('slide', 0, 1800, false)).toBe('sleeperBothEyes');
+    expect(sleeperFrame('sitUp', 0, 100, false)).toBe('sleeperRise');
+    expect(sleeperFrame('sitUp', 0, 900, false)).toBe('sleeperSitUp');
+    expect(sleeperFrame('awake', 0, 0, false)).toBe('sleeperAwake');
+    expect(sleeperFrame('awake', 0, 500, false)).toBe('sleeperAwake1');
+    expect(sleeperFrame('awake', 0, 9000, false)).toBe('sleeperAwake');
+  });
+
+  it('reduced_motion_holds_one_still_frame_per_pose', () => {
+    expect(sleeperFrame('slide', 0, 5000, true)).toBe('sleeperStir');
+    expect(sleeperFrame('sitUp', 0, 0, true)).toBe('sleeperSitUp');
+    expect(sleeperFrame('awake', 0, 500, true)).toBe('sleeperAwake');
+    expect(mangaOnFloor('slide', 5000, true)).toBe(false);
+  });
+
+  it('the_manga_lands_on_the_floor_only_after_it_slides_off', () => {
+    expect(mangaOnFloor('asleep', 0, false)).toBe(false);
+    expect(mangaOnFloor('slide', 100, false)).toBe(false);
+    expect(mangaOnFloor('slide', 800, false)).toBe(true);
+    expect(mangaOnFloor('awake', 0, false)).toBe(true);
   });
 });

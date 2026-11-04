@@ -96,16 +96,50 @@ export function setContactCardOpen(open: boolean): void {
 
 // --- speaking to Huzbi -------------------------------------------------------
 
-function sleeperFrame(pose: SleepPose, t: number, reducedMotion: boolean): string {
+/**
+ * Which sleeper frame to draw. Each pose is a short run of frames played by the
+ * time since the pose began, so the wake-up lands as comic beats: a cough, the
+ * manga skidding off, one eye then both, up on an elbow, sitting, a grin and a
+ * wave. Reduced motion shows one still frame per pose instead.
+ */
+export function sleeperFrame(
+  pose: SleepPose,
+  t: number,
+  elapsed: number,
+  reducedMotion: boolean,
+): string {
   if (pose === 'stir') return reducedMotion || t % 360 < 180 ? 'sleeperCough0' : 'sleeperCough1';
-  if (pose === 'slide') return 'sleeperStir';
-  if (pose === 'sitUp') return 'sleeperSitUp';
-  if (pose === 'awake') return 'sleeperAwake';
+  if (pose === 'slide') {
+    if (reducedMotion || elapsed < 700) return 'sleeperStir';
+    return elapsed < 1500 ? 'sleeperOneEye' : 'sleeperBothEyes';
+  }
+  if (pose === 'sitUp') return reducedMotion || elapsed >= 600 ? 'sleeperSitUp' : 'sleeperRise';
+  if (pose === 'awake') {
+    if (reducedMotion || elapsed > 3000) return 'sleeperAwake';
+    return Math.floor(elapsed / 420) % 2 === 0 ? 'sleeperAwake' : 'sleeperAwake1';
+  }
   if (reducedMotion) return 'sleeperAsleep0';
   return t % 1800 < 900 ? 'sleeperAsleep0' : 'sleeperAsleep1';
 }
 
-type PoseRef = { current: SleepPose };
+/** True once the manga has left his face and is lying on the floor. */
+export function mangaOnFloor(pose: SleepPose, elapsed: number, reducedMotion: boolean): boolean {
+  if (pose === 'sitUp' || pose === 'awake') return true;
+  return pose === 'slide' && !reducedMotion && elapsed >= 700;
+}
+
+type PoseRef = { current: SleepPose; since: number | null };
+
+function setPose(ref: PoseRef, pose: SleepPose): void {
+  ref.current = pose;
+  // The clock for the new pose starts at the next draw.
+  ref.since = null;
+}
+
+function poseElapsed(ref: PoseRef, t: number): number {
+  if (ref.since === null) ref.since = t;
+  return t - ref.since;
+}
 
 function buildSleeperProp(ref: PoseRef): SpaceProp {
   return {
@@ -114,7 +148,7 @@ function buildSleeperProp(ref: PoseRef): SpaceProp {
     draw: (g, ctx) =>
       drawSprite(
         g,
-        sprite(sleeperFrame(ref.current, ctx.t, ctx.reducedMotion)),
+        sprite(sleeperFrame(ref.current, ctx.t, poseElapsed(ref, ctx.t), ctx.reducedMotion)),
         AT.sleeper.x,
         AT.sleeper.y,
       ),
@@ -182,13 +216,13 @@ async function talkToSleeper(api: GameApi, ref: PoseRef): Promise<void> {
   }
 
   // Three comic beats, one line each, so the wake-up has time to land.
-  ref.current = 'stir';
+  setPose(ref, 'stir');
   await api.store.say([...copy.nap.sleeper.stir]);
-  ref.current = 'slide';
+  setPose(ref, 'slide');
   await api.store.say([...copy.nap.sleeper.slide]);
-  ref.current = 'sitUp';
+  setPose(ref, 'sitUp');
   await api.store.say([...copy.nap.sleeper.sitUp]);
-  ref.current = 'awake';
+  setPose(ref, 'awake');
 
   await contactBeat(api);
 }
@@ -292,8 +326,8 @@ function buildProps(ref: PoseRef): SpaceProp[] {
       id: 'fallen-manga',
       footY: AT.fallen.y + 10,
       // It only lands on the floor once it has slid off the sleeper's face.
-      draw: (g) => {
-        if (ref.current === 'asleep' || ref.current === 'stir') return;
+      draw: (g, ctx) => {
+        if (!mangaOnFloor(ref.current, poseElapsed(ref, ctx.t), ctx.reducedMotion)) return;
         drawSprite(g, sprite('napMangaFallen'), AT.fallen.x, AT.fallen.y);
       },
     },
@@ -362,6 +396,10 @@ function buildSpaceDef(ref: PoseRef): SpaceDef {
 
 export function createNap(store: GameStore): Scene {
   // Coming back after the ending must not replay the comic wake-up beats.
-  const ref: PoseRef = { current: store.seenEndingLine() === null ? 'asleep' : 'awake' };
+  const seen = store.seenEndingLine() !== null;
+  // A revisit starts already awake, with the wave long finished.
+  const ref: PoseRef = seen
+    ? { current: 'awake', since: Number.NEGATIVE_INFINITY }
+    : { current: 'asleep', since: null };
   return createDarkSpace(buildSpaceDef(ref), store);
 }
