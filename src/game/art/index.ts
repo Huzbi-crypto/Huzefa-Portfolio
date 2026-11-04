@@ -5,6 +5,7 @@ import { CAT_GRIDS } from './sprites/cat';
 import { DARK_PROP_GRIDS } from './sprites/darkProps';
 import { DARK_TILE_GRIDS } from './sprites/darkTiles';
 import { DOOR_GRIDS } from './sprites/door';
+import { ENDING_SPRITE_GRIDS } from './sprites/ending';
 import { FURNITURE_GRIDS } from './sprites/furniture';
 import { SHELF_GRIDS } from './sprites/shelf';
 import { TILE_GRIDS } from './sprites/tiles';
@@ -29,6 +30,7 @@ export const SPRITE_GRIDS: Record<string, string[]> = {
   ...DARK_PROP_GRIDS,
   ...ARCHIVE_SPRITE_GRIDS,
   ...WORKSHOP_GRIDS,
+  ...ENDING_SPRITE_GRIDS,
 };
 
 /** Animation sequences: frame sprite names in play order. Frames share a size. */
