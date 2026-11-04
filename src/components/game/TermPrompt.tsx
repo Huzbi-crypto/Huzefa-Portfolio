@@ -25,6 +25,7 @@ export function TermPrompt() {
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
   const [line, setLine] = useState('');
 
   useFocusTrap(Boolean(prompt), panelRef, inputRef);
@@ -35,6 +36,14 @@ export function TermPrompt() {
     setLine('');
     inputRef.current?.focus({ preventScroll: true });
   }, [prompt?.id]);
+
+  // Like a real terminal: opening the prompt and every submitted command pin
+  // the history to the newest line, instead of making the visitor scroll.
+  useEffect(() => {
+    const screen = screenRef.current;
+    if (!screen) return;
+    screen.scrollTop = screen.scrollHeight;
+  }, [prompt?.id, prompt?.history.length]);
 
   // Esc closes it, whether the field or a command button has focus.
   useEffect(() => {
@@ -105,6 +114,7 @@ export function TermPrompt() {
 
         <div className="term-prompt-body">
           <div
+            ref={screenRef}
             className="term-prompt-screen"
             role="log"
             aria-live="polite"

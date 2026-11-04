@@ -121,6 +121,42 @@ describe('term-exp prompt', () => {
     await settle(run);
   });
 
+  it('opens_at_the_newest_line', async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollHeight');
+    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+      configurable: true,
+      get: () => 320,
+    });
+    try {
+      const { run } = await openPrompt();
+      const screen = container.querySelector<HTMLElement>('.term-prompt-screen');
+      expect(screen).not.toBeNull();
+      expect(screen!.scrollTop).toBe(320);
+      await settle(run);
+    } finally {
+      if (descriptor) Object.defineProperty(HTMLElement.prototype, 'scrollHeight', descriptor);
+      else Reflect.deleteProperty(HTMLElement.prototype, 'scrollHeight');
+    }
+  });
+
+  it('history_stays_pinned_to_the_newest_line', async () => {
+    const { run } = await openPrompt();
+    const screen = container.querySelector<HTMLElement>('.term-prompt-screen');
+    expect(screen).not.toBeNull();
+
+    // jsdom has no layout, so give the log a height to scroll within.
+    Object.defineProperty(screen!, 'scrollHeight', { configurable: true, value: 480 });
+    screen!.scrollTop = 0;
+
+    await act(async () => {
+      submitTermPrompt('help');
+    });
+
+    expect(screen!.scrollTop).toBe(480);
+
+    await settle(run);
+  });
+
   it('typing_does_not_move_player', async () => {
     const { run } = await openPrompt();
 
