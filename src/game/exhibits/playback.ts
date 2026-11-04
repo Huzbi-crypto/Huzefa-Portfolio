@@ -8,6 +8,8 @@ export type Playback = {
   /** Resolves true when the beat finishes, false when a newer one replaced it. */
   start(durationMs: number, reducedMotion: boolean): Promise<boolean>;
   update(ms: number): void;
+  /** Stop the beat and settle any waiter with `false`. */
+  cancel(): void;
   readonly active: boolean;
   /** 0 before any start, rising to 1 when finished. */
   readonly progress: number;
@@ -47,6 +49,11 @@ export function createPlayback(): Playback {
       if (Number.isNaN(ms) || ms <= 0) return;
       elapsed = Math.min(duration, elapsed + ms);
       if (elapsed >= duration) finish(true);
+    },
+    cancel() {
+      duration = 0;
+      elapsed = 0;
+      finish(false);
     },
     get active() {
       return active;

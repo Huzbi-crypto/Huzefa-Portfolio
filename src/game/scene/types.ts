@@ -55,4 +55,6 @@ export type Scene = {
   hotspots: Hotspot[];
   update(ms: number, ctx: SceneCtx): void;
   draw(g: CanvasRenderingContext2D, ctx: SceneCtx): void;
+  /** Stop timed exhibit beats before the visitor leaves this scene. */
+  cancel?(): void;
 };

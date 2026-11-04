@@ -443,6 +443,10 @@ export function createDarkSpace(def: SpaceDef, _store: GameStore): Scene {
       for (const exhibit of def.exhibits) exhibit.update(ms, ctx);
     },
 
+    cancel() {
+      for (const exhibit of def.exhibits) exhibit.cancel?.();
+    },
+
     draw(g, ctx) {
       const { viewW, viewH, camera } = ctx;
       if (!layers || layers.canvas.width !== viewW || layers.canvas.height !== viewH) {

@@ -260,6 +260,20 @@ describe('createDarkSpace', () => {
     }
   });
 
+  it('scene_cancel_stops_every_exhibit_beat', () => {
+    const cancelA = vi.fn();
+    const cancelB = vi.fn();
+    const def = makeDef();
+    def.exhibits[0].cancel = cancelA;
+    def.exhibits[1].cancel = cancelB;
+    const scene = createDarkSpace(def, createStore(null));
+
+    scene.cancel?.();
+
+    expect(cancelA).toHaveBeenCalledTimes(1);
+    expect(cancelB).toHaveBeenCalledTimes(1);
+  });
+
   it('exhibits_sort_with_the_player_by_footY', () => {
     recorder.events.length = 0;
     const scene = createDarkSpace(makeDef(), createStore(null));

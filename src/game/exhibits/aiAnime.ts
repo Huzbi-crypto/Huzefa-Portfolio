@@ -408,6 +408,10 @@ export function createAiAnime(at: Point, stand: Tile): { exhibit: Exhibit; light
       ]);
       await tryExhibit(api, 'ai-anime');
     },
+
+    cancel() {
+      play.cancel();
+    },
   };
 
   return { exhibit, light };

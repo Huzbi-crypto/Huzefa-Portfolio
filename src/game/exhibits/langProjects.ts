@@ -176,6 +176,10 @@ export function createLangProjects(at: Point, stand: Tile): { exhibit: Exhibit; 
       ]);
       await tryExhibit(api, 'lang-projects');
     },
+
+    cancel() {
+      play.cancel();
+    },
   };
 
   return { exhibit, light };

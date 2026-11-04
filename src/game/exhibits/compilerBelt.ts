@@ -252,6 +252,10 @@ export function createCompilerBelt(at: Point, stand: Tile): { exhibit: Exhibit; 
       }
       await tryExhibit(api, 'compiler-project');
     },
+
+    cancel() {
+      play.cancel();
+    },
   };
 
   return { exhibit, light };

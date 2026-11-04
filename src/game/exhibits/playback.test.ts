@@ -30,6 +30,16 @@ describe('exhibit playback', () => {
     await expect(second).resolves.toBe(true);
   });
 
+  it('cancelling_settles_false_and_stops_the_beat', async () => {
+    const play = createPlayback();
+    const done = play.start(1000, false);
+    play.cancel();
+    await expect(done).resolves.toBe(false);
+    expect(play.active).toBe(false);
+    play.update(2000);
+    expect(play.progress).toBe(0);
+  });
+
   it('bad_or_huge_ms_never_breaks_progress', () => {
     const play = createPlayback();
     void play.start(1000, false);

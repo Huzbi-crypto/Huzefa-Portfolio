@@ -208,6 +208,10 @@ export function createSpeechTranslator(at: Point, stand: Tile): { exhibit: Exhib
       ]);
       await tryExhibit(api, 'speech-translator');
     },
+
+    cancel() {
+      play.cancel();
+    },
   };
 
   return { exhibit, light };

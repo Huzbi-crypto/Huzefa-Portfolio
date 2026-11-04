@@ -354,6 +354,33 @@ describe('the door and the dark', () => {
     expect(reloaded.getState().doorOpened).toBe(true);
   });
 
+  it('leaving_a_scene_cancels_its_exhibit_beats', () => {
+    const store = createStore(null);
+    const room = createRoomScene(store);
+    const workshop = createWorkshop(store);
+    const cancel = vi.fn();
+    workshop.cancel = cancel;
+    const input: Input = {
+      move: { x: 0, y: 0 },
+      pointer: null,
+      mode: 'mouse',
+      drain: () => [],
+      dispose: () => undefined,
+    };
+    const game = createGameController({
+      store,
+      scenes: [room, workshop],
+      input,
+      openTerminal: () => undefined,
+      isBlocked: () => store.getState().dialogue !== null,
+    });
+    game.setReducedMotion(true);
+    game.goTo('workshop');
+    game.goTo('room');
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+  });
+
   it('the_first_arrival_in_the_dark_says_how_to_hold_the_lantern_once', () => {
     const { game, store, input } = setup({ dark: true });
     game.setReducedMotion(true);

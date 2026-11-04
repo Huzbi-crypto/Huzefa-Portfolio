@@ -277,6 +277,7 @@ export function createGameController(opts: ControllerOptions) {
 
   function swapScene(id: SceneId, entry?: string): void {
     const from = scene.id;
+    scene.cancel?.();
     scene = scenes.get(id) ?? scene;
     const named = entry ? scene.entries?.[entry] : undefined;
     placeAtSpawn();

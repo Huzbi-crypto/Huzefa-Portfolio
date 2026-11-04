@@ -21,4 +21,6 @@ export type Exhibit = {
   /** Optional detail that emits its own light and is painted at full brightness. */
   glow?(g: CanvasRenderingContext2D, ctx: SceneCtx): void;
   use(api: GameApi): Promise<void>;
+  /** Stop any timed beat when the visitor leaves the scene. */
+  cancel?(): void;
 };
