@@ -38,6 +38,7 @@ const AT = {
   chalkArchive: { x: 292, y: 22 },
   boxesWest: { x: 20, y: 152 },
   boxesEast: { x: 336, y: 160 },
+  clueArchive: { x: 64, y: 146 },
 } as const;
 
 /**
@@ -67,6 +68,15 @@ function sprite(name: string) {
 /** The slow blink: eyes shut for a moment every few seconds, open when motion is off. */
 function eyesOpen(t: number, reducedMotion: boolean): boolean {
   return reducedMotion || t % 5200 > 160;
+}
+
+/** The scrap folded small in a file box: the Archive's step on the trail. */
+async function readClue(api: GameApi): Promise<void> {
+  const first = !api.store.hasClue('clue:archive');
+  api.store.markClue('clue:archive');
+  await api.store.say([
+    ...(first ? copy.clues.archive.lines : copy.clues.archive.again),
+  ]);
 }
 
 async function lookAtPoster(api: GameApi): Promise<void> {
@@ -103,6 +113,17 @@ function buildProps(): SpaceProp[] {
         stand: { ...MONSTER_POSTER.stand },
         label: copy.archive.monster.label,
         use: lookAtPoster,
+      },
+    },
+    {
+      id: 'clue:archive',
+      footY: AT.clueArchive.y + 10,
+      draw: (g) => drawSprite(g, sprite('clueScrap'), AT.clueArchive.x, AT.clueArchive.y),
+      interact: {
+        rect: { x: AT.clueArchive.x, y: AT.clueArchive.y, w: 12, h: 10 },
+        stand: { x: 9, y: 18 },
+        label: copy.clues.archive.label,
+        use: readClue,
       },
     },
     {

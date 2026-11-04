@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PALETTES, SPRITES } from '@/game/art';
+import { copy } from '@/game/content/copy';
 import { projectStarId } from '@/game/content/stars';
 import type { Input } from '@/game/core/input';
 import { createStore, type GameStore } from '@/game/state/store';
@@ -190,6 +191,17 @@ describe('createArchive', () => {
     expect(scene.hotspots.map((spot) => spot.id)).toEqual(
       expect.arrayContaining([...EXHIBITS, 'back-to-hall']),
     );
+  });
+
+  it('the_scrap_in_the_file_box_carries_the_archive_clue', async () => {
+    const store = createStore(null);
+    const scene = createArchive(store);
+    const api = fakeApi(store);
+    const run = Promise.resolve(hotspot(scene, 'clue:archive').onInteract(api)).then(() => undefined);
+    await play(store, run);
+    expect(store.hasClue('clue:archive')).toBe(true);
+    expect(copy.clues.archive.lines[1]).toBeTruthy();
+    expect(scene.hotspots.map((spot) => spot.id)).toContain('clue:archive');
   });
 
   it('each_exhibit_awards_its_star_when_tried', async () => {
