@@ -474,7 +474,10 @@ function buildProps(store: GameStore): SpaceProp[] {
     {
       id: 'nap-door',
       footY: AT.napDoor.y + 48,
-      draw: (g) => drawNapDoor(g, store),
+      // The sky is painted after the lit world, and the door reaches up into
+      // it. Draw the door in the same glow pass so the whole arch stays
+      // visible instead of being cut off at the sky line.
+      glow: (g) => drawNapDoor(g, store),
       interact: {
         rect: { x: AT.napDoor.x, y: AT.napDoor.y, w: 28, h: 48 },
         stand: { x: 41, y: 9 },

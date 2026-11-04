@@ -137,6 +137,31 @@ function fillIndex(
   );
 }
 
+describe('the observatory paints the whole moon door', () => {
+  it('the_moon_door_is_painted_after_the_sky_so_its_arch_is_not_cut_off', () => {
+    const events = drawAt(14 * 8 + 4, 15 * 8 + 4);
+    const sky = events.findIndex(
+      (event) => event.kind === 'fill' && event.x === 0 && event.y === 0 && event.w === 384 && event.h === 56,
+    );
+    const door = spriteIndex(events, SPRITES.obsNapDoor);
+
+    expect(sky, 'the sky pass must run').toBeGreaterThanOrEqual(0);
+    expect(door).toBeGreaterThanOrEqual(0);
+    expect(door, 'the moon door must be painted over the sky').toBeGreaterThan(sky);
+  });
+
+  it('the_visitor_in_front_of_the_moon_door_is_painted_after_it', () => {
+    // The nap-door stand, just below the door's foot line.
+    const events = drawAt(41 * 8 + 4, 9 * 8 + 4);
+    const door = spriteIndex(events, SPRITES.obsNapDoor);
+    const blit = visitorBlitIndex(events);
+
+    expect(door).toBeGreaterThanOrEqual(0);
+    expect(blit).toBeGreaterThanOrEqual(0);
+    expect(blit).toBeGreaterThan(door);
+  });
+});
+
 describe('the observatory paints the visitor in front of the plaque', () => {
   // The stats-plaque stand: the visitor's feet are below the plaque's base.
   const STAND = { x: 14 * 8 + 4, y: 15 * 8 + 4 };
