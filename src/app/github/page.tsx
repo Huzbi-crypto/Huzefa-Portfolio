@@ -11,7 +11,7 @@ import type {
 import { JournalPage } from '@/components/journal/JournalPage';
 import { PixelPanel } from '@/components/journal/PixelPanel';
 import { PixelArt } from '@/components/journal/PixelArt';
-import { ICONS } from '@/components/journal/journalArt';
+import { ICONS, SCENE } from '@/components/journal/journalArt';
 
 export const metadata: Metadata = {
   title: 'GitHub Log | Huzbi',
@@ -127,7 +127,8 @@ export default function GitHubHubPage() {
       lede={data.user.bio}
       art={
         <div className="j-page-art">
-          <PixelArt grid={ICONS.star} scale={9} label="A lit GitHub star" />
+          <PixelArt grid={SCENE.window} scale={5} label="The room's window onto the night sky" />
+          <PixelArt grid={ICONS.star} scale={7} />
         </div>
       }
     >
