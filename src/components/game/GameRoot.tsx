@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { personalInfo } from '@/data/personal';
 import { useApp } from '@/context/AppContext';
+import { setGameTheme } from '@/game/art';
 import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
@@ -165,7 +166,7 @@ function UseHint({ hint }: { hint: GameHint }) {
  * eyes; everything readable (dialogue, star count) is real text.
  */
 export default function GameRoot() {
-  const { isTerminalOpen, openTerminal } = useApp();
+  const { theme, isTerminalOpen, openTerminal } = useApp();
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const terminalOpenRef = useRef(false);
@@ -182,6 +183,12 @@ export default function GameRoot() {
 
   terminalOpenRef.current = isTerminalOpen;
   openTerminalRef.current = openTerminal;
+
+  // The canvas is palette-indexed; re-decode its sprites when the room's light
+  // changes so the world recolours on the next frame, with no reload.
+  useEffect(() => {
+    setGameTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     const stage = stageRef.current;

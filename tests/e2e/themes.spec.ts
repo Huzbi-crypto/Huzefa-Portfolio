@@ -102,6 +102,43 @@ test.describe('themes and terminal', () => {
     expect(after.probe).toBe(7);
   });
 
+  test('theme_change_repaints_the_canvas_without_reload', async ({ page }) => {
+    await openGame(page);
+    await page.evaluate(() => {
+      (window as Window & { __probe?: number }).__probe = 11;
+    });
+
+    const patch = () =>
+      page.evaluate(() => {
+        const canvas = document.querySelector('canvas');
+        if (!canvas) throw new Error('no game canvas');
+        const g = canvas.getContext('2d');
+        if (!g) throw new Error('no 2d context');
+        // A still patch of the room's wall: no cat, monitor or visitor in it.
+        return Array.from(g.getImageData(0, 0, 24, 40).data);
+      });
+
+    const before = await patch();
+
+    // The global shell shortcut opens the CRT anywhere, including the game.
+    await page.keyboard.press('Control+Backquote');
+    const prompt = page.getByRole('textbox', { name: 'Terminal command prompt input' });
+    await expect(prompt).toBeFocused({ timeout: 5_000 });
+    await prompt.fill('theme warm-apartment');
+    await prompt.press('Enter');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.term-backdrop')).toHaveCount(0);
+    await page.waitForTimeout(400);
+
+    const after = await patch();
+    expect(after).not.toEqual(before);
+    expect(await page.evaluate(() => document.documentElement.getAttribute('data-theme'))).toBe(
+      'warm-apartment',
+    );
+    // A reload would have thrown the probe away.
+    expect(await page.evaluate(() => (window as Window & { __probe?: number }).__probe)).toBe(11);
+  });
+
   test('terminal_blocks_player_input', async ({ page }) => {
     await openGame(page);
 
