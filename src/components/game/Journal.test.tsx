@@ -4,7 +4,8 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { personalInfo } from '@/data/personal';
 import { projects } from '@/data/projects';
-import { allStarIds, projectStarId, readStarId } from '@/game/content/stars';
+import { copy } from '@/game/content/copy';
+import { SILLY_STARS, allStarIds, projectStarId, readStarId } from '@/game/content/stars';
 import { createStore, type GameStore } from '@/game/state/store';
 import { Journal, journalEntries } from './Journal';
 
@@ -67,11 +68,14 @@ describe('journalEntries', () => {
   });
 
   it('every_silly_star_has_its_own_words', () => {
-    const entries = journalEntries(allStarIds());
-    for (const entry of entries) {
-      expect(entry.found).toBe(true);
-      expect(entry.title.length, entry.id).toBeGreaterThan(0);
-      expect(entry.body.length, entry.id).toBeGreaterThan(0);
+    // Every silly star must have authored copy, not the generic fallback that
+    // `openEntry` uses when an id is added without journal words.
+    for (const id of SILLY_STARS) {
+      const words = copy.journal.silly[id];
+      expect(words, id).toBeDefined();
+      expect(words.title.length, id).toBeGreaterThan(0);
+      expect(words.body.length, id).toBeGreaterThan(0);
+      expect(words.body, id).not.toBe(copy.journal.fallbackBody);
     }
   });
 });

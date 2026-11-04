@@ -48,6 +48,10 @@ export const copy = {
       'silly:drink-tea': { title: 'You drank the tea', body: 'Cold, bitter and old. Nobody asked you to.' },
       'silly:wave-at-sky': { title: 'Waving at the sky', body: 'You waved at the night sky five times. A star twinkled, which counts.' },
       'silly:door-chicken': { title: 'Chicken', body: 'You said STAY at the door three times. The door noticed.' },
+      'silly:terminal-secret': {
+        title: 'xyzzy',
+        body: 'You typed the oldest cheat code into a stranger\'s terminal. Nothing happened, except a star.',
+      },
     } as Record<string, { title: string; body: string }>,
   },
 
