@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { GameStore } from '@/game/state/store';
+import { useFocusTrap } from './useFocusTrap';
 
 /**
  * The dialogue panel. Text types in character by character for sighted
@@ -14,6 +15,8 @@ export function DialogueBox({ store }: { store: GameStore }) {
   const dialogue = ui.dialogue;
   const [selected, setSelected] = useState(0);
   const choiceRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(Boolean(dialogue), panelRef);
 
   const line = dialogue ? (dialogue.lines[dialogue.line] ?? '') : '';
   const complete = dialogue ? dialogue.typed >= line.length : false;
@@ -86,9 +89,11 @@ export function DialogueBox({ store }: { store: GameStore }) {
 
   return (
     <div
+      ref={panelRef}
       className="dialogue px-panel"
       role="dialog"
       aria-label="Dialogue"
+      tabIndex={-1}
       onClick={() => {
         if (!showChoices) advance(dialogue.choices[selected]?.id);
       }}

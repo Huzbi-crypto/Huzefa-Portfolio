@@ -4,6 +4,7 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { projects } from '@/data/projects';
 import { copy } from '@/game/content/copy';
 import type { GameStore } from '@/game/state/store';
+import { useFocusTrap } from './useFocusTrap';
 import './game.css';
 
 /**
@@ -15,13 +16,12 @@ export function ProjectPanel({ store }: { store: GameStore }) {
   const ui = useSyncExternalStore(store.subscribe, store.getState, store.getState);
   const project = ui.project ? projects.find((item) => item.id === ui.project) : undefined;
   const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(Boolean(ui.project), panelRef, closeRef);
 
   useEffect(() => {
     if (!ui.project) return;
-
-    const previous =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus({ preventScroll: true });
 
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
@@ -29,11 +29,7 @@ export function ProjectPanel({ store }: { store: GameStore }) {
       store.closeProject();
     };
     window.addEventListener('keydown', onKey);
-
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      previous?.focus({ preventScroll: true });
-    };
+    return () => window.removeEventListener('keydown', onKey);
   }, [ui.project, store]);
 
   if (!project) return null;
@@ -47,6 +43,7 @@ export function ProjectPanel({ store }: { store: GameStore }) {
       }}
     >
       <div
+        ref={panelRef}
         className="project-panel px-panel"
         role="dialog"
         aria-modal="true"
