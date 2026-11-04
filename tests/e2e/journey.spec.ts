@@ -620,6 +620,33 @@ test.describe('reduced motion', () => {
   });
 });
 
+test.describe('the HUD', () => {
+  test('sound_and_journal_use_the_same_pixel_font_as_the_rest_of_the_hud', async ({ page }) => {
+    await openGame(page);
+
+    const families = await page.evaluate(() => {
+      const fontOf = (selector: string): string | null => {
+        const element = document.querySelector<HTMLElement>(selector);
+        return element ? getComputedStyle(element).fontFamily : null;
+      };
+      return {
+        hud: fontOf('.star-counter'),
+        sound: fontOf('.sound-toggle'),
+        journal: fontOf('.journal-button'),
+        journalKey: fontOf('.journal-key'),
+        controls: fontOf('.controls-hint'),
+        useHint: fontOf('.use-hint'),
+      };
+    });
+
+    expect(families.hud).toBeTruthy();
+    expect(families.sound).toBe(families.hud);
+    expect(families.journal).toBe(families.hud);
+    expect(families.journalKey).toBe(families.hud);
+    expect(families.controls).toBe(families.hud);
+  });
+});
+
 test.describe('old pages', () => {
   test('old_pages_still_respond', async ({ request }) => {
     const urls = [

@@ -132,7 +132,10 @@ body {
   min-height: 44px;
   padding: 6px 14px 6px 10px;
   border: 0;
+  /* `font: inherit` would fall back to the page's system face, so name the
+     pixel token explicitly, exactly as the rest of the HUD does. */
   font: inherit;
+  font-family: var(--g-font);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
@@ -709,6 +712,7 @@ body {
   padding: 6px 12px 6px 14px;
   border: 0;
   font: inherit;
+  font-family: var(--g-font);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
@@ -734,6 +738,7 @@ body {
   background: var(--g-ink);
   color: var(--g-amber-hi);
   font: inherit;
+  font-family: var(--g-font);
   font-size: 16px;
   box-shadow: inset 0 0 0 2px var(--g-dim);
 }
