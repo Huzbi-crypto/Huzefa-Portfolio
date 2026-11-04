@@ -388,9 +388,9 @@ export default function TerminalModal() {
       case 'neofetch': {
         outputNode = (
           <div className="term-dim">
-            <div className="term-grid">
+            <div className="term-grid term-neofetch">
               <div>
-                <pre className="term-ascii">{`    /\\_/\\      \n   ( o.o )     \n    > ^ <      \n  /|     |\\    \n (_|  _  |_)   \n   '--'--'     `}</pre>
+                <pre className="term-ascii term-neofetch-cat">{`    /\\_/\\      \n   ( o.o )     \n    > ^ <      \n  /|     |\\    \n (_|  _  |_)   \n   '--'--'     `}</pre>
                 <div className="term-subtle">huzbi@digital-room</div>
               </div>
               <div>

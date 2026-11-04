@@ -660,6 +660,30 @@ body {
   }
 }
 
+/* Neofetch: the cat is the art, so give it a content-sized column and a
+   short gap instead of two equal halves with a hole in the middle. */
+.term-neofetch {
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 14px;
+  align-items: start;
+}
+
+.term-neofetch-cat {
+  font-size: 15px;
+  line-height: 1.05;
+}
+
+@media (max-width: 640px) {
+  .term-neofetch {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .term-neofetch-cat {
+    font-size: 13px;
+  }
+}
+
 .term-card {
   margin-top: 6px;
   padding: 6px 8px;
