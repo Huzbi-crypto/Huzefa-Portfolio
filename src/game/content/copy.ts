@@ -727,6 +727,7 @@ export const copy = {
       'If you want to say hi, this is where I actually read things. A real email, not a mystery.',
     ],
     sayHiLabel: 'SAY HI',
+    sayHiReply: ['The card is open. Real email, real links, no more mystery. Take your time.'],
     leaveAloneLabel: 'LEAVE THEM BE',
     leaveAloneReply: ['Go on. They are already half asleep again.'],
 
