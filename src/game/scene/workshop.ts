@@ -10,7 +10,7 @@ import { drawSprite } from '@/game/render/sprite';
 import type { GameStore } from '@/game/state/store';
 import { TILE } from '@/game/world/grid';
 import { createDarkSpace, type SpaceDef } from './space';
-import type { Scene } from './types';
+import type { GameApi, Scene } from './types';
 
 const WORLD_W = 384;
 const WORLD_H = 224;
@@ -21,6 +21,7 @@ export const WORKSHOP_AT = {
   ladder: { x: 26, y: 4 },
   pegboardOne: { x: 78, y: 12 },
   jarsOne: { x: 150, y: 14 },
+  clueWorkshop: { x: 166, y: 20 },
   blueprintOne: { x: 206, y: 18 },
   pegboardTwo: { x: 258, y: 12 },
   jarsTwo: { x: 324, y: 14 },
@@ -52,6 +53,15 @@ function buildExhibits(): { exhibits: Exhibit[]; lights: Light[] } {
     exhibits: [aiAnime.exhibit, lang.exhibit, speech.exhibit, belt.exhibit],
     lights: [ladderLight, aiAnime.light, lang.light, speech.light, belt.light],
   };
+}
+
+/** The scrap tucked into a jar of screws: the workshop's step on the trail. */
+async function readClue(api: GameApi): Promise<void> {
+  const first = !api.store.hasClue('clue:workshop');
+  api.store.markClue('clue:workshop');
+  await api.store.say([
+    ...(first ? copy.clues.workshop.lines : copy.clues.workshop.again),
+  ]);
 }
 
 function drawShell(g: CanvasRenderingContext2D): void {
@@ -116,7 +126,20 @@ function buildSpaceDef(): SpaceDef {
         stayReply: copy.workshop.exit.stayReply,
       },
     ],
-    props: [],
+    props: [
+      {
+        id: 'clue:workshop',
+        footY: WALL_BOTTOM,
+        draw: (g) =>
+          drawSprite(g, sprite('clueScrap'), WORKSHOP_AT.clueWorkshop.x, WORKSHOP_AT.clueWorkshop.y),
+        interact: {
+          rect: { x: WORKSHOP_AT.clueWorkshop.x, y: 14, w: 12, h: 24 },
+          stand: { x: 21, y: 6 },
+          label: copy.clues.workshop.label,
+          use: readClue,
+        },
+      },
+    ],
     exhibits,
     lights,
     drawBackdrop,

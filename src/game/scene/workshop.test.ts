@@ -215,8 +215,15 @@ describe('workshop exhibits', () => {
   it('holds_exactly_its_exhibits_and_the_way_home', () => {
     const { scene } = setup();
     expect(scene.hotspots.map((h) => h.id).sort()).toEqual(
-      ['exit', ...EXHIBITS.map((e) => e.id)].sort(),
+      ['exit', 'clue:workshop', ...EXHIBITS.map((e) => e.id)].sort(),
     );
+  });
+
+  it('the_scrap_in_the_jars_carries_the_workshop_clue', async () => {
+    const env = setup();
+    const said = (await interact(env, byId(env.scene, 'clue:workshop'))).join(' ');
+    expect(env.store.hasClue('clue:workshop')).toBe(true);
+    expect(said).toContain(copy.clues.workshop.lines[1]);
   });
 
   it.each(EXHIBITS)('each_exhibit_awards_its_star_when_tried: $id', async ({ id, choice }) => {
