@@ -1,5 +1,5 @@
 import { personalInfo } from '@/data/personal';
-import { ACTIVE_PALETTE, ANIMS, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, ANIMS, SPRITES, visitorSpriteName } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { readStarId, starTotal } from '@/game/content/stars';
 import { drawSprite } from '@/game/render/sprite';
@@ -500,10 +500,13 @@ export function createRoomScene(store: GameStore): Scene {
       // Everything with height, sorted by the line it stands on.
       const catFrame = !reducedMotion && t % 2600 < 320 ? 1 : 0;
       const p = drawPos(ctx.player);
-      const walkFrame = Math.floor(ctx.player.walkMs / 130);
-      const playerName = ctx.player.moving
-        ? frameOf(`visitor-${ctx.player.facing}`, walkFrame)
-        : `visitor-${ctx.player.facing}-0`;
+      const playerName = visitorSpriteName(
+        ctx.player.facing,
+        ctx.player.moving,
+        ctx.player.walkMs,
+        t,
+        reducedMotion,
+      );
 
       const things: { y: number; draw: () => void }[] = [
         {

@@ -65,3 +65,23 @@ export function setGameTheme(theme: keyof typeof PALETTES): void {
   setActiveTheme(theme);
   SPRITES = spritesFor(theme);
 }
+
+/**
+ * The visitor's sprite for this moment. Walking cycles the three step frames;
+ * standing still shows frame 0, except for a short idle beat every few seconds
+ * (a hand to the headphones, or the tuft bobbing). Reduced motion never beats.
+ */
+export function visitorSpriteName(
+  facing: string,
+  moving: boolean,
+  walkMs: number,
+  t: number,
+  reducedMotion: boolean,
+): string {
+  if (moving) {
+    const frames = ANIMS[`visitor-${facing}`];
+    return frames[Math.floor(walkMs / 130) % frames.length];
+  }
+  const beat = !reducedMotion && t % 7000 > 6300;
+  return beat ? `visitor-${facing}-idle` : `visitor-${facing}-0`;
+}

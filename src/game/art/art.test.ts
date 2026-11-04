@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decodeSprite } from '../render/sprite';
-import { ANIMS, PALETTES, SPRITE_GRIDS, SPRITES } from './index';
+import { ANIMS, PALETTES, SPRITE_GRIDS, SPRITES, visitorSpriteName } from './index';
 
 const THEMES = Object.keys(PALETTES) as (keyof typeof PALETTES)[];
 
@@ -76,6 +76,22 @@ describe('sprites', () => {
   it('visitor_is_about_16_by_24', () => {
     const s = SPRITES['visitor-down-0'];
     expect([s.w, s.h]).toEqual([16, 24]);
+  });
+
+  it('visitor_has_an_idle_beat_in_every_direction_and_a_walk_that_moves', () => {
+    for (const dir of ['up', 'down', 'left', 'right']) {
+      const idle = SPRITES[`visitor-${dir}-idle`];
+      expect([idle.w, idle.h], dir).toEqual([16, 24]);
+      expect(idle.pixels).not.toEqual(SPRITES[`visitor-${dir}-0`].pixels);
+      expect(SPRITES[`visitor-${dir}-1`].pixels).not.toEqual(SPRITES[`visitor-${dir}-2`].pixels);
+    }
+  });
+
+  it('visitor_sprite_name_beats_only_when_standing_and_motion_is_allowed', () => {
+    expect(visitorSpriteName('down', false, 0, 6500, false)).toBe('visitor-down-idle');
+    expect(visitorSpriteName('down', false, 0, 6500, true)).toBe('visitor-down-0');
+    expect(visitorSpriteName('down', false, 0, 100, false)).toBe('visitor-down-0');
+    expect(visitorSpriteName('left', true, 130, 6500, false)).toBe('visitor-left-0');
   });
 
   it('every_sprite_has_visible_pixels', () => {

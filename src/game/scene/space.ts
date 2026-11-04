@@ -1,4 +1,4 @@
-import { ACTIVE_PALETTE, ANIMS, SPRITES } from '@/game/art';
+import { ACTIVE_PALETTE, SPRITES, visitorSpriteName } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import type { Exhibit } from '@/game/exhibits/types';
 import {
@@ -232,17 +232,9 @@ function buildHotspots(def: SpaceDef): Hotspot[] {
   return hotspots;
 }
 
-function frameOf(anim: string, index: number, frames: Record<string, string[]>): string {
-  const list = frames[anim];
-  return list[index % list.length];
-}
-
 /** The visitor's current sprite name, before any lighting or composition. */
 function visitorFrame(ctx: SceneCtx): string {
-  const walkFrame = Math.floor(ctx.player.walkMs / 130);
-  return ctx.player.moving
-    ? frameOf(`visitor-${ctx.player.facing}`, walkFrame, ANIMS)
-    : `visitor-${ctx.player.facing}-0`;
+  return visitorSpriteName(ctx.player.facing, ctx.player.moving, ctx.player.walkMs, ctx.t, ctx.reducedMotion);
 }
 
 type DrawPiece = { y: number; draw: () => void };
