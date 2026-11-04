@@ -1,14 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { personalInfo } from '../../src/data/personal';
 import { copy } from '../../src/game/content/copy';
-import { starTotal } from '../../src/game/content/stars';
+import { allStarIds, starTotal } from '../../src/game/content/stars';
 import type { SceneId } from '../../src/game/scene/types';
+import { TILE } from '../../src/game/world/grid';
 
 const STAGE = '.game-stage';
 const DIALOGUE = '.dialogue';
 const CHOICE = '.dialogue-choice';
 const COUNTER = '.star-counter';
+const PROJECT_PANEL = '[data-testid="project-panel-backdrop"]';
+const CONTACT_CARD = '[data-testid="contact-backdrop"]';
+const TERM_PROMPT = '[data-testid="term-prompt-backdrop"]';
+const PROGRESS_KEY = 'huzbi-game-v1';
 const CHECKPOINT_DIR = path.join('test-results', 'checkpoint-1');
 const FIX_DIR = path.join('test-results', 'fix');
 const TOTAL_STARS = starTotal();
@@ -344,20 +350,28 @@ test.describe('desktop journey at 1366 by 768', () => {
   test('cursor_moves_light', async ({ page }) => {
     await openGame(page);
     await enterDarkByDoor(page);
+    // Let the door's arrival beat finish and the first lit frame settle.
+    await page.waitForTimeout(300);
 
     const state = await snapshot(page);
 
-    // A far floor point, lit only by the lantern.
-    const point = cssPoint(state, 289, 150);
-    const sampleX = 289 - state.camera.x;
-    const sampleY = 150 - state.camera.y;
+    // A far floor point, lit only by the lantern. The light steps are
+    // quantised, so sample a patch that is genuinely dark beyond the radius.
+    const target = { x: 300, y: 160 };
+    const point = cssPoint(state, target.x, target.y);
+    const sampleX = target.x - state.camera.x;
+    const sampleY = target.y - state.camera.y;
 
     await page.mouse.move(point.x, point.y);
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(300);
     const lit = await canvasBrightness(page, sampleX, sampleY);
 
-    await page.mouse.move(84, 80);
-    await page.waitForTimeout(150);
+    // Move the pointer to another empty patch of the same room. A plain
+    // viewport coordinate can land on a HUD control, whose pointer events
+    // never reach the canvas, so derive it from world coordinates.
+    const away = cssPoint(state, 60, 100);
+    await page.mouse.move(away.x, away.y);
+    await page.waitForTimeout(300);
     const dark = await canvasBrightness(page, sampleX, sampleY);
 
     expect(lit).toBeGreaterThan(dark + 20);
@@ -619,5 +633,532 @@ test.describe('old pages', () => {
       const response = await request.get(url);
       expect(response.status(), url).toBe(200);
     }
+  });
+});
+
+// --- the whole game ---------------------------------------------------------
+
+type HotspotView = {
+  id: string;
+  rect: { x: number; y: number; w: number; h: number };
+  stand: { x: number; y: number };
+};
+
+type PlayOptions = {
+  /** Which of a dialogue's choices to take. The first is the obvious one. */
+  choice?: 'first' | 'last';
+  /** On a phone, drive the dialogue with taps rather than the keyboard. */
+  touch?: boolean;
+  /** Every full dialogue line seen, in order. */
+  lines?: string[];
+  /** Every project panel title opened, in order. */
+  panels?: string[];
+  /** Keep waiting through an exhibit animation until its project panel opens. */
+  panel?: boolean;
+  timeout?: number;
+};
+
+/** The scene, camera and player state the controller exposes behind `?e2e=1`. */
+async function gameState(page: Page): Promise<Snapshot> {
+  return snapshot(page);
+}
+
+async function goToScene(page: Page, sceneId: SceneId): Promise<void> {
+  const current = await gameState(page);
+  if (current.sceneId === sceneId) return;
+
+  await page.evaluate((id) => {
+    window.__huzbiGame!.goTo(id as SceneId);
+  }, sceneId);
+  await waitForScene(page, sceneId);
+}
+
+async function hotspotView(page: Page, id: string): Promise<HotspotView> {
+  return page.evaluate((hotspotId) => {
+    const game = window.__huzbiGame;
+    if (!game) throw new Error('window.__huzbiGame is missing; open the page with ?e2e=1');
+    const found = game.snapshot().hotspots.find((hotspot) => hotspot.id === hotspotId);
+    if (!found) throw new Error(`No hotspot ${hotspotId} in this scene`);
+    return { id: found.id, rect: found.rect, stand: found.stand };
+  }, id);
+}
+
+/** Stand on a hotspot's own stand tile, exactly as the game's walk would. */
+async function standAt(page: Page, sceneId: SceneId, id: string): Promise<HotspotView> {
+  await goToScene(page, sceneId);
+  const hotspot = await hotspotView(page, id);
+
+  await page.evaluate(
+    ({ stand, rect, tile }) => {
+      const x = stand.x * tile + tile / 2;
+      const y = stand.y * tile + tile / 2;
+      const dx = rect.x + rect.w / 2 - x;
+      const dy = rect.y + rect.h / 2 - y;
+      const facing =
+        Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+      window.__huzbiGame!.teleport(x, y, facing);
+    },
+    { stand: hotspot.stand, rect: hotspot.rect, tile: TILE },
+  );
+  await page.waitForTimeout(100);
+
+  // Entering the dark greets a first visitor with one short line. It is a
+  // dialogue, not part of the hotspot about to be used.
+  if ((await page.locator(DIALOGUE).count()) > 0) {
+    await playUntilQuiet(page, { timeout: 8_000 });
+  }
+
+  await page.locator(STAGE).focus();
+  return hotspot;
+}
+
+/**
+ * Let one interaction run to completion: advance dialogue, answer choices,
+ * close project panels and the contact card, and tap through the small
+ * terminal when it appears. This is a visitor, not a back door: every line,
+ * choice and close control is the real one the game renders.
+ */
+async function playUntilQuiet(page: Page, options: PlayOptions = {}): Promise<{
+  lines: string[];
+  panels: string[];
+}> {
+  const choice = options.choice ?? 'first';
+  const touch = options.touch ?? false;
+  const lines = options.lines ?? [];
+  const panels = options.panels ?? [];
+  const deadline = Date.now() + (options.timeout ?? 30_000);
+  let sawSomething = false;
+  let sawPanel = false;
+  let quietSince = 0;
+  let smallTerminalUsed = false;
+
+  while (Date.now() < deadline) {
+    const contact = page.locator(CONTACT_CARD);
+    if ((await contact.count()) > 0) {
+      sawSomething = true;
+      quietSince = 0;
+      const close = page.getByRole('button', { name: copy.nap.contact.closeLabel });
+      if ((await close.count()) > 0) {
+        if (touch) await close.tap();
+        else await close.click();
+      } else if (touch) await contact.tap();
+      else await page.keyboard.press('Escape');
+      await page.waitForTimeout(80);
+      continue;
+    }
+
+    const panel = page.locator(PROJECT_PANEL);
+    if ((await panel.count()) > 0) {
+      sawSomething = true;
+      sawPanel = true;
+      quietSince = 0;
+      const title = (await page.locator('.project-panel-title').textContent())?.trim();
+      if (title && !panels.includes(title)) panels.push(title);
+      const close = page.locator(`${PROJECT_PANEL} [data-close]`);
+      if ((await close.count()) > 0) {
+        if (touch) await close.tap();
+        else await close.click();
+      } else if (touch) await panel.tap();
+      else await page.keyboard.press('Escape');
+      await page.waitForTimeout(80);
+      continue;
+    }
+
+    const smallTerminal = page.locator(TERM_PROMPT);
+    if ((await smallTerminal.count()) > 0) {
+      sawSomething = true;
+      quietSince = 0;
+      if (!smallTerminalUsed) {
+        const command = page.locator('.term-prompt-choice').first();
+        if (touch) await command.tap();
+        else await command.click();
+        smallTerminalUsed = true;
+      } else {
+        const close = page.locator('.term-prompt-close');
+        if (touch) await close.tap();
+        else await close.click();
+      }
+      await page.waitForTimeout(100);
+      continue;
+    }
+
+    const dialogue = page.locator(DIALOGUE);
+    if ((await dialogue.count()) > 0) {
+      sawSomething = true;
+      quietSince = 0;
+      const full = (await page.locator('.sr-live').textContent())?.trim();
+      if (full && lines[lines.length - 1] !== full) lines.push(full);
+
+      const choices = page.locator(CHOICE);
+      const count = await choices.count();
+      if (count > 0) {
+        const target = choices.nth(choice === 'last' ? count - 1 : 0);
+        if (touch) await target.tap();
+        else await target.click();
+      } else if (touch) {
+        await dialogue.tap();
+      } else {
+        await page.keyboard.press('Enter');
+      }
+      await page.waitForTimeout(35);
+      continue;
+    }
+
+    if (sawSomething) {
+      if (!quietSince) quietSince = Date.now();
+      else if (Date.now() - quietSince >= 500 && (!options.panel || sawPanel)) {
+        return { lines, panels };
+      }
+    }
+    await page.waitForTimeout(80);
+  }
+
+  throw new Error(
+    `interaction never settled; last line: ${lines[lines.length - 1] ?? '(none)'}`,
+  );
+}
+
+/**
+ * Walk to a hotspot with the game's own stand tile, then click the object
+ * itself. Clicking targets the exact hotspot, which is how a visitor chooses
+ * one of two things standing close together.
+ */
+async function useHotspot(
+  page: Page,
+  sceneId: SceneId,
+  id: string,
+  options: PlayOptions = {},
+): Promise<{ lines: string[]; panels: string[] }> {
+  const hotspot = await standAt(page, sceneId, id);
+  const state = await gameState(page);
+  await page.mouse.click(
+    (hotspot.rect.x + hotspot.rect.w / 2 - state.camera.x) * state.scale,
+    (hotspot.rect.y + hotspot.rect.h / 2 - state.camera.y) * state.scale,
+  );
+  return playUntilQuiet(page, options);
+}
+
+/** The phone path: tap the object itself rather than pressing Enter. */
+async function tapHotspot(
+  page: Page,
+  sceneId: SceneId,
+  id: string,
+  options: PlayOptions = {},
+): Promise<{ lines: string[]; panels: string[] }> {
+  const hotspot = await standAt(page, sceneId, id);
+  const state = await gameState(page);
+  await page.touchscreen.tap(
+    (hotspot.rect.x + hotspot.rect.w / 2 - state.camera.x) * state.scale,
+    (hotspot.rect.y + hotspot.rect.h / 2 - state.camera.y) * state.scale,
+  );
+  return playUntilQuiet(page, { ...options, touch: true });
+}
+
+/** The CRT's hidden command, the one star that lives outside the dark. */
+async function useMainTerminal(page: Page): Promise<void> {
+  await standAt(page, 'room', 'monitor');
+  await page.locator(STAGE).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator(DIALOGUE)).toBeVisible({ timeout: 10_000 });
+  await dismissDialogue(page);
+
+  const terminal = page.getByRole('dialog', { name: 'Retro Terminal Interactive Shell' });
+  await expect(terminal).toBeVisible({ timeout: 10_000 });
+  const prompt = page.getByRole('textbox', { name: 'Terminal command prompt input' });
+  await prompt.fill('xyzzy');
+  await prompt.press('Enter');
+  await page.waitForTimeout(250);
+  await page.keyboard.press('Escape');
+  await expect(terminal).toBeHidden({ timeout: 5_000 });
+}
+
+/** The small terminal on the stool earns its star through its first command. */
+async function useSmallTerminal(
+  page: Page,
+  panels: string[] = [],
+): Promise<{ lines: string[]; panels: string[] }> {
+  await standAt(page, 'archive', 'term-exp');
+  await page.locator(STAGE).focus();
+  await page.keyboard.press('Enter');
+
+  const prompt = page.locator(TERM_PROMPT);
+  await expect(prompt).toBeVisible({ timeout: 10_000 });
+  await page.locator('.term-prompt-choice').first().click();
+  await page.waitForTimeout(120);
+  await page.locator('.term-prompt-close').click();
+  return playUntilQuiet(page, { panels, panel: true });
+}
+
+async function savedFound(page: Page): Promise<string[]> {
+  return page.evaluate((key) => {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw) as { found?: unknown };
+      return Array.isArray(parsed.found)
+        ? parsed.found.filter((id): id is string => typeof id === 'string')
+        : [];
+    } catch {
+      return [];
+    }
+  }, PROGRESS_KEY);
+}
+
+async function seedCompleteSave(page: Page): Promise<void> {
+  await page.addInitScript(
+    ({ key, found }) => {
+      try {
+        window.localStorage.setItem(
+          key,
+          JSON.stringify({
+            version: 1,
+            found,
+            doorOpened: true,
+            sound: false,
+            counters: {},
+          }),
+        );
+      } catch {
+        // A storage-less browser still plays; this test needs storage.
+      }
+    },
+    { key: PROGRESS_KEY, found: allStarIds() },
+  );
+}
+
+/** Follow the five-paper trail in order, without collecting anything else. */
+async function followTrail(
+  use: (scene: SceneId, id: string, options?: PlayOptions) => Promise<{ lines: string[] }>,
+  lines: string[],
+): Promise<void> {
+  await use('room', 'clue:note', { lines });
+  await use('dark', 'clue:hall', { lines });
+  await use('workshop', 'clue:workshop', { lines });
+  await use('archive', 'clue:archive', { lines });
+  await use('observatory', 'clue:observatory', { lines });
+}
+
+/** Reach the nap room, wake Huzbi, and collect every line of the ending. */
+async function wakeHuzbi(
+  page: Page,
+  use: (scene: SceneId, id: string, options?: PlayOptions) => Promise<{ lines: string[] }>,
+  lines: string[],
+): Promise<void> {
+  await use('observatory', 'nap-door', { lines });
+  await waitForScene(page, 'nap');
+  await use('nap', 'sleeper', { lines });
+}
+
+test.describe('the full collection', () => {
+  test('every_star_is_reachable', async ({ page }) => {
+    test.setTimeout(300_000);
+    const panels: string[] = [];
+    await openGame(page);
+
+    // The room's stars: the note and tea, each worth an extra one on the third
+    // look; the cat on the tenth pet; the shelf, one book at a time; the three
+    // silly floor things; the window on the fifth wave; and staying put.
+    for (let i = 0; i < 3; i += 1) await useHotspot(page, 'room', 'note');
+    for (let i = 0; i < 3; i += 1) await useHotspot(page, 'room', 'tea');
+    for (let i = 0; i < 10; i += 1) await useHotspot(page, 'room', 'cat');
+    for (let i = 0; i < 3; i += 1) {
+      await useHotspot(page, 'room', 'door', { choice: 'last' });
+    }
+    for (let i = 0; i < personalInfo.readingList.length; i += 1) {
+      await useHotspot(page, 'room', 'shelf');
+    }
+    await useHotspot(page, 'room', 'sofa');
+    await useHotspot(page, 'room', 'lamp');
+    await useHotspot(page, 'room', 'rug');
+    for (let i = 0; i < 3; i += 1) await useHotspot(page, 'room', 'window');
+    for (let i = 0; i < 2; i += 1) await useHotspot(page, 'room', 'window-two');
+    await useMainTerminal(page);
+
+    // Every project, plus the monster poster.
+    await useHotspot(page, 'dark', 'routing-sim', { panels, panel: true });
+    await useHotspot(page, 'workshop', 'ai-anime', { panels, panel: true });
+    await useHotspot(page, 'workshop', 'lang-projects', { panels, panel: true });
+    await useHotspot(page, 'workshop', 'speech-translator', { panels, panel: true });
+    await useHotspot(page, 'workshop', 'compiler-project', { panels, panel: true });
+    await useSmallTerminal(page, panels);
+    await useHotspot(page, 'archive', 'read-cookies', { panels, panel: true });
+    await useHotspot(page, 'archive', 'ascii-art-tui', { panels, panel: true });
+    await useHotspot(page, 'archive', 'creative-coding', { panels, panel: true });
+    await useHotspot(page, 'archive', '3d-renderer', { choice: 'last', panels, panel: true });
+    await useHotspot(page, 'archive', 'monster-poster');
+
+    await expect(page.locator(COUNTER)).toHaveAttribute(
+      'aria-label',
+      `Stars: ${starTotal()} of ${starTotal()}`,
+    );
+    await expect
+      .poll(async () => (await savedFound(page)).length, { timeout: 20_000 })
+      .toBe(starTotal());
+    expect([...new Set(await savedFound(page))].sort()).toEqual([...allStarIds()].sort());
+
+    // Every project panel showed real project details, not a spinner or a blank.
+    expect(panels.length).toBeGreaterThanOrEqual(10);
+  });
+
+  test('trail_only_reaches_ending_with_few_stars', async ({ page }) => {
+    test.setTimeout(180_000);
+    const lines: string[] = [];
+    await openGame(page);
+
+    const use = (scene: SceneId, id: string, options?: PlayOptions) =>
+      useHotspot(page, scene, id, options);
+    await use('room', 'clue:note', { lines });
+    await use('dark', 'clue:hall', { lines });
+    await use('workshop', 'clue:workshop', { lines });
+    await use('archive', 'clue:archive', { lines });
+
+    // Four clues are not enough: the little round door stays shut and points
+    // at the paper still waiting in the observatory.
+    await goToScene(page, 'observatory');
+    const locked = await useHotspot(page, 'observatory', 'nap-door', { lines });
+    expect(locked.lines.join(' ')).toContain(copy.observatory.napDoor.shut[0]);
+
+    // The fifth paper opens it. The ending needs the trail, not the stars.
+    await useHotspot(page, 'observatory', 'clue:observatory', { lines });
+    await wakeHuzbi(
+      page,
+      (scene, id, options) => useHotspot(page, scene, id, options),
+      lines,
+    );
+
+    expect((await savedFound(page)).length).toBe(0);
+    expect(lines).toEqual(expect.arrayContaining([...copy.nap.wake.few]));
+    for (const line of copy.nap.wake.full) expect(lines).not.toContain(line);
+  });
+
+  test('full_collection_gets_full_line', async ({ page }) => {
+    test.setTimeout(180_000);
+    await seedCompleteSave(page);
+    const lines: string[] = [];
+    await openGame(page);
+
+    await expect(page.locator(COUNTER)).toContainText(`${starTotal()}/${starTotal()}`);
+    await followTrail((scene, id, options) => useHotspot(page, scene, id, options), lines);
+    await wakeHuzbi(
+      page,
+      (scene, id, options) => useHotspot(page, scene, id, options),
+      lines,
+    );
+
+    expect(lines).toEqual(expect.arrayContaining([...copy.nap.wake.full]));
+    for (const line of copy.nap.wake.few) expect(lines).not.toContain(line);
+  });
+
+  test('no_console_errors_across_full_journey', async ({ page }) => {
+    test.setTimeout(180_000);
+    const errors: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+    });
+    page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+
+    await openGame(page);
+    await useHotspot(page, 'room', 'note');
+    await useMainTerminal(page);
+    await useHotspot(page, 'dark', 'routing-sim', { panel: true });
+    await useHotspot(page, 'workshop', 'ai-anime', { panel: true });
+    await useSmallTerminal(page);
+    await useHotspot(page, 'observatory', 'stats-plaque');
+    await useHotspot(page, 'nap', 'sleeper');
+    await page.waitForTimeout(300);
+
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('phone journey', () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+
+  test('phone_full_trail', async ({ page }) => {
+    test.setTimeout(180_000);
+    const lines: string[] = [];
+    await openGame(page);
+    const tap = (scene: SceneId, id: string, options?: PlayOptions) =>
+      tapHotspot(page, scene, id, options);
+
+    await followTrail(tap, lines);
+    await wakeHuzbi(page, tap, lines);
+
+    expect(lines).toEqual(expect.arrayContaining([...copy.nap.wake.few]));
+    // The contact beat carries the real details from src/data/personal.ts.
+    expect(lines.join(' ')).toContain(personalInfo.email);
+    expect(lines.join(' ')).toContain(personalInfo.socials.github);
+  });
+});
+
+test.describe('reduced motion journey', () => {
+  test.use({ viewport: { width: 1366, height: 768 }, reducedMotion: 'reduce' });
+
+  test('reduced_motion_full_trail', async ({ page }) => {
+    test.setTimeout(180_000);
+    const lines: string[] = [];
+    await openGame(page);
+    const use = (scene: SceneId, id: string, options?: PlayOptions) =>
+      useHotspot(page, scene, id, options);
+
+    await followTrail(use, lines);
+    await wakeHuzbi(page, use, lines);
+
+    expect(lines).toEqual(expect.arrayContaining([...copy.nap.wake.few]));
+  });
+});
+
+test.describe('performance budget', () => {
+  test.use({ viewport: { width: 1366, height: 768 } });
+
+  test('frame_time_stays_under_budget_in_the_busiest_space', async ({ page }) => {
+    test.setTimeout(120_000);
+    await openGame(page);
+    // The archive carries the most exhibits and lights at once.
+    await goToScene(page, 'archive');
+    await page.waitForTimeout(600);
+
+    const stats = await page.evaluate(async () => {
+      const frame = (): Promise<number> =>
+        new Promise((resolve) => requestAnimationFrame((time) => resolve(time)));
+
+      const deltas: number[] = [];
+      let previous = await frame();
+      for (let i = 0; i < 120; i += 1) {
+        const next = await frame();
+        deltas.push(next - previous);
+        previous = next;
+      }
+      deltas.sort((a, b) => a - b);
+      return {
+        average: deltas.reduce((sum, value) => sum + value, 0) / deltas.length,
+        p95: deltas[Math.floor(deltas.length * 0.95)],
+        worst: deltas[deltas.length - 1],
+      };
+    });
+
+    // A 40 ms average is 25 fps: the floor for calling this smooth. The p95
+    // catches a run of slow frames while allowing the odd garbage-collection
+    // pause, and the worst-frame bound catches a true stall.
+    expect(stats.average, `average frame ${stats.average.toFixed(1)} ms`).toBeLessThan(40);
+    expect(stats.p95, `p95 frame ${stats.p95.toFixed(1)} ms`).toBeLessThan(90);
+    expect(stats.worst, `worst frame ${stats.worst.toFixed(1)} ms`).toBeLessThan(250);
+  });
+});
+
+test.describe('removed pages', () => {
+  test('art_preview_is_gone', async ({ page }) => {
+    // The development-only art sheet is not part of the game any more, in the
+    // source tree or in the built site.
+    expect(fs.existsSync(path.join('src', 'app', 'art-preview'))).toBe(false);
+
+    const response = await page.goto('/art-preview/');
+    expect(response?.status()).toBe(404);
+    await expect(page.getByText(/art preview/i)).toHaveCount(0);
+    await expect(page.locator('.journal-root')).toHaveCount(1);
   });
 });
