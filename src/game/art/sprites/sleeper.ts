@@ -1,14 +1,17 @@
 /**
- * Huzbi on the nap-room sofa, at the ending's scale. The same person as the
- * room avatar, drawn bigger so the face can act: a bush of dark hair with a
- * tuft that never lies flat and a side lock, oversized violet over-ear cups,
- * a hoodie with uneven drawstrings and a cat pin, skinny jeans, white
- * sneakers. 64 by 46, one sprite for the sofa and whoever is on it.
+ * Huzbi, the host, on his nap-room sofa at the ending's scale. He is not the
+ * visitor: where the player is a lanky hoodie kid with headphones on his head,
+ * Huzbi is a soft, round home-body. A big bush of messy hair, round amber
+ * glasses, an oversized terracotta cardigan over a cream tee, headphones
+ * hanging round his neck, grey sweats and fat red slippers. 64 by 46, one
+ * sprite for the sofa and whoever is on it.
  *
- * The wake-up is a run of frames the scene plays by time: asleep (two
- * breathing frames), cough (two), slide (the manga leaves his face), one eye,
- * both eyes, rise (up on one elbow), sit up, and awake (a grin and a wave,
- * two frames). Original pixel art, palette keys only.
+ * The frames cover the whole ending loop: asleep (two breathing frames, glasses
+ * pushed up and the manga on his face), cough (two), slide (the manga leaves
+ * his face), one eye, both eyes, rise, sit up, awake (a wave, two frames), then
+ * the life after the talk: the hand lowers, he sits for a beat (two frames),
+ * leans down for the manga, reads (two frames), and lies back with the manga
+ * rising to his face. Original pixel art, palette keys only.
  */
 
 type Canvas = string[][];
@@ -26,7 +29,14 @@ export type SleepFrame =
   | 'rise'
   | 'sitUp'
   | 'awake0'
-  | 'awake1';
+  | 'awake1'
+  | 'lower'
+  | 'sit0'
+  | 'sit1'
+  | 'reach'
+  | 'read0'
+  | 'read1'
+  | 'layBack';
 
 const blank = (w: number, h: number): Canvas =>
   Array.from({ length: h }, () => Array.from({ length: w }, () => '.'));
@@ -46,16 +56,26 @@ const boxed = (cv: Canvas, x: number, y: number, w: number, h: number, edge: str
   rect(cv, x + 1, y + 1, w - 2, h - 2, fill);
 };
 
-const lay = (cv: Canvas, x: number, y: number, rows: string[]): void => {
-  rows.forEach((row, j) => {
-    [...row].forEach((c, i) => {
-      if (c !== '.') plot(cv, x + i, y + j, c);
-    });
-  });
-};
+/** A filled ellipse with a one-pixel outline. */
+function ell(cv: Canvas, cx: number, cy: number, rx: number, ry: number, edge: string, fill: string): void {
+  for (let y = -ry - 1; y <= ry + 1; y += 1) {
+    for (let x = -rx - 1; x <= rx + 1; x += 1) {
+      const d = (x * x) / (rx * rx + 0.3) + (y * y) / (ry * ry + 0.3);
+      if (d <= 1) plot(cv, Math.round(cx + x), Math.round(cy + y), fill);
+      else if (d <= 1 + 1.9 / Math.max(rx, ry)) plot(cv, Math.round(cx + x), Math.round(cy + y), edge);
+    }
+  }
+}
+
+/** A thin round ring, for the glasses. */
+function ring(cv: Canvas, cx: number, cy: number, r: number, c: string): void {
+  for (let a = 0; a < 40; a += 1) {
+    const t = (a / 40) * Math.PI * 2;
+    plot(cv, Math.round(cx + Math.cos(t) * r), Math.round(cy + Math.sin(t) * r), c);
+  }
+}
 
 const rows = (cv: Canvas): string[] => cv.map((r) => r.join(''));
-const sym = (half: string): string => half + [...half].reverse().join('');
 
 // --- the sofa ------------------------------------------------------------------
 
@@ -78,152 +98,274 @@ function sofaBody(cv: Canvas): void {
   rect(cv, 56, 44, 4, 2, 'e');
 }
 
-// --- the head: 20 wide, 18 tall --------------------------------------------------
-
-/** Left half (ten columns) of the head, the face left bare; the mirror makes the right. */
-const HEAD_HALF = [
-  '..........', // 0
-  '.......aab', // 1
-  '....aabbbb', // 2
-  '...abbbbbb', // 3
-  '..abbbbbbb', // 4
-  '..aAAAAAAA', // 5 band
-  '..abbbbbbb', // 6
-  'aaaaabbbbb', // 7
-  'aEEEabbbbb', // 8
-  'aEEEabbvvv', // 9
-  'aEEEavvvvv', // 10
-  'aEEEavvvvv', // 11
-  'aEEEavvvvv', // 12
-  'aEEEavvvvv', // 13
-  'aaaaavvvvv', // 14
-  '....avvvvv', // 15
-  '.....avvvv', // 16
-  '......aaaa', // 17
-].map(sym);
-
-export type Face = 'under' | 'cough' | 'rub' | 'one' | 'wide' | 'grin';
-
-function head(cv: Canvas, x: number, y: number, face: Face): void {
-  lay(cv, x, y, HEAD_HALF);
-  const p = (dx: number, dy: number, c: string): void => plot(cv, x + dx, y + dy, c);
-  // the tuft that never lies flat, a loose strand, and a side lock over one eye
-  for (const [dx, dy, c] of [
-    [10, 0, 'a'], [11, 0, 'a'], [9, 1, 'a'], [10, 1, 'b'], [11, 1, 'b'], [12, 1, 'a'], [14, 1, 'a'],
-    [14, 2, 'a'], [15, 2, 'a'], [14, 3, 'a'], [3, 1, 'a'], [4, 2, 'a'],
-    [14, 8, 'b'], [14, 9, 'b'], [14, 10, 'b'], [13, 9, 'b'],
-    [2, 8, 'A'], [16, 8, 'A'], [8, 9, 'b'],
-  ] as [number, number, string][]) {
-    p(dx, dy, c);
+/** The tea mug on the far arm of the sofa, steam curling when `steam` is 1 or 2. */
+function mugOnArm(cv: Canvas, steam: 0 | 1 | 2): void {
+  boxed(cv, 56, 17, 6, 5, 'a', 'p');
+  rect(cv, 57, 18, 4, 1, 'C');
+  rect(cv, 61, 18, 2, 3, 'a');
+  rect(cv, 57, 20, 4, 1, 'q');
+  if (steam === 1) {
+    for (const [x, y] of [[58, 14], [59, 13], [58, 12], [59, 11]]) plot(cv, x, y, 'C');
+  } else if (steam === 2) {
+    for (const [x, y] of [[59, 14], [58, 13], [59, 12], [58, 11]]) plot(cv, x, y, 'C');
   }
+}
+
+// --- the head: round, with a bush of hair and round amber glasses --------------------
+
+export type Face =
+  | 'under' // asleep under the manga
+  | 'cough'
+  | 'rub'
+  | 'one'
+  | 'wide'
+  | 'grin' // awake, wave
+  | 'talk' // mid-sentence, mouth open
+  | 'calm' // sitting, tired but fond
+  | 'blink'
+  | 'read' // eyes down on a page
+  | 'drowse'; // half-lidded, about to go under
+
+/** Draws the head centred on (cx, cy): hair 21 wide, face 17 wide. */
+function head(cv: Canvas, cx: number, cy: number, face: Face): void {
+  const p = (dx: number, dy: number, c: string): void => plot(cv, cx + dx, cy + dy, c);
+  const r = (dx: number, dy: number, w: number, h: number, c: string): void =>
+    rect(cv, cx + dx, cy + dy, w, h, c);
+
+  // the bush: a big dark mass with a couple of tufts that never lie flat
+  ell(cv, cx, cy - 2, 10, 8, 'a', 'b');
+  for (const [dx, dy] of [[-3, -7], [0, -8], [3, -7], [-6, -4], [6, -4], [1, -5], [-1, -6]]) p(dx, dy, 'c');
+  for (const [dx, dy] of [[-3, -11], [-2, -10], [0, -11], [1, -11], [1, -10], [4, -10], [5, -9]]) p(dx, dy, 'a');
+  p(-2, -11, 'b');
+
+  // the face
+  ell(cv, cx, cy + 2, 8, 7, 'a', 'v');
+  r(-6, 7, 13, 1, 'w');
+  // the fringe falls unevenly over the forehead
+  r(-7, -3, 15, 2, 'b');
+  for (const dx of [-6, -3, 0, 2, 5]) p(dx, -1, 'b');
+  p(-4, 0, 'a');
+  p(3, 0, 'a');
+  // ears
+  p(-9, 3, 'v');
+  p(9, 3, 'v');
   // nose
-  p(9, 13, 'w');
-  p(10, 13, 'w');
+  p(0, 5, 'w');
+  p(1, 5, 'w');
+
+  const glasses = (dy: number, tilt: number): void => {
+    ring(cv, cx - 4, cy + dy, 3, 'r');
+    ring(cv, cx + 4, cy + dy + tilt, 3, 'r');
+    r(-1, dy, 2, 1, 'r');
+    p(-5, dy - 1, 'C');
+    p(3, dy - 1 + tilt, 'C');
+  };
 
   if (face === 'under') {
-    // eyes shut under the manga; the mouth hangs a little open
-    rect(cv, x + 6, y + 12, 2, 1, 'a');
-    rect(cv, x + 12, y + 12, 2, 1, 'a');
-    rect(cv, x + 9, y + 15, 2, 1, 'a');
-    p(9, 16, 'w');
-    p(10, 16, 'w');
-  } else if (face === 'cough') {
-    // eyes squeezed into > <, mouth wide open
-    for (const [dx, dy] of [[6, 11], [7, 12], [6, 13], [13, 11], [12, 12], [13, 13]]) p(dx, dy, 'a');
-    rect(cv, x + 8, y + 15, 4, 2, 'a');
-    rect(cv, x + 9, y + 16, 2, 1, 'l');
-  } else if (face === 'rub') {
-    // eyes screwed shut, brows down, a grumpy mouth
-    rect(cv, x + 6, y + 12, 3, 1, 'a');
-    rect(cv, x + 11, y + 12, 3, 1, 'a');
-    rect(cv, x + 6, y + 10, 3, 1, 'a');
-    rect(cv, x + 11, y + 10, 3, 1, 'a');
-    rect(cv, x + 8, y + 15, 4, 1, 'w');
-  } else if (face === 'one') {
-    // the left eye cracks open, the right is still shut, the mouth smacks
-    rect(cv, x + 6, y + 10, 3, 1, 'a');
-    rect(cv, x + 6, y + 11, 3, 2, 'C');
-    rect(cv, x + 7, y + 11, 2, 2, 'a');
-    plot(cv, x + 6, y + 11, 'C');
-    rect(cv, x + 6, y + 13, 3, 1, 'w');
-    rect(cv, x + 11, y + 12, 3, 1, 'a');
-    rect(cv, x + 9, y + 15, 3, 1, 'a');
-  } else {
-    // both open: tired-but-friendly, heavy lids and bags
-    for (const ex of [6, 12]) {
-      rect(cv, x + ex, y + 10, 3, 1, 'w');
-      rect(cv, x + ex, y + 11, 3, 2, 'C');
-      rect(cv, x + ex + 1, y + 11, 2, 2, 'a');
-      plot(cv, x + ex + 1, y + 11, 'C');
-      rect(cv, x + ex, y + 13, 3, 1, 'w');
-    }
-    if (face === 'grin') {
-      rect(cv, x + 7, y + 14, 6, 1, 'a');
-      rect(cv, x + 7, y + 15, 6, 1, 'C');
-      rect(cv, x + 8, y + 16, 4, 1, 'a');
-      plot(cv, x + 6, y + 14, 'w');
-      plot(cv, x + 13, y + 14, 'w');
+    // glasses pushed up into the hair; the manga covers the eyes, the mouth hangs open
+    glasses(-6, 0);
+    r(-1, 8, 3, 1, 'a');
+    return;
+  }
+  if (face === 'rub') {
+    glasses(-6, 1);
+    r(-6, 2, 4, 1, 'a');
+    r(3, 2, 4, 1, 'a');
+    r(-6, 0, 4, 1, 'a');
+    r(3, 0, 4, 1, 'a');
+    r(-2, 8, 4, 1, 'w');
+    return;
+  }
+  if (face === 'one') {
+    glasses(-6, 0);
+    // left eye cracks open, the right is shut, the mouth smacks
+    r(-6, 1, 4, 1, 'a');
+    r(-6, 2, 4, 2, 'C');
+    r(-5, 2, 2, 2, 'a');
+    p(-6, 2, 'C');
+    r(3, 3, 4, 1, 'a');
+    r(-1, 8, 3, 1, 'a');
+    return;
+  }
+
+  glasses(2, 0);
+  // eyes inside the lenses
+  const eye = (ex: number, kind: 'dot' | 'shut' | 'down' | 'wide' | 'sq' | 'half'): void => {
+    if (kind === 'dot') {
+      p(ex, 2, 'a');
+      p(ex + 1, 2, 'a');
+    } else if (kind === 'shut') {
+      r(ex - 1, 3, 4, 1, 'a');
+    } else if (kind === 'down') {
+      r(ex - 1, 2, 4, 1, 'w');
+      p(ex, 3, 'a');
+      p(ex + 1, 3, 'a');
+    } else if (kind === 'wide') {
+      r(ex - 1, 1, 4, 3, 'C');
+      r(ex, 2, 2, 2, 'a');
+    } else if (kind === 'sq') {
+      p(ex - 1, 1, 'a');
+      p(ex, 2, 'a');
+      p(ex - 1, 3, 'a');
     } else {
-      rect(cv, x + 8, y + 15, 4, 1, 'a');
+      r(ex - 1, 2, 4, 1, 'w');
+      r(ex - 1, 3, 4, 1, 'a');
     }
+  };
+
+  switch (face) {
+    case 'cough':
+      eye(-5, 'sq');
+      p(7, 1, 'a');
+      p(6, 2, 'a');
+      p(7, 3, 'a');
+      r(-2, 7, 4, 2, 'a');
+      r(-1, 8, 2, 1, 'l');
+      break;
+    case 'wide':
+      eye(-5, 'wide');
+      eye(3, 'wide');
+      r(-2, 6, 3, 1, 'a');
+      r(-4, -2, 3, 1, 'a');
+      r(2, -2, 3, 1, 'a');
+      break;
+    case 'grin':
+      eye(-5, 'dot');
+      eye(3, 'dot');
+      r(-3, 6, 7, 1, 'a');
+      r(-3, 7, 7, 1, 'C');
+      r(-2, 8, 5, 1, 'a');
+      p(-4, 6, 'w');
+      p(4, 6, 'w');
+      break;
+    case 'talk':
+      eye(-5, 'dot');
+      eye(3, 'dot');
+      r(-2, 6, 5, 1, 'a');
+      r(-2, 7, 5, 2, 'a');
+      r(-1, 8, 3, 1, 'l');
+      break;
+    case 'blink':
+      eye(-5, 'shut');
+      eye(3, 'shut');
+      r(-2, 7, 5, 1, 'a');
+      p(-3, 6, 'a');
+      p(3, 6, 'a');
+      break;
+    case 'read':
+      eye(-5, 'down');
+      eye(3, 'down');
+      r(-2, 7, 4, 1, 'a');
+      p(2, 6, 'a');
+      break;
+    case 'drowse':
+      eye(-5, 'half');
+      eye(3, 'half');
+      r(-1, 7, 3, 1, 'a');
+      break;
+    default: // calm
+      eye(-5, 'dot');
+      eye(3, 'dot');
+      r(-2, 7, 5, 1, 'a');
+      p(3, 6, 'a');
+      p(-3, 6, 'a');
   }
 }
 
 // --- the manga: a cream paperback with a red title bar ------------------------------
 
 function mangaOnFace(cv: Canvas, x: number, y: number): void {
-  boxed(cv, x, y, 13, 7, 'a', 'p');
-  rect(cv, x + 1, y + 5, 11, 1, 'q');
-  rect(cv, x + 2, y + 1, 5, 2, 'k');
+  boxed(cv, x, y, 15, 8, 'a', 'p');
+  rect(cv, x + 1, y + 6, 13, 1, 'q');
+  rect(cv, x + 2, y + 1, 6, 2, 'k');
   plot(cv, x + 3, y + 1, 'l');
-  rect(cv, x + 8, y + 1, 3, 1, 'a');
-  rect(cv, x + 2, y + 4, 9, 1, 'a');
-  rect(cv, x + 8, y + 2, 3, 1, 'q');
+  rect(cv, x + 9, y + 1, 4, 1, 'a');
+  rect(cv, x + 2, y + 4, 11, 1, 'a');
+  rect(cv, x + 9, y + 2, 4, 1, 'q');
 }
 
-// --- the body, lying ---------------------------------------------------------------
-
-function hoodieLying(cv: Canvas, lift: number): void {
-  // hood bunched under the head, then the long torso
-  boxed(cv, 18, 22 - lift, 8, 11, 'a', 'y');
-  boxed(cv, 24, 21 - lift, 21, 12, 'a', 'x');
-  rect(cv, 25, 22 - lift, 19, 1, 'z');
-  rect(cv, 25, 31 - lift, 19, 1, 'y');
-  // drawstrings, uneven, and the cat pin
-  rect(cv, 27, 24 - lift, 1, 3, 'C');
-  rect(cv, 30, 24 - lift, 1, 4, 'C');
-  rect(cv, 32, 26 - lift, 2, 1, 'r');
-  // kangaroo pocket
-  rect(cv, 33, 28 - lift, 9, 3, 'y');
-  rect(cv, 33, 28 - lift, 9, 1, 'a');
+/** An open manga page held up to read: two pages and a spine, panels and bubbles. */
+function mangaOpen(cv: Canvas, x: number, y: number, flip: boolean): void {
+  boxed(cv, x, y, 20, 12, 'a', 'p');
+  rect(cv, x + 9, y + 1, 2, 10, 'q');
+  rect(cv, x + 2, y + 2, 6, 4, 'C');
+  rect(cv, x + 2, y + 2, 6, 1, 'a');
+  rect(cv, x + 2, y + 7, 6, 3, 'q');
+  rect(cv, x + 12, y + 2, 6, 3, 'q');
+  rect(cv, x + 12, y + 6, 6, 4, 'C');
+  rect(cv, x + 13, y + 7, 3, 1, 'a');
+  plot(cv, x + 4, y + 4, 'a');
+  if (flip) {
+    // a page mid-turn lifting at the corner
+    rect(cv, x + 14, y - 2, 6, 3, 'p');
+    rect(cv, x + 14, y - 2, 6, 1, 'a');
+    plot(cv, x + 20, y - 1, 'a');
+  }
 }
 
-function legsLying(cv: Canvas): void {
-  boxed(cv, 44, 24, 14, 9, 'a', 'B');
-  rect(cv, 45, 25, 12, 1, 'A');
-  rect(cv, 51, 26, 1, 5, 'a');
-  rect(cv, 56, 24, 2, 8, 'a');
-  // a sneaker propped on the far arm, toes to the sky
-  lay(cv, 56, 16, [
-    '..aaaa..',
-    '.aCCCCa.',
-    'aCCCCCCa',
-    'aAAAAAAa',
-    'aCCCCCCa',
-    'aCCCCCCa',
-    'aqqqqqqa',
-    'aaaaaaaa',
-  ]);
-  rect(cv, 57, 24, 6, 1, 'B');
+// --- the body ---------------------------------------------------------------------
+
+/** A small rounded hand with four separate fingertips. */
+function handOpen(cv: Canvas, x: number, y: number): void {
+  ell(cv, x + 3, y + 5, 3, 3, 'a', 'v');
+  for (let i = 0; i < 4; i += 1) {
+    rect(cv, x + i * 2 - 1 + 1, y, 1, 3, 'a');
+    rect(cv, x + i * 2 + 1 - 1, y + 1, 1, 3, 'v');
+  }
+  rect(cv, x + 3, y + 7, 1, 1, 'w');
+  rect(cv, x - 2, y + 4, 2, 2, 'v');
+  plot(cv, x - 3, y + 4, 'a');
+  plot(cv, x - 3, y + 5, 'a');
 }
 
-function armDangling(cv: Canvas, x: number): void {
-  // the near arm hangs off the front of the seat, fingers nearly on the floor
-  boxed(cv, x, 31, 7, 9, 'a', 'x');
-  rect(cv, x + 1, 32, 2, 7, 'z');
-  boxed(cv, x, 39, 7, 6, 'a', 'v');
-  rect(cv, x + 2, 43, 1, 2, 'a');
-  rect(cv, x + 4, 43, 1, 2, 'a');
+/** A small closed hand resting. */
+function handRest(cv: Canvas, x: number, y: number): void {
+  ell(cv, x, y, 2, 2, 'a', 'v');
+  plot(cv, x - 1, y + 1, 'w');
+  plot(cv, x + 1, y + 1, 'w');
+}
+
+/** A cardigan sleeve with a cream cuff, as a rounded limb. */
+function sleeve(cv: Canvas, cx: number, cy: number, rx: number, ry: number): void {
+  ell(cv, cx, cy, rx, ry, 'j', 'k');
+  plot(cv, cx - 1, cy - ry + 1, 'l');
+}
+
+/** The cardigan torso: open front, cream tee and a headphone band round the neck. */
+function cardigan(cv: Canvas, cx: number, cy: number, rx: number, ry: number): void {
+  ell(cv, cx, cy, rx, ry, 'j', 'k');
+  // light on the shoulder, shadow low down
+  rect(cv, cx - rx + 3, cy - ry + 2, rx, 1, 'l');
+  rect(cv, cx - rx + 3, cy + ry - 2, rx * 2 - 5, 1, 'j');
+  // cream tee down the middle, cardigan edges either side
+  rect(cv, cx - 3, cy - ry + 2, 7, ry * 2 - 3, 'p');
+  rect(cv, cx - 3, cy - ry + 2, 1, ry * 2 - 3, 'j');
+  rect(cv, cx + 3, cy - ry + 2, 1, ry * 2 - 3, 'j');
+  rect(cv, cx - 2, cy + ry - 4, 5, 1, 'q');
+  for (let y = cy - ry + 5; y < cy + ry - 3; y += 3) plot(cv, cx, y, 'q');
+  // a patch pocket
+  rect(cv, cx + 5, cy + 1, 5, 3, 'j');
+  rect(cv, cx + 5, cy + 1, 5, 1, 'l');
+}
+
+/** Headphones worn round the neck: a band under the chin and a cup on the chest. */
+function neckPhones(cv: Canvas, cx: number, y: number): void {
+  for (let x = cx - 8; x <= cx + 8; x += 1) {
+    const d = Math.round(Math.pow((x - cx) / 8, 2) * 2);
+    plot(cv, x, y + d, 'B');
+    plot(cv, x, y + d + 1, 'A');
+  }
+  for (const side of [-1, 1]) {
+    const x = cx + side * 8;
+    ell(cv, x, y + 5, 2, 3, 'a', 'B');
+    rect(cv, x - 1, y + 4, 2, 2, 'A');
+  }
+}
+
+function slippers(cv: Canvas, x: number): void {
+  ell(cv, x, 44, 5, 2, 'a', 'l');
+  rect(cv, x - 4, 43, 8, 1, 'k');
+  rect(cv, x - 3, 41, 7, 2, 'q');
 }
 
 function snore(cv: Canvas, x: number, y: number, big: boolean): void {
@@ -236,106 +378,112 @@ function snore(cv: Canvas, x: number, y: number, big: boolean): void {
 
 // --- the frames -----------------------------------------------------------------------
 
-function lying(face: Face, opts: { jerk?: number; lift?: number } = {}): Canvas {
+const LYING_HEAD = { x: 13, y: 15 } as const;
+
+function lying(face: Face, opts: { lift?: number; jerk?: number; arm?: boolean } = {}): Canvas {
   const cv = blank(SLEEPER.w, SLEEPER.h);
-  const jerk = opts.jerk ?? 0;
+  const lift = opts.lift ?? 0;
   sofaBody(cv);
-  legsLying(cv);
-  hoodieLying(cv, opts.lift ?? 0);
-  armDangling(cv, 29);
-  head(cv, 3, 7 - jerk, face);
-  return cv;
-}
-
-/** An open hand with four separate fingers and a thumb. 9 by 10; the thumb reaches two columns left. */
-const HAND = [
-  '...a.a...',
-  '..avavaa.',
-  '.aavavava',
-  'avavavava',
-  'avavavava',
-  'avavavava',
-  'avvvvvvva',
-  'avvvvvvva',
-  '.avvvvva.',
-  '..aaaaa..',
-];
-
-function hand(cv: Canvas, x: number, y: number): void {
-  lay(cv, x, y, HAND);
-  lay(cv, x - 2, y + 4, ['.aa', 'avv', '.aa']);
-}
-
-function seated(face: Face, wave: 0 | 1 | 2, rub: boolean): Canvas {
-  const cv = blank(SLEEPER.w, SLEEPER.h);
-  sofaBody(cv);
-  boxed(cv, 8, 29, 48, 11, 'a', 'n');
-  rect(cv, 9, 30, 46, 1, 'o');
-  // the near arm rests on the seat
-  boxed(cv, 15, 21, 7, 13, 'a', 'x');
-  rect(cv, 16, 22, 2, 10, 'z');
-  boxed(cv, 15, 33, 7, 5, 'a', 'v');
-  rect(cv, 17, 37, 1, 1, 'a');
-  rect(cv, 19, 37, 1, 1, 'a');
-  // torso: a narrow hoodie with a hood ring, drawstrings, a cat pin and a pocket
-  boxed(cv, 22, 17, 20, 19, 'a', 'x');
-  rect(cv, 23, 18, 18, 1, 'z');
-  rect(cv, 23, 18, 2, 13, 'z');
-  rect(cv, 23, 33, 18, 2, 'y');
-  rect(cv, 28, 19, 8, 2, 'y');
-  rect(cv, 28, 19, 1, 5, 'C');
-  rect(cv, 34, 19, 1, 6, 'C');
-  rect(cv, 36, 25, 2, 1, 'r');
-  rect(cv, 27, 29, 10, 5, 'y');
-  rect(cv, 27, 29, 10, 1, 'a');
-  // knees up front: thighs run toward us along the seat, shins drop to the floor
-  for (const x of [22, 33]) {
-    boxed(cv, x, 34, 9, 5, 'a', 'B');
-    rect(cv, x + 1, 35, 7, 1, 'A');
-    boxed(cv, x + 1, 38, 7, 5, 'a', 'B');
-    rect(cv, x + 2, 39, 1, 3, 'A');
-    boxed(cv, x - 1, 42, 11, 4, 'a', 'C');
-    rect(cv, x, 44, 9, 1, 'q');
+  mugOnArm(cv, 0);
+  // legs: grey sweats and a slipper propped on the far arm, sole to the sky
+  ell(cv, 51, 29, 9, 5, 'a', 'B');
+  rect(cv, 44, 27, 12, 1, 'A');
+  ell(cv, 60, 25, 3, 4, 'a', 'l');
+  rect(cv, 58, 21, 5, 2, 'q');
+  // the soft round body, rising with each breath
+  cardigan(cv, 33, 26 - lift, 14, 9);
+  neckPhones(cv, 22, 20 - lift);
+  if (opts.arm !== false) {
+    // the near arm hangs off the front of the seat, fingers almost on the floor
+    sleeve(cv, 31, 36, 3, 6);
+    handRest(cv, 31, 43);
   }
-  head(cv, 22, 0, face);
-
-  if (rub) {
-    // the far hand scrubs at an eye
-    boxed(cv, 42, 21, 7, 8, 'a', 'x');
-    rect(cv, 43, 22, 2, 6, 'z');
-    boxed(cv, 40, 11, 7, 11, 'a', 'x');
-    rect(cv, 41, 12, 2, 8, 'z');
-    boxed(cv, 39, 7, 8, 6, 'a', 'v');
-  } else if (wave === 0) {
-    boxed(cv, 42, 21, 7, 13, 'a', 'x');
-    rect(cv, 43, 22, 2, 10, 'z');
-    boxed(cv, 42, 33, 7, 5, 'a', 'v');
-    rect(cv, 44, 37, 1, 1, 'a');
-    rect(cv, 46, 37, 1, 1, 'a');
-  } else {
-    // upper arm out, forearm straight up, an open hand: "hi"
-    const tilt = wave === 1 ? 0 : 2;
-    boxed(cv, 41, 19, 11, 6, 'a', 'x');
-    rect(cv, 42, 20, 9, 1, 'z');
-    boxed(cv, 46 + tilt, 9, 6, 14, 'a', 'x');
-    rect(cv, 47 + tilt, 10, 2, 11, 'z');
-    hand(cv, 44 + tilt, 0);
-  }
+  head(cv, LYING_HEAD.x, LYING_HEAD.y - (opts.jerk ?? 0), face);
   return cv;
 }
 
 function risen(): Canvas {
-  // up on the near elbow, shoulders lifting, hair a disaster
+  // up on an elbow, shoulders lifting, hair a disaster, glasses back on
   const cv = blank(SLEEPER.w, SLEEPER.h);
   sofaBody(cv);
-  legsLying(cv);
-  hoodieLying(cv, 3);
-  armDangling(cv, 29);
-  boxed(cv, 8, 20, 17, 12, 'a', 'x');
-  rect(cv, 9, 21, 15, 1, 'z');
-  boxed(cv, 14, 28, 8, 5, 'a', 'x');
-  boxed(cv, 12, 30, 6, 4, 'a', 'v');
-  head(cv, 3, 2, 'wide');
+  mugOnArm(cv, 0);
+  ell(cv, 51, 29, 9, 5, 'a', 'B');
+  ell(cv, 60, 25, 3, 4, 'a', 'l');
+  rect(cv, 58, 21, 5, 2, 'q');
+  cardigan(cv, 33, 23, 14, 9);
+  neckPhones(cv, 22, 19);
+  sleeve(cv, 20, 30, 4, 4);
+  handRest(cv, 17, 33);
+  sleeve(cv, 31, 36, 3, 6);
+  handRest(cv, 31, 43);
+  head(cv, 15, 11, 'wide');
+  return cv;
+}
+
+type Arms = 'rest' | 'wave0' | 'wave1' | 'lower' | 'read' | 'reach';
+
+function seated(face: Face, arms: Arms, opts: { lean?: number; steam?: 0 | 1 | 2 } = {}): Canvas {
+  const cv = blank(SLEEPER.w, SLEEPER.h);
+  const lean = opts.lean ?? 0;
+  sofaBody(cv);
+  mugOnArm(cv, opts.steam ?? 0);
+  // legs first, so the torso sits down on them: thighs along the seat, shins to the floor
+  for (const x of [24, 36]) {
+    ell(cv, x + 4, 37, 6, 3, 'a', 'B');
+    rect(cv, x, 35, 9, 1, 'A');
+    boxed(cv, x + 1, 38, 7, 4, 'a', 'B');
+    rect(cv, x + 2, 39, 1, 2, 'A');
+    slippers(cv, x + 4);
+  }
+  cardigan(cv, 32 - lean, 27, 13, 9);
+  neckPhones(cv, 32 - lean, 20);
+
+  switch (arms) {
+    case 'rest':
+      sleeve(cv, 19 - lean, 29, 3, 6);
+      handRest(cv, 20 - lean, 36);
+      sleeve(cv, 45 - lean, 29, 3, 6);
+      handRest(cv, 44 - lean, 36);
+      break;
+    case 'lower':
+      // the far hand is halfway down: forearm out level, fingers soft
+      sleeve(cv, 19, 29, 3, 6);
+      handRest(cv, 20, 36);
+      sleeve(cv, 46, 27, 3, 4);
+      sleeve(cv, 50, 28, 3, 3);
+      handOpen(cv, 52, 23);
+      break;
+    case 'wave0':
+    case 'wave1': {
+      sleeve(cv, 19, 29, 3, 6);
+      handRest(cv, 20, 36);
+      const tilt = arms === 'wave0' ? 0 : 2;
+      sleeve(cv, 46, 24, 4, 3);
+      sleeve(cv, 49 + tilt, 16, 3, 6);
+      handOpen(cv, 47 + tilt, 2);
+      break;
+    }
+    case 'read':
+      // both hands hold the manga open in front of his chest
+      sleeve(cv, 21, 28, 3, 6);
+      sleeve(cv, 43, 28, 3, 6);
+      break;
+    case 'reach':
+      // leaning forward with the near arm down at the floor, the other on his knee
+      sleeve(cv, 45 - lean, 29, 3, 6);
+      handRest(cv, 44 - lean, 36);
+      sleeve(cv, 15, 33, 3, 8);
+      handOpen(cv, 12, 40);
+      break;
+  }
+
+  head(cv, 32 - lean, 9 + (arms === 'reach' ? 4 : 0), face);
+
+  if (arms === 'read') {
+    mangaOpen(cv, 22, 24, face === 'read' && opts.steam === 2);
+    handRest(cv, 22, 33);
+    handRest(cv, 42, 33);
+  }
   return cv;
 }
 
@@ -344,9 +492,9 @@ export function sleeperFrame(frame: SleepFrame): string[] {
     case 'asleep0':
     case 'asleep1': {
       const cv = lying('under', { lift: frame === 'asleep1' ? 1 : 0 });
-      mangaOnFace(cv, 7, frame === 'asleep1' ? 16 : 17);
+      mangaOnFace(cv, 6, frame === 'asleep1' ? 12 : 13);
       if (frame === 'asleep1') snore(cv, 27, 6, true);
-      else snore(cv, 25, 8, false);
+      else snore(cv, 25, 9, false);
       return rows(cv);
     }
     case 'cough0':
@@ -354,23 +502,21 @@ export function sleeperFrame(frame: SleepFrame): string[] {
       const jerk = frame === 'cough1' ? 2 : 0;
       const cv = lying('cough', { jerk });
       // the manga hops off his face, a fist goes to his mouth, a cough in two puffs
-      mangaOnFace(cv, 7, 15 - jerk * 2);
-      boxed(cv, 11, 23 - jerk, 8, 6, 'a', 'v');
-      rect(cv, 12, 24 - jerk, 6, 1, 'w');
-      rect(cv, 14, 25 - jerk, 1, 3, 'a');
-      for (const [x, y] of [[25, 18], [27, 16], [28, 19], [26, 22], [29, 21]]) plot(cv, x, y - jerk, 'C');
+      mangaOnFace(cv, 6, 8 - jerk * 2);
+      ell(cv, 16, 26 - jerk, 3, 3, 'a', 'v');
+      rect(cv, 15, 27 - jerk, 3, 1, 'w');
+      for (const [x, y] of [[26, 19], [28, 17], [29, 20], [27, 23], [30, 22]]) plot(cv, x, y - jerk, 'C');
       return rows(cv);
     }
     case 'slide': {
       // the manga skids off his face and down his chest; eyes screwed shut
       const cv = lying('rub');
-      mangaOnFace(cv, 22, 25);
+      mangaOnFace(cv, 22, 22);
       return rows(cv);
     }
     case 'oneEye': {
       const cv = lying('one');
-      boxed(cv, 20, 15, 8, 8, 'a', 'v');
-      rect(cv, 21, 16, 6, 1, 'w');
+      mangaOnFace(cv, 24, 24);
       return rows(cv);
     }
     case 'bothEyes':
@@ -378,11 +524,29 @@ export function sleeperFrame(frame: SleepFrame): string[] {
     case 'rise':
       return rows(risen());
     case 'sitUp':
-      return rows(seated('wide', 0, false));
+      return rows(seated('wide', 'rest'));
     case 'awake0':
-      return rows(seated('grin', 1, false));
-    default:
-      return rows(seated('grin', 2, false));
+      return rows(seated('grin', 'wave0'));
+    case 'awake1':
+      return rows(seated('talk', 'wave1'));
+    case 'lower':
+      return rows(seated('talk', 'lower'));
+    case 'sit0':
+      return rows(seated('calm', 'rest', { steam: 1 }));
+    case 'sit1':
+      return rows(seated('blink', 'rest', { steam: 2 }));
+    case 'reach':
+      return rows(seated('calm', 'reach', { lean: 5 }));
+    case 'read0':
+      return rows(seated('read', 'read', { steam: 1 }));
+    case 'read1':
+      return rows(seated('read', 'read', { steam: 2 }));
+    default: {
+      // lying back, the manga travelling up toward his face, eyes sliding shut
+      const cv = lying('drowse');
+      mangaOnFace(cv, 12, 20);
+      return rows(cv);
+    }
   }
 }
 
@@ -398,4 +562,11 @@ export const SLEEPER_GRIDS: Record<string, string[]> = {
   sleeperSitUp: sleeperFrame('sitUp'),
   sleeperAwake: sleeperFrame('awake0'),
   sleeperAwake1: sleeperFrame('awake1'),
+  sleeperLower: sleeperFrame('lower'),
+  sleeperSit0: sleeperFrame('sit0'),
+  sleeperSit1: sleeperFrame('sit1'),
+  sleeperReach: sleeperFrame('reach'),
+  sleeperRead0: sleeperFrame('read0'),
+  sleeperRead1: sleeperFrame('read1'),
+  sleeperLayBack: sleeperFrame('layBack'),
 };
