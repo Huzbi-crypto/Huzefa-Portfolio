@@ -210,8 +210,8 @@ const HEAD_RIGHT = [
   '...abEEEabbvva..',
   '...abEEEavvvva..',
   '...abEEEavvava..',
-  '...abEEEavvvvva.',
-  '....aaaaavvwa...',
+  '...abEEEavvvwa..',
+  '....aaaaavvava..',
   '.......aaawwa...',
 ];
 

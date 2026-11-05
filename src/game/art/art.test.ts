@@ -87,6 +87,17 @@ describe('sprites', () => {
     }
   });
 
+  it('visitor_side_profile_has_a_subtle_nose_instead_of_a_beak', () => {
+    const rows = SPRITE_GRIDS['visitor-right-0'];
+    const rightEdge = (y: number): number =>
+      Math.max(...[...rows[y]].map((c, x) => (c === '.' ? -1 : x)));
+    // The forehead, eye, nose and mouth rows share one face plane: nothing pokes out.
+    const edges = [5, 6, 7, 8, 9].map(rightEdge);
+    expect(new Set(edges).size, `profile edges ${edges.join(',')}`).toBe(1);
+    // A one-pixel shadow at the face edge keeps the nose readable.
+    expect(rows[8][12], 'nose shadow').toBe('w');
+  });
+
   it('visitor_has_an_idle_beat_in_every_direction_and_a_walk_that_moves', () => {
     for (const dir of ['up', 'down', 'left', 'right']) {
       const idle = SPRITES[`visitor-${dir}-idle`];
