@@ -5,6 +5,7 @@ import { personalInfo } from '../../src/data/personal';
 import { projects } from '../../src/data/projects';
 import { copy } from '../../src/game/content/copy';
 import { allStarIds, starTotal } from '../../src/game/content/stars';
+import { VISITOR_GRIDS } from '../../src/game/art/sprites/visitor';
 import type { SceneId } from '../../src/game/scene/types';
 import { TILE } from '../../src/game/world/grid';
 
@@ -180,6 +181,21 @@ async function canvasPixel(page: Page, x: number, y: number): Promise<number> {
   );
 }
 
+/**
+ * The topmost pixel that stays ink in every standing frame for a direction.
+ * A fixed coordinate breaks when the idle beat nudges the loose tuft.
+ */
+function stableHeadPixel(frames: string[]): { x: number; y: number } {
+  const grids = frames.map((name) => VISITOR_GRIDS[name]);
+  for (let y = 0; y < grids[0].length; y += 1) {
+    for (let x = 0; x < grids[0][y].length; x += 1) {
+      const c = grids[0][y][x];
+      if (c !== '.' && grids.every((g) => g[y][x] === c)) return { x, y };
+    }
+  }
+  throw new Error(`no stable head pixel in ${frames.join(', ')}`);
+}
+
 /** Average RGB of a small canvas-pixel patch, for judging the lantern. */
 async function canvasBrightness(page: Page, x: number, y: number): Promise<number> {
   return page.evaluate(
@@ -342,9 +358,14 @@ test.describe('desktop journey at 1366 by 768', () => {
     fs.mkdirSync(FIX_DIR, { recursive: true });
     await page.screenshot({ path: path.join(FIX_DIR, 'doorway.png') });
 
-    // The top row of the visitor's head is ink. If the doorway glow paints
-    // over it, this pixel is the glow's bright amber instead.
-    const headTop = await canvasPixel(page, 35 - state.camera.x, 31 - state.camera.y);
+    // The top of the visitor's head is ink. Derive a pixel that stays ink in
+    // both standing frames, since the idle beat shifts the loose tuft, then
+    // apply the same sprite offset the dark scene uses. If the doorway glow
+    // paints over the head, this pixel is the glow's bright amber instead.
+    const head = stableHeadPixel(['visitor-up-0', 'visitor-up-idle']);
+    const spriteLeft = Math.round(state.x - 8 - state.camera.x);
+    const spriteTop = Math.round(state.y + 3 - 24 - state.camera.y);
+    const headTop = await canvasPixel(page, spriteLeft + head.x, spriteTop + head.y);
     expect(headTop, 'the top of the visitor head must be visible').toBeLessThan(150);
   });
 
