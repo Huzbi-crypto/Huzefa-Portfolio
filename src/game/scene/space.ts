@@ -74,6 +74,8 @@ export type SpaceDef = {
   /** Things that give off their own light, besides the lantern. */
   lights: Light[];
   drawBackdrop(g: CanvasRenderingContext2D, ctx: SceneCtx): void;
+  /** Optional per-frame hook, for a space with a life of its own. */
+  update?(ms: number, ctx: SceneCtx): void;
 };
 
 /**
@@ -453,6 +455,7 @@ export function createDarkSpace(def: SpaceDef, _store: GameStore): Scene {
 
     update(ms, ctx) {
       for (const exhibit of def.exhibits) exhibit.update(ms, ctx);
+      def.update?.(ms, ctx);
     },
 
     cancel() {

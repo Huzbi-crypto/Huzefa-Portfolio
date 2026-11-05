@@ -689,13 +689,23 @@ export const copy = {
     sleeper: {
       label: 'Look at the sleeper',
       look: [
-        'Huzbi, asleep on the sofa. Hoodie, headphones, hair going in every direction.',
+        'Huzbi, asleep on the sofa. Round glasses shoved up into a bush of hair, a cardigan the size of a small tent, headphones hung round their neck like a stethoscope.',
         'A manga lies open on their face, rising and falling with every breath.',
         'The tiny desk lamp is on. So is the whole mystery.',
       ],
       wakeLabel: 'WAKE THEM',
       leaveLabel: 'LET THEM SLEEP',
       leaveReply: ['Kind. The manga rises and falls. Nothing else happens, for a good while.'],
+      /** The same sofa, the second time round: they have clearly been up. */
+      lookAgain: [
+        'Huzbi, asleep again. The manga is back on their face and the glasses are back in the hair, as if nothing happened.',
+        'The tea on the arm of the sofa has stopped steaming. It has not stopped being tea.',
+      ],
+      stirAgain: ['You cough. This time it sounds a little like a doorbell.'],
+      slideAgain: ['The manga slides off again. It knows the way by now.'],
+      sitUpAgain: ['One eye. Then the other. This time there is recognition, and a sigh.'],
+      /** Said while they are mid-lean or mid-flop and cannot be talked to. */
+      busy: ['They are in the middle of a manoeuvre with a manga. Give them a second.'],
       /** Comic beats between the sleeping and the speaking; the scene plays them. */
       stir: ['You cough, politely.'],
       slide: ['The manga slides off and lands on the floor with a quiet, papery flop.'],
@@ -727,6 +737,47 @@ export const copy = {
       most: ['Oh. You again. Good to see you. Go find the rest of the stars, then I will say the nice thing.'],
       few: ['Mm. You again. Still more in the dark than you have found, you know.'],
     },
+    /** Woken a second time, or more: they remember you, and are not thrilled about the timing. */
+    rewake: {
+      opening: [
+        ['Oh. You again.', 'I was reading. I was *so* close to the good chapter.'],
+        ['...you again?', 'Give me five minutes. Five. I will be a person in five minutes.'],
+        ['Mm. Hello again.', 'I was reading, and then I was not, and I am still working out how that happened.'],
+      ],
+      afterWake: [
+        'Right. Since you are here again, the offer stands.',
+        'Real email, real links, still no mystery.',
+      ],
+    },
+
+    /** Huzbi sitting up with the manga: the reading loop is part of the room. */
+    reading: {
+      look: [
+        'Huzbi is sitting up, glasses on, manga held like a shield.',
+        'This is serious reading. A page turns with great dignity.',
+      ],
+      letLabel: 'LET THEM READ',
+      askLabel: 'ASK WHAT IT IS',
+      tapLabel: 'TAP THE PAGE',
+      letReply: [
+        ['You back away slowly. A page turns. Somewhere, a hero levels up.'],
+        ['You leave them to it. The reading continues, uninterrupted and a little smug.'],
+      ],
+      ask: [
+        ['"A man punches a problem until it leaves." They do not look up. "It is very good."'],
+        ['"Same one. It got better. I did not expect it to get better."'],
+        ['"If you ask again it becomes a different manga, out of spite."'],
+      ],
+      tap: [
+        'You tap the top of the page. One eye appears over the edge, enlarged by the glasses.',
+        '"I am awake. I am also reading. These are compatible."',
+        'The page lowers like a drawbridge. Did you want something, or was that just the tap?',
+      ],
+      sayHiLabel: 'SAY HI',
+      backLabel: 'BACK TO READING',
+      backReply: ['The eye withdraws. The page goes back up. Nothing ever happened.'],
+    },
+
     /** After the line: a real way to say hi. */
     afterWake: [
       'Anyway. Since you are here.',

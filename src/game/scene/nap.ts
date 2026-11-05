@@ -3,6 +3,7 @@ import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { drawSprite } from '@/game/render/sprite';
 import type { GameStore } from '@/game/state/store';
+import type { HuzbiPhase } from '@/game/state/huzbi';
 import { endingLine } from '@/game/state/story';
 import { TILE } from '@/game/world/grid';
 import { createDarkSpace, type SpaceDef, type SpaceProp } from './space';
@@ -32,7 +33,7 @@ const AT = {
 /** Where the moon door back to the Observatory hangs on the wall. */
 export const RETURN_DOOR_AT = { x: AT.exit.x, y: AT.exit.y } as const;
 
-type SleepPose = 'asleep' | 'stir' | 'slide' | 'sitUp' | 'awake';
+type SleepPose = HuzbiPhase;
 
 function sprite(name: string) {
   const found = SPRITES[name];
@@ -118,27 +119,31 @@ export function sleeperFrame(
     if (reducedMotion || elapsed > 3000) return 'sleeperAwake';
     return Math.floor(elapsed / 420) % 2 === 0 ? 'sleeperAwake' : 'sleeperAwake1';
   }
+  // After the talk: the hand lowers, he sits, leans for the manga, reads, lies back.
+  if (pose === 'lowering') return 'sleeperLower';
+  if (pose === 'sitting') return reducedMotion || t % 2400 < 2200 ? 'sleeperSit0' : 'sleeperSit1';
+  if (pose === 'reaching') return 'sleeperReach';
+  if (pose === 'reading') return reducedMotion || t % 3600 < 1800 ? 'sleeperRead0' : 'sleeperRead1';
+  if (pose === 'laying') return 'sleeperLayBack';
   if (reducedMotion) return 'sleeperAsleep0';
   return t % 1800 < 900 ? 'sleeperAsleep0' : 'sleeperAsleep1';
 }
 
-/** True once the manga has left his face and is lying on the floor. */
+/** True while the manga lies on the floor rather than on him or in his hands. */
 export function mangaOnFloor(pose: SleepPose, elapsed: number, reducedMotion: boolean): boolean {
-  if (pose === 'sitUp' || pose === 'awake') return true;
+  if (pose === 'sitUp' || pose === 'awake' || pose === 'lowering' || pose === 'sitting') return true;
+  if (pose === 'reaching') return reducedMotion || elapsed < 600;
   return pose === 'slide' && !reducedMotion && elapsed >= 700;
 }
 
-type PoseRef = { current: SleepPose; since: number | null };
+/** Huzbi's phase lives in the store, so it outlasts this scene. */
+type PoseRef = { store: GameStore };
+
+const phaseOf = (ref: PoseRef): SleepPose => ref.store.huzbi().phase;
+const elapsedOf = (ref: PoseRef): number => ref.store.huzbi().ms;
 
 function setPose(ref: PoseRef, pose: SleepPose): void {
-  ref.current = pose;
-  // The clock for the new pose starts at the next draw.
-  ref.since = null;
-}
-
-function poseElapsed(ref: PoseRef, t: number): number {
-  if (ref.since === null) ref.since = t;
-  return t - ref.since;
+  ref.store.setHuzbiPhase(pose);
 }
 
 function buildSleeperProp(ref: PoseRef): SpaceProp {
@@ -148,7 +153,7 @@ function buildSleeperProp(ref: PoseRef): SpaceProp {
     draw: (g, ctx) =>
       drawSprite(
         g,
-        sprite(sleeperFrame(ref.current, ctx.t, poseElapsed(ref, ctx.t), ctx.reducedMotion)),
+        sprite(sleeperFrame(phaseOf(ref), ctx.t, elapsedOf(ref), ctx.reducedMotion)),
         AT.sleeper.x,
         AT.sleeper.y,
       ),
@@ -168,7 +173,7 @@ function buildSleeperProp(ref: PoseRef): SpaceProp {
 
 const ENDING_RANK = { few: 1, most: 2, full: 3 } as const;
 
-async function contactBeat(api: GameApi): Promise<void> {
+async function contactBeat(api: GameApi, ref: PoseRef, woken: boolean): Promise<void> {
   const { store } = api;
   const { found, total } = store.getState();
   const line = endingLine(found.length, total);
@@ -177,14 +182,26 @@ async function contactBeat(api: GameApi): Promise<void> {
   // Coming back with more stars earns the proper version of the conversation,
   // not just the short "you again" line.
   const upgraded = previous !== null && ENDING_RANK[line] > ENDING_RANK[previous];
+  const proper = first || upgraded;
 
-  await store.say([
-    ...(first || upgraded ? copy.nap.wake[line] : copy.nap.again[line]),
-  ]);
+  // Woken again after the first time: he remembers, and wants five minutes.
+  const times = store.count('nap-rewake');
+  const opening = copy.nap.rewake.opening[times % copy.nap.rewake.opening.length];
+  if (!proper && woken) store.increment('nap-rewake');
+
+  await store.say(
+    proper
+      ? [...copy.nap.wake[line]]
+      : [...(woken ? opening : []), ...copy.nap.again[line]],
+  );
   store.markEndingSeen(line);
 
   const choice = await store.say(
-    [...copy.nap.afterWake, ...contactLines(), copy.nap.contact.lead],
+    [
+      ...(proper ? copy.nap.afterWake : copy.nap.rewake.afterWake),
+      ...contactLines(),
+      copy.nap.contact.lead,
+    ],
     [
       { id: 'say-hi', label: copy.nap.sayHiLabel },
       { id: 'leave-alone', label: copy.nap.leaveAloneLabel },
@@ -194,37 +211,99 @@ async function contactBeat(api: GameApi): Promise<void> {
   if (choice === 'say-hi') {
     setContactCardOpen(true);
     await store.say([...copy.nap.sayHiReply]);
+  } else {
+    await store.say([...copy.nap.leaveAloneReply]);
+  }
+  // The wave comes down; from here on he lives his own life. Already seated
+  // (a second chat while he sits) means the hand is down, so leave him be.
+  if (phaseOf(ref) === 'awake') setPose(ref, 'lowering');
+}
+
+/** Huzbi up with a manga: let him read, ask about it, or tap the page. */
+async function talkToReader(api: GameApi): Promise<void> {
+  const { store } = api;
+  const lines = copy.nap.reading;
+  const choice = await store.say([...lines.look], [
+    { id: 'let-read', label: lines.letLabel },
+    { id: 'ask', label: lines.askLabel },
+    { id: 'tap', label: lines.tapLabel },
+  ]);
+
+  if (choice === 'ask') {
+    const n = store.count('nap-reading-ask');
+    store.increment('nap-reading-ask');
+    await store.say([...lines.ask[n % lines.ask.length]]);
     return;
   }
-  await store.say([...copy.nap.leaveAloneReply]);
+
+  if (choice === 'tap') {
+    const next = await store.say([...lines.tap], [
+      { id: 'say-hi', label: lines.sayHiLabel },
+      { id: 'back', label: lines.backLabel },
+    ]);
+    if (next === 'say-hi') {
+      setContactCardOpen(true);
+      await store.say([...copy.nap.sayHiReply]);
+    } else {
+      await store.say([...lines.backReply]);
+    }
+    return;
+  }
+
+  const n = store.count('nap-reading-let');
+  store.increment('nap-reading-let');
+  await store.say([...lines.letReply[n % lines.letReply.length]]);
 }
 
 async function talkToSleeper(api: GameApi, ref: PoseRef): Promise<void> {
-  if (ref.current === 'awake') {
-    await contactBeat(api);
+  const phase = phaseOf(ref);
+  if (phase === 'reading') {
+    await talkToReader(api);
+    return;
+  }
+  if (phase === 'reaching' || phase === 'laying') {
+    await api.store.say([...copy.nap.sleeper.busy]);
+    return;
+  }
+  if (phase !== 'asleep') {
+    // Awake and sitting about: the conversation, not the wake-up.
+    await contactBeat(api, ref, false);
     return;
   }
 
-  const choice = await api.store.say([...copy.nap.sleeper.look], [
-    { id: 'wake', label: copy.nap.sleeper.wakeLabel },
-    { id: 'leave', label: copy.nap.sleeper.leaveLabel },
+  const again = api.store.seenEndingLine() !== null;
+  const sleeper = copy.nap.sleeper;
+  const choice = await api.store.say([...(again ? sleeper.lookAgain : sleeper.look)], [
+    { id: 'wake', label: sleeper.wakeLabel },
+    { id: 'leave', label: sleeper.leaveLabel },
   ]);
 
   if (choice !== 'wake') {
-    await api.store.say([...copy.nap.sleeper.leaveReply]);
+    await api.store.say([...sleeper.leaveReply]);
     return;
   }
 
   // Three comic beats, one line each, so the wake-up has time to land.
   setPose(ref, 'stir');
-  await api.store.say([...copy.nap.sleeper.stir]);
+  await api.store.say([...(again ? sleeper.stirAgain : sleeper.stir)]);
   setPose(ref, 'slide');
-  await api.store.say([...copy.nap.sleeper.slide]);
+  await api.store.say([...(again ? sleeper.slideAgain : sleeper.slide)]);
   setPose(ref, 'sitUp');
-  await api.store.say([...copy.nap.sleeper.sitUp]);
+  await api.store.say([...(again ? sleeper.sitUpAgain : sleeper.sitUp)]);
   setPose(ref, 'awake');
 
-  await contactBeat(api);
+  await contactBeat(api, ref, again);
+}
+
+/**
+ * Runs Huzbi's clock. Scripted phases only animate; the self-running ones
+ * wait while any dialogue is open so a chat is never cut off by his schedule.
+ */
+function tickHuzbi(store: GameStore, ms: number): void {
+  const { phase } = store.huzbi();
+  const scripted = phase === 'asleep' || phase === 'stir' || phase === 'slide' || phase === 'sitUp' || phase === 'awake';
+  if (!scripted && store.getState().dialogue !== null) return;
+  store.tickHuzbi(ms);
 }
 
 // --- drawing -----------------------------------------------------------------
@@ -327,7 +406,7 @@ function buildProps(ref: PoseRef): SpaceProp[] {
       footY: AT.fallen.y + 10,
       // It only lands on the floor once it has slid off the sleeper's face.
       draw: (g, ctx) => {
-        if (!mangaOnFloor(ref.current, poseElapsed(ref, ctx.t), ctx.reducedMotion)) return;
+        if (!mangaOnFloor(phaseOf(ref), elapsedOf(ref), ctx.reducedMotion)) return;
         drawSprite(g, sprite('napMangaFallen'), AT.fallen.x, AT.fallen.y);
       },
     },
@@ -391,15 +470,15 @@ function buildSpaceDef(ref: PoseRef): SpaceDef {
       { x: AT.window.x + 18, y: AT.window.y + 20, radius: 24, tint: 'cool' },
     ],
     drawBackdrop,
+    update: (ms) => tickHuzbi(ref.store, ms),
   };
 }
 
 export function createNap(store: GameStore): Scene {
-  // Coming back after the ending must not replay the comic wake-up beats.
-  const seen = store.seenEndingLine() !== null;
-  // A revisit starts already awake, with the wave long finished.
-  const ref: PoseRef = seen
-    ? { current: 'awake', since: Number.NEGATIVE_INFINITY }
-    : { current: 'asleep', since: null };
-  return createDarkSpace(buildSpaceDef(ref), store);
+  // Huzbi's phase lives in the store: coming back finds him reading or asleep,
+  // never replaying the first wake-up. Only a half-played wake-up is tidied.
+  const { phase } = store.huzbi();
+  if (phase === 'stir' || phase === 'slide' || phase === 'sitUp') store.setHuzbiPhase('asleep');
+  else if (phase === 'awake') store.setHuzbiPhase('lowering');
+  return createDarkSpace(buildSpaceDef({ store }), store);
 }

@@ -120,22 +120,23 @@ const TORSO_BACK = [
   '....aaaa',
 ].map(sym);
 
-/** One arm on the front/back views: sleeve down from the shoulder to a hand. */
-function armFV(g: Grid, side: 'l' | 'r', dy: number, back: boolean): void {
+/**
+ * One arm on the front/back views. The shoulder and sleeve stay planted; only
+ * the hand lifts a pixel on a step frame, so the walk never tears at the
+ * shoulder or makes the arm jump sideways.
+ */
+function armFV(g: Grid, side: 'l' | 'r', lift: number, back: boolean): void {
   const x = side === 'l' ? 2 : 12;
-  const rows = [
-    ['a', 'x', 'a'],
-    ['a', 'x', 'a'],
-    ['a', 'x', 'a'],
-    ['a', 'x', 'a'],
-    ['a', back ? 'x' : 'v', 'a'],
-    ['.', 'a', '.'],
-  ];
-  rows.forEach((r, j) => {
-    r.forEach((c, i) => {
-      if (c !== '.') put(g, x + i, 12 + dy + j, c);
-    });
-  });
+  for (let y = 12; y <= 15; y += 1) {
+    put(g, x, y, 'a');
+    put(g, x + 1, y, 'x');
+    put(g, x + 2, y, 'a');
+  }
+  const handY = 16 + lift;
+  put(g, x, handY, 'a');
+  put(g, x + 1, handY, back ? 'x' : 'v');
+  put(g, x + 2, handY, 'a');
+  put(g, x + 1, handY + 1, 'a');
 }
 
 function bodyFront(g: Grid, frame: Frame, handUp: boolean): void {
@@ -144,7 +145,7 @@ function bodyFront(g: Grid, frame: Frame, handUp: boolean): void {
     [6, 12, 'C'], [6, 13, 'C'], [9, 12, 'C'], [9, 13, 'C'], [9, 14, 'C'],
     [10, 14, 'r'], [11, 14, 'r'], [7, 15, 'a'], [8, 15, 'a'],
   ]);
-  const swing = frame === 1 ? [1, -1] : frame === 2 ? [-1, 1] : [0, 0];
+  const lift = frame === 1 ? [-1, 0] : frame === 2 ? [0, -1] : [0, 0];
   if (handUp) {
     // the viewer's left arm is up at the cup; handToCup draws it after the head
     for (let j = 0; j < 4; j += 1) {
@@ -152,9 +153,10 @@ function bodyFront(g: Grid, frame: Frame, handUp: boolean): void {
       put(g, 3, 14 + j, 'x');
       put(g, 4, 14 + j, 'a');
     }
+    armFV(g, 'r', 0, false);
   } else {
-    armFV(g, 'l', swing[0], false);
-    armFV(g, 'r', swing[1], false);
+    armFV(g, 'l', lift[0], false);
+    armFV(g, 'r', lift[1], false);
   }
 }
 
@@ -171,9 +173,9 @@ function bodyBack(g: Grid, frame: Frame): void {
   lay(g, 11, TORSO_BACK);
   // the hood, bunched behind the neck
   dots(g, [[7, 12, 'z'], [8, 12, 'z'], [6, 13, 'y'], [9, 13, 'y']]);
-  const swing = frame === 1 ? [1, -1] : frame === 2 ? [-1, 1] : [0, 0];
-  armFV(g, 'l', swing[0], true);
-  armFV(g, 'r', swing[1], true);
+  const lift = frame === 1 ? [-1, 0] : frame === 2 ? [0, -1] : [0, 0];
+  armFV(g, 'l', lift[0], true);
+  armFV(g, 'r', lift[1], true);
 }
 
 // --- legs: rows 17 to 23 ------------------------------------------------------
@@ -229,40 +231,40 @@ function sideBody(g: Grid, frame: Frame): void {
   lay(g, 0, HEAD_RIGHT);
   lay(g, 11, TORSO_RIGHT);
   dots(g, [[10, 12, 'C'], [10, 13, 'C'], [9, 15, 'r']]);
-  // the far arm swings behind the body, the near arm in front
+  // the far arm swings behind the body, the near arm in front; each keeps its
+  // shoulder planted and only the hand travels
   const near = frame === 1 ? -1 : frame === 2 ? 1 : 0;
   const far = -near;
-  for (let j = 0; j < 4; j += 1) put(g, 5 + far, 13 + j, 'y');
+  for (let j = 0; j < 4; j += 1) put(g, 5, 13 + j, 'y');
   put(g, 5 + far, 17, 'v');
   for (let j = 0; j < 5; j += 1) {
-    put(g, 7 + near, 12 + j, 'a');
-    put(g, 8 + near, 12 + j, j === 0 ? 'z' : 'x');
-    put(g, 9 + near, 12 + j, 'a');
+    put(g, 7, 12 + j, 'a');
+    put(g, 8, 12 + j, j === 0 ? 'z' : 'x');
+    put(g, 9, 12 + j, 'a');
   }
   dots(g, [[8 + near, 17, 'v'], [7 + near, 17, 'a'], [9 + near, 17, 'a'], [8 + near, 18, 'a']]);
 }
 
 function sideLegs(g: Grid, frame: Frame): void {
-  // legs overlap in the middle when standing and scissor when walking
-  const back = frame === 1 ? -3 : frame === 2 ? 3 : 0;
-  const front = -back;
-  const leg = (dx: number, tone: 'B' | 'y', lift: number): void => {
-    const x = 6 + dx;
-    for (let y = 17; y <= 20 - lift; y += 1) {
+  // the near leg steps two pixels forward or back; the far leg mirrors it, so
+  // both hips stay under the torso and the shoes never leave the ankles
+  const step = frame === 1 ? 2 : frame === 2 ? -2 : 0;
+  const leg = (x: number, lift: number): void => {
+    const bottom = 23 - lift;
+    for (let y = 17; y <= bottom - 2; y += 1) {
       put(g, x, y, 'a');
-      put(g, x + 1, y, tone === 'B' ? 'B' : 'B');
+      put(g, x + 1, y, 'B');
       put(g, x + 2, y, 'B');
       put(g, x + 3, y, 'a');
     }
-    const bottom = 23 - lift;
     for (let i = 0; i < 6; i += 1) {
-      put(g, x - 1 + i + 1, bottom - 1, i === 0 ? 'a' : i === 5 ? 'a' : 'C');
-      put(g, x - 1 + i + 1, bottom, 'a');
+      put(g, x - 1 + i, bottom - 1, i === 0 || i === 5 ? 'a' : 'C');
+      put(g, x - 1 + i, bottom, 'a');
     }
   };
-  leg(back, 'y', frame === 0 ? 0 : 1);
-  leg(front, 'B', 0);
-  for (let x = 5; x < 12; x += 1) put(g, x, 17, 'a');
+  leg(6 - step, step > 0 ? 1 : 0);
+  leg(6 + step, step < 0 ? 1 : 0);
+  for (let x = 4; x < 13; x += 1) put(g, x, 17, 'a');
 }
 
 // --- assembly ---------------------------------------------------------------
@@ -292,6 +294,12 @@ function buildRight(frame: Frame): string[] {
   return g.map((r) => r.join(''));
 }
 
+/** Nudge the loose top tuft one pixel without leaving a hole in the hair. */
+function flickTuft(g: Grid, from: number, to: number): void {
+  put(g, from, 0, '.');
+  put(g, to, 0, 'a');
+}
+
 /** The idle beat, one frame per direction: a hand straightens the cup, or the tuft bobs. */
 function idleFrame(facing: Facing): string[] {
   const g = blank();
@@ -300,17 +308,15 @@ function idleFrame(facing: Facing): string[] {
     bodyFront(g, 0, true);
     headFront(g);
     handToCup(g);
-    // the head tips a little toward the raised hand: the tuft slides over
-    dots(g, [[8, 0, '.'], [9, 0, 'a'], [10, 0, '.'], [11, 0, 'a']]);
   } else if (facing === 'up') {
     legsFV(g, 0);
     bodyBack(g, 0);
     headBack(g);
-    dots(g, [[8, 0, '.'], [9, 0, 'a'], [10, 0, '.'], [11, 0, 'a']]);
+    flickTuft(g, 7, 9);
   } else {
     sideLegs(g, 0);
     sideBody(g, 0);
-    dots(g, [[6, 0, 'a'], [7, 0, '.'], [8, 0, 'a'], [9, 0, 'a']]);
+    flickTuft(g, 6, 8);
   }
   return g.map((r) => r.join(''));
 }

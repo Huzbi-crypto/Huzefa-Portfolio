@@ -12,6 +12,7 @@ import {
   saveProgress,
   type Progress,
 } from './progress';
+import { initialHuzbi, stepHuzbi, type HuzbiPhase, type HuzbiState } from './huzbi';
 import {
   hasClue as hasClueIn,
   markClue as markClueIn,
@@ -52,6 +53,11 @@ export type GameStore = {
   markEndingSeen(line: EndingLine): void;
   seenEndingLine(): EndingLine | null;
   setDoorOpened(): void;
+  /** Huzbi's current phase on the sofa; kept here so it outlives the nap scene. */
+  huzbi(): HuzbiState;
+  setHuzbiPhase(phase: HuzbiPhase): void;
+  /** Runs his clock on; the self-running phases move themselves. */
+  tickHuzbi(ms: number): void;
   /** Remembers whether sound should play. Never starts it by itself. */
   setSound(v: boolean): void;
   setReducedMotion(v: boolean): void;
@@ -71,6 +77,7 @@ export function createStore(storage: Storage | null): GameStore {
   let dialogue: DialogueState | null = null;
   let reducedMotion = false;
   let project: string | null = null;
+  let huzbi: HuzbiState = initialHuzbi();
   let settleSay: ((value: string | undefined) => void) | null = null;
   let settleProject: (() => void) | null = null;
 
@@ -204,6 +211,18 @@ export function createStore(storage: Storage | null): GameStore {
 
     seenEndingLine(): EndingLine | null {
       return seenEndingLineIn(progress);
+    },
+
+    huzbi(): HuzbiState {
+      return { ...huzbi };
+    },
+
+    setHuzbiPhase(phase: HuzbiPhase): void {
+      huzbi = { phase, ms: 0 };
+    },
+
+    tickHuzbi(ms: number): void {
+      huzbi = stepHuzbi(huzbi, ms);
     },
 
     setDoorOpened(): void {

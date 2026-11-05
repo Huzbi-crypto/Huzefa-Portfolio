@@ -71,6 +71,8 @@ export function setGameTheme(theme: keyof typeof PALETTES): void {
  * standing still shows frame 0, except for a short idle beat every few seconds
  * (a hand to the headphones, or the tuft bobbing). Reduced motion never beats.
  */
+const WALK_FRAME_MS = 150; // nine 60fps repaints per frame, so the loop never stutters
+
 export function visitorSpriteName(
   facing: string,
   moving: boolean,
@@ -80,7 +82,7 @@ export function visitorSpriteName(
 ): string {
   if (moving) {
     const frames = ANIMS[`visitor-${facing}`];
-    return frames[Math.floor(walkMs / 130) % frames.length];
+    return frames[Math.floor(walkMs / WALK_FRAME_MS) % frames.length];
   }
   const beat = !reducedMotion && t % 7000 > 6300;
   return beat ? `visitor-${facing}-idle` : `visitor-${facing}-0`;
