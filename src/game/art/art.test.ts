@@ -92,10 +92,10 @@ describe('sprites', () => {
     const rightEdge = (y: number): number =>
       Math.max(...[...rows[y]].map((c, x) => (c === '.' ? -1 : x)));
     // The forehead, eye, nose and mouth rows share one face plane: nothing pokes out.
-    const edges = [5, 6, 7, 8, 9].map(rightEdge);
+    const edges = [4, 5, 6, 7].map(rightEdge);
     expect(new Set(edges).size, `profile edges ${edges.join(',')}`).toBe(1);
     // A one-pixel shadow at the face edge keeps the nose readable.
-    expect(rows[8][12], 'nose shadow').toBe('w');
+    expect(rows[6][12], 'nose shadow').toBe('w');
   });
 
   it('visitor_has_an_idle_beat_in_every_direction_and_a_walk_that_moves', () => {
@@ -136,8 +136,7 @@ describe('sprites', () => {
   it('visitor_shoulders_and_sleeves_stay_planted_between_walk_frames', () => {
     for (const dir of ['down', 'up', 'left', 'right']) {
       const frames = ANIMS[`visitor-${dir}`];
-      const side = dir === 'left' || dir === 'right';
-      const band = side ? [12, 13, 14, 15, 16] : [12, 13, 14];
+      const band = [10, 11, 12, 13];
       const baseline = band.map((y) => SPRITE_GRIDS[frames[0]][y]);
       for (const name of frames.slice(1)) {
         expect(band.map((y) => SPRITE_GRIDS[name][y]), `${dir}/${name}`).toEqual(baseline);
@@ -150,16 +149,20 @@ describe('sprites', () => {
       if (!name.startsWith('visitor-')) continue;
       for (let y = 20; y < 24; y += 1) {
         [...rows[y]].forEach((c, x) => {
-          if (c === 'C') expect(rows[y - 1][x], `${name} shoe at ${x},${y}`).not.toBe('.');
+          if (c === 'C') {
+            // a toe may reach past the leg, but then it rests on the shoe's own heel
+            const held = rows[y - 1][x] !== '.' || rows[y][x - 1] !== '.';
+            expect(held, `${name} shoe at ${x},${y}`).toBe(true);
+          }
         });
       }
     }
   });
 
   it('visitor_idle_beat_blinks_and_bobs_without_moving_the_body', () => {
-    expect(SPRITE_GRIDS['visitor-down-idle'][7][6]).toBe('w');
-    expect(SPRITE_GRIDS['visitor-down-idle'][7][9]).toBe('w');
-    expect(SPRITE_GRIDS['visitor-right-idle'][7][11]).toBe('w');
+    expect(SPRITE_GRIDS['visitor-down-idle'][5][6]).toBe('w');
+    expect(SPRITE_GRIDS['visitor-down-idle'][5][9]).toBe('w');
+    expect(SPRITE_GRIDS['visitor-right-idle'][5][11]).toBe('w');
     expect(SPRITE_GRIDS['visitor-down-idle'].slice(8)).toEqual(SPRITE_GRIDS['visitor-down-0'].slice(8));
   });
 

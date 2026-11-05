@@ -1,5 +1,5 @@
 /**
- * Huzbi, the player: a lanky, slightly slouched programmer. Fixed traits from
+ * The player: a lanky, slightly slouched programmer. Fixed traits from
  * the spec (a human in a hoodie and headphones with messy dark hair), then a
  * shape language of his own:
  *
@@ -46,62 +46,59 @@ function dots(g: Grid, list: [number, number, string][]): void {
   for (const [x, y, c] of list) put(g, x, y, c);
 }
 
-// --- front and back heads: rows 0 to 10 ---------------------------------------
+// --- front and back heads: rows 0 to 8 ----------------------------------------
+// A compact head: nine rows including the tuft, 14 wide with the cups.
 
 const HEAD_FRONT = [
   '........',
   '.....aab',
   '...aabbb',
-  '..abbbbb',
   '..aAAAAA',
   '.aEEabbv',
-  '.aEEavvv',
   '.aEEavav',
-  '.aEEavwv',
-  '.aaaavvv',
-  '....aaww',
+  '.aEEavvv',
+  '.aEEavvv',
+  '.aaaaaaa',
 ].map(sym);
 
 const HEAD_BACK = [
   '........',
   '.....aab',
   '...aabbb',
-  '..abbbbb',
   '..aAAAAA',
   '.aEEabbb',
   '.aEEabbb',
   '.aEEabbc',
   '.aEEabbb',
   '.aaaaabb',
-  '....aabb',
 ].map(sym);
 
-function headFront(g: Grid, dy = 0): void {
-  lay(g, dy, HEAD_FRONT);
+function headFront(g: Grid): void {
+  lay(g, 0, HEAD_FRONT);
   dots(g, [
-    // the tuft that never lies flat, and a loose strand
-    [7, dy, 'a'], [8, dy, 'a'], [10, dy, 'a'], [8, 1 + dy, 'b'], [9, 1 + dy, 'a'], [10, 1 + dy, 'b'],
-    [12, 1 + dy, 'a'], [11, 2 + dy, 'a'], [12, 2 + dy, 'a'],
-    // a side lock over the right eye, a crooked tired smile
-    [10, 5 + dy, 'b'], [10, 6 + dy, 'b'], [5, 5 + dy, 'v'], [7, 9 + dy, 'w'], [8, 9 + dy, 'w'], [9, 9 + dy, 'v'], [6, 9 + dy, 'v'],
+    // the tuft that never lies flat
+    [7, 0, 'a'], [8, 0, 'a'], [10, 0, 'a'],
+    // a side lock over the right eye, a small tired smile
+    [10, 4, 'b'], [10, 5, 'b'], [5, 4, 'v'], [7, 7, 'w'], [8, 7, 'w'],
     // cup shine
-    [2, 5 + dy, 'A'], [12, 5 + dy, 'A'],
+    [2, 4, 'A'], [13, 4, 'A'],
   ]);
 }
 
-function headBack(g: Grid, dy = 0): void {
-  lay(g, dy, HEAD_BACK);
+function headBack(g: Grid): void {
+  lay(g, 0, HEAD_BACK);
   dots(g, [
-    [7, dy, 'a'], [8, dy, 'a'], [10, dy, 'a'], [8, 1 + dy, 'b'], [9, 1 + dy, 'a'], [10, 1 + dy, 'b'],
-    [12, 1 + dy, 'a'], [11, 2 + dy, 'a'], [12, 2 + dy, 'a'],
-    [6, 7 + dy, 'c'], [9, 6 + dy, 'c'], [7, 5 + dy, 'c'], [10, 8 + dy, 'c'], [5, 8 + dy, 'c'], [2, 5 + dy, 'A'], [12, 5 + dy, 'A'],
+    [7, 0, 'a'], [8, 0, 'a'], [10, 0, 'a'],
+    [6, 6, 'c'], [9, 5, 'c'], [7, 4, 'c'], [10, 7, 'c'], [2, 4, 'A'], [13, 4, 'A'],
   ]);
 }
 
-// --- front and back bodies -----------------------------------------------------
+// --- front and back bodies: rows 9 to 16 -------------------------------------
+// The torso is six columns of hoodie between two ink edges. Each arm is a
+// two-column sleeve with its own ink edges, identical left and right.
 
 const TORSO_FRONT = [
-  '...axzzx',
+  '....axzz',
   '....axxx',
   '....axxx',
   '....axxx',
@@ -111,7 +108,7 @@ const TORSO_FRONT = [
 ].map(sym);
 
 const TORSO_BACK = [
-  '...axzzx',
+  '....axzz',
   '....axxx',
   '....axxx',
   '....axxz',
@@ -121,29 +118,34 @@ const TORSO_BACK = [
 ].map(sym);
 
 /**
- * One arm on the front/back views. The shoulder and sleeve stay planted; only
- * the hand lifts a pixel on a step frame, so the walk never tears at the
- * shoulder or makes the arm jump sideways.
+ * One arm on the front/back views: outline, two sleeve columns, outline. The
+ * shoulder and sleeve stay planted; only the hand lifts a pixel on a step
+ * frame, so the walk never tears the arm or sends it sideways.
  */
 function armFV(g: Grid, side: 'l' | 'r', lift: number, back: boolean): void {
-  const x = side === 'l' ? 2 : 12;
-  for (let y = 12; y <= 15; y += 1) {
+  const x = side === 'l' ? 1 : 11;
+  const inner = side === 'l' ? ['x', 'y'] : ['y', 'x'];
+  for (let i = 0; i < 4; i += 1) put(g, x + i, 9, 'a');
+  const handY = 15 + lift;
+  for (let y = 10; y < handY; y += 1) {
     put(g, x, y, 'a');
-    put(g, x + 1, y, 'x');
-    put(g, x + 2, y, 'a');
+    put(g, x + 1, y, inner[0]);
+    put(g, x + 2, y, inner[1]);
+    put(g, x + 3, y, 'a');
   }
-  const handY = 16 + lift;
   put(g, x, handY, 'a');
-  put(g, x + 1, handY, back ? 'x' : 'v');
-  put(g, x + 2, handY, 'a');
-  put(g, x + 1, handY + 1, 'a');
+  put(g, x + 1, handY, back ? inner[0] : 'v');
+  put(g, x + 2, handY, back ? inner[1] : 'v');
+  put(g, x + 3, handY, 'a');
+  for (let i = 1; i < 4; i += 1) put(g, side === 'l' ? x + i - 1 : x + i, handY + 1, 'a');
 }
 
 function bodyFront(g: Grid, frame: Frame): void {
-  lay(g, 11, TORSO_FRONT);
+  lay(g, 9, TORSO_FRONT);
   dots(g, [
-    [6, 12, 'C'], [6, 13, 'C'], [9, 12, 'C'], [9, 13, 'C'], [9, 14, 'C'],
-    [10, 14, 'r'], [11, 14, 'r'], [7, 15, 'a'], [8, 15, 'a'],
+    // drawstrings, a cat pin on the left chest, a pocket seam
+    [6, 10, 'C'], [6, 11, 'C'], [9, 10, 'C'], [9, 11, 'C'], [9, 12, 'C'],
+    [9, 13, 'r'], [10, 13, 'r'], [10, 12, 'r'], [7, 14, 'a'], [8, 14, 'a'],
   ]);
   const lift = frame === 1 ? [-1, 0] : frame === 2 ? [0, -1] : [0, 0];
   armFV(g, 'l', lift[0], false);
@@ -152,28 +154,28 @@ function bodyFront(g: Grid, frame: Frame): void {
 
 /** The idle blink: the ink eye becomes a softer lid for one beat. */
 function blinkFront(g: Grid): void {
-  dots(g, [[6, 7, 'w'], [9, 7, 'w']]);
+  dots(g, [[6, 5, 'w'], [9, 5, 'w']]);
 }
 
 function blinkSide(g: Grid): void {
-  put(g, 11, 7, 'w');
+  put(g, 11, 5, 'w');
 }
 
 function bodyBack(g: Grid, frame: Frame): void {
-  lay(g, 11, TORSO_BACK);
+  lay(g, 9, TORSO_BACK);
   // the hood, bunched behind the neck
-  dots(g, [[7, 12, 'z'], [8, 12, 'z'], [6, 13, 'y'], [9, 13, 'y']]);
+  dots(g, [[7, 10, 'z'], [8, 10, 'z'], [6, 11, 'y'], [9, 11, 'y']]);
   const lift = frame === 1 ? [-1, 0] : frame === 2 ? [0, -1] : [0, 0];
   armFV(g, 'l', lift[0], true);
   armFV(g, 'r', lift[1], true);
 }
 
-// --- legs: rows 17 to 23 ------------------------------------------------------
+// --- legs: rows 16 to 23 ------------------------------------------------------
 
 /** One leg and its shoe, `lift` rows off the floor. */
 function legFV(g: Grid, x: number, lift: number): void {
   const bottom = 23 - lift;
-  for (let y = 17; y <= bottom - 2; y += 1) {
+  for (let y = 16; y <= bottom - 2; y += 1) {
     put(g, x, y, 'a');
     put(g, x + 1, y, 'B');
     put(g, x + 2, y, 'B');
@@ -185,76 +187,78 @@ function legFV(g: Grid, x: number, lift: number): void {
 }
 
 function legsFV(g: Grid, frame: Frame): void {
-  // the torso hem is row 17; jeans start straight under it
   legFV(g, 4, frame === 1 ? 1 : 0);
   legFV(g, 8, frame === 2 ? 1 : 0);
-  for (let x = 4; x < 12; x += 1) put(g, x, 17, 'a');
 }
 
 // --- the right-facing side view ---------------------------------------------
 
 const HEAD_RIGHT = [
-  '......aa........',
-  '.....abba.a.....',
-  '....abbbbbba....',
-  '...abbbbbbbbaa..',
+  '................',
+  '.....aabbaa.....',
+  '....aabbbbbba...',
   '...abAAAAAAAba..',
   '...abEEEabbvva..',
-  '...abEEEavvvva..',
   '...abEEEavvava..',
   '...abEEEavvvwa..',
-  '....aaaaavvava..',
-  '.......aaawwa...',
+  '...abEEEavvwva..',
+  '....aaaaaaaaa...',
 ];
 
 const TORSO_RIGHT = [
-  '.....axzxxa.....',
+  '....axzzzzxa....',
   '....axxxxxxa....',
   '....axxxxxxa....',
   '....axxxxxxa....',
-  '....axxxyyya....',
-  '....axxyyyya....',
-  '.....aaaaaaa....',
+  '....ayxxxyya....',
+  '....ayxxxyya....',
+  '....aaaaaaaa....',
 ];
 
 function sideBody(g: Grid, frame: Frame): void {
   lay(g, 0, HEAD_RIGHT);
-  lay(g, 11, TORSO_RIGHT);
-  dots(g, [[10, 12, 'C'], [10, 13, 'C'], [9, 15, 'r']]);
-  // the far arm swings behind the body, the near arm in front; each keeps its
-  // shoulder planted and only the hand travels
+  lay(g, 9, TORSO_RIGHT);
+  dots(g, [
+    [7, 0, 'a'], [8, 0, 'a'], [10, 0, 'a'],
+    [10, 10, 'C'], [10, 11, 'C'], [10, 13, 'r'],
+  ]);
+  // the near arm hangs in front of the torso: outline, sleeve, outline. Its
+  // shoulder stays planted and only the hand travels a pixel.
   const near = frame === 1 ? -1 : frame === 2 ? 1 : 0;
-  const far = -near;
-  for (let j = 0; j < 4; j += 1) put(g, 5, 13 + j, 'y');
-  put(g, 5 + far, 17, 'v');
-  for (let j = 0; j < 5; j += 1) {
-    put(g, 7, 12 + j, 'a');
-    put(g, 8, 12 + j, j === 0 ? 'z' : 'x');
-    put(g, 9, 12 + j, 'a');
+  for (let y = 10; y <= 14; y += 1) {
+    put(g, 6, y, 'a');
+    put(g, 7, y, 'x');
+    put(g, 8, y, 'z');
+    put(g, 9, y, 'a');
   }
-  dots(g, [[8 + near, 17, 'v'], [7 + near, 17, 'a'], [9 + near, 17, 'a'], [8 + near, 18, 'a']]);
+  for (let x = 6; x <= 9; x += 1) put(g, x, 9, 'a');
+  dots(g, [
+    [6 + near, 15, 'a'], [7 + near, 15, 'v'], [8 + near, 15, 'v'], [9 + near, 15, 'a'],
+    [6 + near, 16, 'a'], [7 + near, 16, 'a'], [8 + near, 16, 'a'],
+  ]);
 }
 
 function sideLegs(g: Grid, frame: Frame): void {
-  // the near leg steps two pixels forward or back; the far leg mirrors it, so
-  // both hips stay under the torso and the shoes never leave the ankles
-  const step = frame === 1 ? 2 : frame === 2 ? -2 : 0;
-  const leg = (x: number, lift: number): void => {
+  // two legs always show: the far one a shade lighter, the near one in front.
+  // Standing they sit three columns apart; walking they open to five, and swap
+  // on the other step. The shoes point right.
+  const [far, near, lifted] =
+    frame === 1 ? [3, 8, 0] : frame === 2 ? [8, 3, 1] : [4, 7, -1];
+  const leg = (x: number, lift: number, fill: string): void => {
     const bottom = 23 - lift;
-    for (let y = 17; y <= bottom - 2; y += 1) {
+    for (let y = 16; y <= bottom - 2; y += 1) {
       put(g, x, y, 'a');
-      put(g, x + 1, y, 'B');
-      put(g, x + 2, y, 'B');
+      put(g, x + 1, y, fill);
+      put(g, x + 2, y, fill);
       put(g, x + 3, y, 'a');
     }
     for (let i = 0; i < 6; i += 1) {
-      put(g, x - 1 + i, bottom - 1, i === 0 || i === 5 ? 'a' : 'C');
-      put(g, x - 1 + i, bottom, 'a');
+      put(g, x + i, bottom - 1, i === 0 || i === 5 ? 'a' : 'C');
+      put(g, x + i, bottom, 'a');
     }
   };
-  leg(6 - step, step > 0 ? 1 : 0);
-  leg(6 + step, step < 0 ? 1 : 0);
-  for (let x = 4; x < 13; x += 1) put(g, x, 17, 'a');
+  leg(far, lifted === 0 ? 1 : 0, 'A');
+  leg(near, lifted === 1 ? 1 : 0, 'B');
 }
 
 // --- assembly ---------------------------------------------------------------
@@ -308,7 +312,7 @@ function idleFrame(facing: Facing): string[] {
     sideLegs(g, 0);
     sideBody(g, 0);
     blinkSide(g);
-    flickTuft(g, 6, 8);
+    flickTuft(g, 7, 9);
   }
   return g.map((r) => r.join(''));
 }
