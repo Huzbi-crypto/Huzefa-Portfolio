@@ -182,10 +182,10 @@ const HEAD_BASE = [
 function head(cv: Canvas, x: number, y: number, face: Face): void {
   lay(cv, x, y, HEAD_BASE, 11);
   const p = (dx: number, dy: number, c: string): void => plot(cv, x + dx, y + dy, c);
-  const mouth = (c: string, d = 0): void => {
-    p(4, 9 + d, c);
-    p(5, 9 + d, c);
-    p(6, 9 + d, c);
+  /** At most 2px wide and 1px tall, below the nose and clear of the lenses. */
+  const mouth = (left: string, right: string = left): void => {
+    p(4, 9, left);
+    p(5, 9, right);
   };
 
   // glasses: two round amber rings and a bridge, on the nose or pushed up in the hair
@@ -239,43 +239,32 @@ function head(cv: Canvas, x: number, y: number, face: Face): void {
       glassesUp();
       bare('rub', 'shut');
       mouth('w');
-      p(5, 8, 'a');
       break;
     case 'one':
       glassesUp();
       bare('open', 'shut');
-      p(4, 9, 'a');
-      p(5, 9, 'l');
-      p(6, 9, 'a');
+      mouth('a', 'l');
       break;
     case 'wide':
       glassesUp();
       bare('open', 'open');
       for (const dx of [2, 3, 7, 8]) p(dx, 4, 'a');
-      p(5, 9, 'a');
+      mouth('a', 'w');
       break;
     case 'wideOn':
       glassesOn();
       lens('C', 'C');
-      mouth('w');
+      mouth('a');
       break;
     case 'grin':
       glassesOn();
       lens('a', 'a');
-      p(3, 8, 'a');
-      p(7, 8, 'a');
-      p(3, 9, 'a');
-      p(4, 9, 'C');
-      p(5, 9, 'C');
-      p(6, 9, 'C');
-      p(7, 9, 'a');
+      mouth('C', 'C');
       break;
     case 'talk':
       glassesOn();
       lens('a', 'a');
-      p(4, 9, 'a');
-      p(5, 9, 'l');
-      p(6, 9, 'a');
+      mouth('a', 'l');
       break;
     case 'blink':
       glassesOn();
