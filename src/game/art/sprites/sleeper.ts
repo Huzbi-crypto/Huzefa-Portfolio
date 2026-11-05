@@ -38,7 +38,8 @@ export type SleepFrame =
   | 'lower1'
   | 'sit0'
   | 'sit1'
-  | 'reach'
+  | 'reach0'
+  | 'reach1'
   | 'read0'
   | 'read1'
   | 'layBack0'
@@ -373,18 +374,22 @@ function legsSeated(cv: Canvas, x: number): void {
   }
 }
 
-type Arms = 'rest' | 'wave0' | 'wave1' | 'lower0' | 'lower1' | 'read' | 'reach';
+type Arms = 'rest' | 'wave0' | 'wave1' | 'lower0' | 'lower1' | 'read' | 'reach0' | 'reach1';
+
+/** Where the manga lies on the seat once it has slid off his face: within an arm's reach. */
+const SEAT_MANGA = { x: 13, y: 32 } as const;
 
 function seated(
   face: Face,
   arms: Arms,
-  opts: { lean?: number; dy?: number; steam?: 0 | 1 | 2; flip?: boolean; headDy?: number } = {},
+  opts: { lean?: number; dy?: number; steam?: 0 | 1 | 2; flip?: boolean; headDy?: number; seatManga?: boolean } = {},
 ): Canvas {
   const cv = blank(SLEEPER.w, SLEEPER.h);
   const lean = opts.lean ?? 0;
   const dy = opts.dy ?? 0;
   sofaBody(cv);
   mugOnArm(cv, opts.steam ?? 0);
+  if (opts.seatManga) mangaOnFace(cv, SEAT_MANGA.x, SEAT_MANGA.y);
   legsSeated(cv, 26);
   seatedTorso(cv, 26 - lean, 23 + dy);
 
@@ -434,13 +439,22 @@ function seated(
       sleeve(24, 25, 6);
       sleeve(38, 25, 6);
       break;
-    case 'reach':
-      // leaning forward: the far arm on his knee, the near arm down to the floor
+    case 'reach0':
+    case 'reach1': {
+      // leaning a little toward the manga on the seat; the far arm rests, the near hand goes to the book
       sleeve(38 - lean, 25 + dy, 9);
       hand(38 - lean, 34 + dy);
-      limb(cv, [[28 - lean, 29 + dy], [16, 36], [6, 42]], 1.6, 'j', 'k');
-      lay(cv, 2, 42, ['.aaa.', 'avvva', 'avvva', '.aaa.'], 5);
+      if (arms === 'reach0') {
+        limb(cv, [[25 - lean, 27], [22, 31], [21, 33]], 1.5, 'j', 'k');
+        lay(cv, 19, 32, ['avva', 'avwa'], 4);
+      } else {
+        // the book comes up off the seat in his hand
+        limb(cv, [[25 - lean, 27], [23, 31], [22, 31]], 1.5, 'j', 'k');
+        mangaOnFace(cv, 14, 27);
+        lay(cv, 20, 31, ['avva', 'avwa'], 4);
+      }
       break;
+    }
   }
 
   head(cv, 27 - lean, 12 + dy + (opts.headDy ?? 0), face);
@@ -568,34 +582,42 @@ export function sleeperFrame(frame: SleepFrame): string[] {
     case 'slide': {
       // the manga skids off his face and down his chest; eyes screwed shut
       const cv = lying('rub', { hand: 'belly' });
-      mangaOnFace(cv, 10, 31);
+      mangaOnFace(cv, SEAT_MANGA.x - 3, SEAT_MANGA.y - 1);
       return rows(cv);
     }
     case 'oneEye': {
       const cv = lying('one', { hand: 'belly' });
-      mangaOnFace(cv, 12, 31);
+      mangaOnFace(cv, SEAT_MANGA.x - 1, SEAT_MANGA.y - 1);
       return rows(cv);
     }
-    case 'bothEyes':
-      return rows(lying('wide', { hand: 'belly' }));
-    case 'rise':
-      return rows(risen());
+    case 'bothEyes': {
+      const cv = lying('wide', { hand: 'belly' });
+      mangaOnFace(cv, SEAT_MANGA.x, SEAT_MANGA.y);
+      return rows(cv);
+    }
+    case 'rise': {
+      const cv = risen();
+      mangaOnFace(cv, SEAT_MANGA.x, SEAT_MANGA.y);
+      return rows(cv);
+    }
     case 'sitUp':
-      return rows(seated('wideOn', 'rest'));
+      return rows(seated('wideOn', 'rest', { seatManga: true }));
     case 'awake0':
-      return rows(seated('grin', 'wave0'));
+      return rows(seated('grin', 'wave0', { seatManga: true }));
     case 'awake1':
-      return rows(seated('talk', 'wave1'));
+      return rows(seated('talk', 'wave1', { seatManga: true }));
     case 'lower0':
-      return rows(seated('talk', 'lower0'));
+      return rows(seated('talk', 'lower0', { seatManga: true }));
     case 'lower1':
-      return rows(seated('calm', 'lower1'));
+      return rows(seated('calm', 'lower1', { seatManga: true }));
     case 'sit0':
-      return rows(seated('calm', 'rest', { steam: 1 }));
+      return rows(seated('calm', 'rest', { steam: 1, seatManga: true }));
     case 'sit1':
-      return rows(seated('blink', 'rest', { steam: 2, dy: 1, headDy: -1 }));
-    case 'reach':
-      return rows(seated('calm', 'reach', { lean: 8, headDy: 2 }));
+      return rows(seated('blink', 'rest', { steam: 2, dy: 1, headDy: -1, seatManga: true }));
+    case 'reach0':
+      return rows(seated('calm', 'reach0', { lean: 3, headDy: 1, seatManga: true }));
+    case 'reach1':
+      return rows(seated('calm', 'reach1', { lean: 2, headDy: 1 }));
     case 'read0':
       return rows(seated('read', 'read', { steam: 1 }));
     case 'read1':
@@ -632,7 +654,8 @@ export const SLEEPER_GRIDS: Record<string, string[]> = {
   sleeperLower1: sleeperFrame('lower1'),
   sleeperSit0: sleeperFrame('sit0'),
   sleeperSit1: sleeperFrame('sit1'),
-  sleeperReach: sleeperFrame('reach'),
+  sleeperReach: sleeperFrame('reach0'),
+  sleeperReach1: sleeperFrame('reach1'),
   sleeperRead0: sleeperFrame('read0'),
   sleeperRead1: sleeperFrame('read1'),
   sleeperLayBack: sleeperFrame('layBack0'),

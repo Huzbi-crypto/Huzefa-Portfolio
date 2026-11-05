@@ -25,7 +25,6 @@ const AT = {
   lampGlow: { x: 224, y: 100 },
   rug: { x: 112, y: 124 },
   manga: { x: 56, y: 112 },
-  fallen: { x: 110, y: 132 },
   mug: { x: 216, y: 152 },
   cat: { x: 292, y: 136 },
 } as const;
@@ -100,7 +99,7 @@ export function setContactCardOpen(open: boolean): void {
 /**
  * Which sleeper frame to draw. Each pose is a short run of frames played by the
  * time since the pose began, so the wake-up lands as comic beats: the visitor coughs and
- * Huzbi stirs and stretches, the manga skidding off, one eye then both, up on an elbow, sitting, a grin and a
+ * Huzbi stirs and stretches, the manga skidding off onto the seat, one eye then both, up on an elbow, sitting, a grin and a
  * wave. Reduced motion shows one still frame per pose instead.
  */
 export function sleeperFrame(
@@ -123,19 +122,13 @@ export function sleeperFrame(
   // Small pose swaps, not big moves: the wave drops, then the forearm settles.
   if (pose === 'lowering') return reducedMotion || elapsed < 450 ? 'sleeperLower' : 'sleeperLower1';
   if (pose === 'sitting') return reducedMotion || t % 2400 < 2200 ? 'sleeperSit0' : 'sleeperSit1';
-  if (pose === 'reaching') return 'sleeperReach';
+  // His hand goes to the manga lying on the seat, then lifts it.
+  if (pose === 'reaching') return reducedMotion || elapsed < 600 ? 'sleeperReach' : 'sleeperReach1';
   if (pose === 'reading') return reducedMotion || t % 3600 < 1800 ? 'sleeperRead0' : 'sleeperRead1';
   // One hand lifts the manga, then it settles onto his face.
   if (pose === 'laying') return reducedMotion || elapsed < 900 ? 'sleeperLayBack' : 'sleeperLayBack1';
   if (reducedMotion) return 'sleeperAsleep0';
   return t % 1800 < 900 ? 'sleeperAsleep0' : 'sleeperAsleep1';
-}
-
-/** True while the manga lies on the floor rather than on him or in his hands. */
-export function mangaOnFloor(pose: SleepPose, elapsed: number, reducedMotion: boolean): boolean {
-  if (pose === 'sitUp' || pose === 'awake' || pose === 'lowering' || pose === 'sitting') return true;
-  if (pose === 'reaching') return reducedMotion || elapsed < 600;
-  return pose === 'slide' && !reducedMotion && elapsed >= 700;
 }
 
 /** Huzbi's phase lives in the store, so it outlasts this scene. */
@@ -402,15 +395,6 @@ function buildProps(ref: PoseRef): SpaceProp[] {
       id: 'lamp',
       footY: AT.lamp.y + 34,
       draw: (g) => drawSprite(g, sprite('lamp'), AT.lamp.x, AT.lamp.y),
-    },
-    {
-      id: 'fallen-manga',
-      footY: AT.fallen.y + 10,
-      // It only lands on the floor once it has slid off the sleeper's face.
-      draw: (g, ctx) => {
-        if (!mangaOnFloor(phaseOf(ref), elapsedOf(ref), ctx.reducedMotion)) return;
-        drawSprite(g, sprite('napMangaFallen'), AT.fallen.x, AT.fallen.y);
-      },
     },
     {
       id: 'mug',

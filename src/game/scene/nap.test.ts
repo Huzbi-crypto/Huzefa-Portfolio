@@ -8,7 +8,7 @@ import { allStarIds } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
 import { findPath, TILE } from '@/game/world/grid';
 import { navMap } from './nav';
-import { CONTACT_LINKS, createNap, mailtoHref, mangaOnFloor, sleeperFrame } from './nap';
+import { CONTACT_LINKS, createNap, mailtoHref, sleeperFrame } from './nap';
 import {
   byId,
   coversPointer,
@@ -227,14 +227,17 @@ describe('the wake-up beats', () => {
     expect(sleeperFrame('slide', 0, 5000, true)).toBe('sleeperSlide');
     expect(sleeperFrame('sitUp', 0, 0, true)).toBe('sleeperSitUp');
     expect(sleeperFrame('awake', 0, 500, true)).toBe('sleeperAwake');
-    expect(mangaOnFloor('slide', 5000, true)).toBe(false);
   });
 
-  it('the_manga_lands_on_the_floor_only_after_it_slides_off', () => {
-    expect(mangaOnFloor('asleep', 0, false)).toBe(false);
-    expect(mangaOnFloor('slide', 100, false)).toBe(false);
-    expect(mangaOnFloor('slide', 800, false)).toBe(true);
-    expect(mangaOnFloor('awake', 0, false)).toBe(true);
+  it('the_manga_is_on_the_seat_before_he_reaches_for_it', () => {
+    // every frame from the slide to the reach already shows the book, so the hand picks it up
+    const book = (name: string) => SLEEPER_GRIDS[name].slice(32, 38).some((row) => row.slice(13, 24).includes('k'));
+    for (const name of ['sleeperBothEyes', 'sleeperRise', 'sleeperSitUp', 'sleeperAwake', 'sleeperLower1', 'sleeperSit0', 'sleeperReach']) {
+      expect(book(name), name).toBe(true);
+    }
+    expect(sleeperFrame('reaching', 0, 100, false)).toBe('sleeperReach');
+    expect(sleeperFrame('reaching', 0, 900, false)).toBe('sleeperReach1');
+    expect(sleeperFrame('reaching', 0, 900, true)).toBe('sleeperReach');
   });
 });
 
@@ -253,7 +256,7 @@ describe("Huzbi at the world's pixel scale", () => {
     let x0 = 64, x1 = -1, y0 = 46, y1 = -1;
     rows.forEach((row, y) => {
       [...row].forEach((c, x) => {
-        if (sofa.has(c) || (x >= 55 && y <= 22) || y < 8) return;
+        if (sofa.has(c) || (x >= 55 && y <= 22) || y < 8 || (x < 24 && y > 30 && c !== 'v')) return;
         if (c === 'a') return;
         x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
       });
@@ -453,11 +456,10 @@ describe('Huzbi after the conversation', () => {
     expect(() => env.scene.draw(fakeGraphics(), env.ctx())).not.toThrow();
   });
 
-  it('the_manga_leaves_the_floor_when_he_picks_it_up', () => {
-    expect(mangaOnFloor('sitting', 0, false)).toBe(true);
-    expect(mangaOnFloor('reaching', 100, false)).toBe(true);
-    expect(mangaOnFloor('reaching', 900, false)).toBe(false);
-    expect(mangaOnFloor('reading', 0, false)).toBe(false);
-    expect(mangaOnFloor('asleep', 0, false)).toBe(false);
+  it('the_book_is_lifted_off_the_seat_in_his_hand_then_opened_to_read', () => {
+    const seat = (name: string) => SLEEPER_GRIDS[name].slice(32, 38).some((row) => row.slice(13, 24).includes('k'));
+    expect(seat('sleeperReach')).toBe(true);
+    expect(seat('sleeperReach1')).toBe(false);
+    expect(seat('sleeperRead0')).toBe(false);
   });
 });
