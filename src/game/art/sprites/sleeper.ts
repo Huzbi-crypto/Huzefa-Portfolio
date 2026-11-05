@@ -524,6 +524,9 @@ function snore(cv: Canvas, x: number, y: number, big: boolean): void {
   if (big) lay(cv, x + 4, y - 4, ['CC', '.C', 'CC']);
 }
 
+/** A hand opened wide, three fingers spread, for the stretch. 7 by 5. */
+const OPEN_HAND = ['a.a.a.a', 'avavava', 'avvvvva', '.avvvwa', '..aaa..'];
+
 function risen(): Canvas {
   // up on an elbow, shoulders and head lifting, glasses back on, hair a disaster
   const cv = lyingBase(3);
@@ -546,20 +549,20 @@ export function sleeperFrame(frame: SleepFrame): string[] {
       return rows(cv);
     }
     case 'stretch0': {
-      // he stirs: the near elbow comes up, the head turns a pixel, the manga goes crooked
+      // he stirs: one arm slides up along his side, the hand opening
       const cv = lying('under', { hand: 'none', headLift: 1 });
-      limb(cv, [[23, 28], [21, 22], [18, 17]], 1.5, 'j', 'k');
-      lay(cv, 15, 13, ['avva', 'avva', '.aa.'], 4);
+      limb(cv, [[22, 25], [21, 20]], 1.5, 'j', 'k');
+      lay(cv, 18, 13, OPEN_HAND, 7);
       mangaOnFace(cv, 8, 22);
       return rows(cv);
     }
     case 'stretch1': {
-      // the full stretch: an arm straight up over the pillow, the back arching, toes curling
+      // the full stretch: the arm thrown up and back over the head, fingers spread, the back arching
       const cv = lying('under', { lift: 1, hand: 'none', headLift: 1 });
-      limb(cv, [[23, 27], [19, 19], [16, 14]], 1.5, 'j', 'k');
-      lay(cv, 13, 8, ['.a.a.', 'avvva', 'avvva', '.avwa', '..aa.'], 5);
+      limb(cv, [[22, 24], [19, 20], [16, 16]], 1.5, 'j', 'k');
+      lay(cv, 12, 9, OPEN_HAND, 7);
       mangaOnFace(cv, 8, 21);
-      for (const [x, y] of [[11, 10], [10, 13], [20, 11]]) plot(cv, x, y, 'C');
+      for (const [x, y] of [[9, 10], [10, 7], [18, 8]]) plot(cv, x, y, 'C');
       return rows(cv);
     }
     case 'slide': {
