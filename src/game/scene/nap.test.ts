@@ -236,3 +236,175 @@ describe('the wake-up beats', () => {
     expect(mangaOnFloor('awake', 0, false)).toBe(true);
   });
 });
+
+describe('Huzbi after the conversation', () => {
+  const phaseOf = (env: { store: ReturnType<typeof createStore> }) => env.store.huzbi().phase;
+
+  async function wakeAndLeave(env: ReturnType<typeof setup>) {
+    return interact(env, byId(env.scene, 'sleeper'), ['wake', 'leave-alone']);
+  }
+
+  /** Like `interact`, but each answer is spent only on a real choice, in order. */
+  async function chooseIn(env: ReturnType<typeof setup>, ids: string[]): Promise<string[]> {
+    const said: string[] = [];
+    const answers = [...ids];
+    let finished = false;
+    const done = Promise.resolve(byId(env.scene, 'sleeper').onInteract(env.api)).then(() => {
+      finished = true;
+    });
+    for (let guard = 0; !finished && guard < 900; guard += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      env.tick(100);
+      const d = env.api.store.getState().dialogue;
+      if (!d) continue;
+      said.push(...d.lines);
+      const ready = d.typed >= (d.lines[d.line]?.length ?? 0);
+      const asking = ready && d.choices.length > 0 && d.line === d.lines.length - 1;
+      env.api.store.advance(asking ? answers.shift() : undefined);
+    }
+    await done;
+    return said;
+  }
+
+  /** Puts the clock back at the start of the post-talk cycle, whatever the harness stepped. */
+  const freshCycle = (env: ReturnType<typeof setup>) => env.store.setHuzbiPhase('lowering');
+
+  it('the_hand_lowers_when_the_conversation_ends', async () => {
+    const env = setup();
+    await wakeAndLeave(env);
+    expect(phaseOf(env)).toBe('lowering');
+    expect(sleeperFrame('lowering', 0, 0, false)).toBe('sleeperLower');
+    expect(sleeperFrame('lowering', 0, 0, false)).not.toBe(sleeperFrame('awake', 0, 0, false));
+  });
+
+  it('he_sits_for_a_beat_then_reads_after_the_wake_sequence', async () => {
+    const env = setup();
+    await wakeAndLeave(env);
+    freshCycle(env);
+    env.tick(1000);
+    expect(phaseOf(env)).toBe('sitting');
+    env.tick(2000);
+    expect(phaseOf(env)).toBe('sitting');
+    env.tick(3000);
+    expect(phaseOf(env)).toBe('reaching');
+    env.tick(1500);
+    expect(phaseOf(env)).toBe('reading');
+    expect(sleeperFrame('reading', 0, 0, false)).toBe('sleeperRead0');
+  });
+
+  it('he_lies_back_and_sleeps_again_after_reading', async () => {
+    const env = setup();
+    await wakeAndLeave(env);
+    freshCycle(env);
+    env.tick(28500);
+    expect(phaseOf(env)).toBe('laying');
+    env.tick(3000);
+    expect(phaseOf(env)).toBe('asleep');
+    expect(sleeperFrame('asleep', 0, 0, false)).toBe('sleeperAsleep0');
+  });
+
+  it('the_phase_survives_leaving_and_reentering_the_room', async () => {
+    const store = createStore(null);
+    const first = harness(createNap, { store });
+    await wakeAndLeave(first);
+    freshCycle(first);
+    first.tick(900 + 4000 + 1500);
+    expect(store.huzbi().phase).toBe('reading');
+
+    const second = harness(createNap, { store });
+    expect(store.huzbi().phase).toBe('reading');
+    const said = await interact(second, byId(second.scene, 'sleeper'), 'let-read');
+    expect(said.join(' ')).not.toContain(copy.nap.sleeper.stir[0]);
+    expect(said).toContain(copy.nap.reading.look[0]);
+
+    store.setHuzbiPhase('asleep');
+    const third = harness(createNap, { store });
+    expect(store.huzbi().phase).toBe('asleep');
+    expect(third.scene.id).toBe('nap');
+  });
+
+  it('a_second_wake_uses_different_copy_from_the_first', async () => {
+    const env = setup();
+    const first = (await wakeAndLeave(env)).join(' ');
+    env.tick(60000);
+    expect(phaseOf(env)).toBe('asleep');
+
+    const second = (await wakeAndLeave(env)).join(' ');
+    expect(first).toContain(copy.nap.sleeper.look[0]);
+    expect(first).toContain(copy.nap.sleeper.stir[0]);
+    expect(second).not.toContain(copy.nap.sleeper.look[0]);
+    expect(second).not.toContain(copy.nap.sleeper.stir[0]);
+    expect(second).toContain(copy.nap.sleeper.lookAgain[0]);
+    expect(second).toContain(copy.nap.sleeper.stirAgain[0]);
+    expect(second).toContain(copy.nap.rewake.opening[0][0]);
+    expect(second).not.toContain(copy.nap.wake.few[0]);
+  });
+
+  it('reading_offers_let_him_read_ask_and_tap_without_breaking_the_cycle', async () => {
+    const env = setup();
+    await wakeAndLeave(env);
+    freshCycle(env);
+    env.tick(7000);
+    expect(phaseOf(env)).toBe('reading');
+
+    const letRead = await interact(env, byId(env.scene, 'sleeper'), 'let-read');
+    expect(letRead).toContain(copy.nap.reading.letReply[0][0]);
+    expect(phaseOf(env)).toBe('reading');
+
+    const asked = await interact(env, byId(env.scene, 'sleeper'), 'ask');
+    expect(asked).toContain(copy.nap.reading.ask[0][0]);
+    const askedAgain = await interact(env, byId(env.scene, 'sleeper'), 'ask');
+    expect(askedAgain).toContain(copy.nap.reading.ask[1][0]);
+
+    const tapped = await chooseIn(env, ['tap', 'back']);
+    expect(tapped).toContain(copy.nap.reading.tap[1]);
+    expect(tapped).toContain(copy.nap.reading.backReply[0]);
+    expect(phaseOf(env)).toBe('reading');
+
+    // the schedule still runs: he lies back and sleeps again
+    env.tick(30000);
+    expect(phaseOf(env)).toBe('asleep');
+  });
+
+  it('a_chat_never_gets_cut_off_by_his_schedule', async () => {
+    const env = setup();
+    await wakeAndLeave(env);
+    freshCycle(env);
+    env.tick(7000);
+    void env.store.say(['A long chat.']);
+    env.tick(60000);
+    expect(phaseOf(env)).toBe('reading');
+    env.store.advance();
+  });
+
+  it('reduced_motion_still_runs_the_cycle_and_keeps_one_frame_per_phase', async () => {
+    const env = setup({ reducedMotion: true });
+    await wakeAndLeave(env);
+    const seen: Record<string, string> = {};
+    for (const phase of ['lowering', 'sitting', 'reaching', 'reading', 'laying', 'asleep'] as const) {
+      const frames = new Set([0, 700, 1900, 2300, 4000].map((t) => sleeperFrame(phase, t, t, true)));
+      expect(frames.size, phase).toBe(1);
+      seen[phase] = [...frames][0];
+    }
+    expect(new Set(Object.values(seen)).size).toBe(6);
+
+    freshCycle(env);
+    env.tick(1000);
+    expect(phaseOf(env)).toBe('sitting');
+    env.tick(5500);
+    expect(phaseOf(env)).toBe('reading');
+    const said = await interact(env, byId(env.scene, 'sleeper'), 'ask');
+    expect(said).toContain(copy.nap.reading.ask[0][0]);
+    env.tick(30000);
+    expect(phaseOf(env)).toBe('asleep');
+    expect(() => env.scene.draw(fakeGraphics(), env.ctx())).not.toThrow();
+  });
+
+  it('the_manga_leaves_the_floor_when_he_picks_it_up', () => {
+    expect(mangaOnFloor('sitting', 0, false)).toBe(true);
+    expect(mangaOnFloor('reaching', 100, false)).toBe(true);
+    expect(mangaOnFloor('reaching', 900, false)).toBe(false);
+    expect(mangaOnFloor('reading', 0, false)).toBe(false);
+    expect(mangaOnFloor('asleep', 0, false)).toBe(false);
+  });
+});

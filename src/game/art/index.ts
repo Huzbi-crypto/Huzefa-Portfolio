@@ -69,7 +69,7 @@ export function setGameTheme(theme: keyof typeof PALETTES): void {
 /**
  * The visitor's sprite for this moment. Walking cycles the three step frames;
  * standing still shows frame 0, except for a short idle beat every few seconds
- * (a hand to the headphones, or the tuft bobbing). Reduced motion never beats.
+ * (a blink and a tuft bob). Reduced motion never beats.
  */
 const WALK_FRAME_MS = 150; // nine 60fps repaints per frame, so the loop never stutters
 

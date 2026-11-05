@@ -111,7 +111,48 @@ describe('sprites', () => {
     expect(visitorSpriteName('down', false, 0, 6500, false)).toBe('visitor-down-idle');
     expect(visitorSpriteName('down', false, 0, 6500, true)).toBe('visitor-down-0');
     expect(visitorSpriteName('down', false, 0, 100, false)).toBe('visitor-down-0');
-    expect(visitorSpriteName('left', true, 130, 6500, false)).toBe('visitor-left-0');
+    expect(visitorSpriteName('left', true, 150, 6500, false)).toBe('visitor-left-0');
+  });
+
+  it('visitor_walk_holds_each_frame_for_150ms_so_60fps_never_stutters', () => {
+    const at = (ms: number): string => visitorSpriteName('down', true, ms, 0, false);
+    expect([0, 149, 150, 299, 300, 449, 450, 599, 600].map(at)).toEqual([
+      'visitor-down-1', 'visitor-down-1',
+      'visitor-down-0', 'visitor-down-0',
+      'visitor-down-2', 'visitor-down-2',
+      'visitor-down-0', 'visitor-down-0',
+      'visitor-down-1',
+    ]);
+  });
+
+  it('visitor_shoulders_and_sleeves_stay_planted_between_walk_frames', () => {
+    for (const dir of ['down', 'up', 'left', 'right']) {
+      const frames = ANIMS[`visitor-${dir}`];
+      const side = dir === 'left' || dir === 'right';
+      const band = side ? [12, 13, 14, 15, 16] : [12, 13, 14];
+      const baseline = band.map((y) => SPRITE_GRIDS[frames[0]][y]);
+      for (const name of frames.slice(1)) {
+        expect(band.map((y) => SPRITE_GRIDS[name][y]), `${dir}/${name}`).toEqual(baseline);
+      }
+    }
+  });
+
+  it('visitor_shoes_stay_attached_to_the_legs_in_every_frame', () => {
+    for (const [name, rows] of Object.entries(SPRITE_GRIDS)) {
+      if (!name.startsWith('visitor-')) continue;
+      for (let y = 20; y < 24; y += 1) {
+        [...rows[y]].forEach((c, x) => {
+          if (c === 'C') expect(rows[y - 1][x], `${name} shoe at ${x},${y}`).not.toBe('.');
+        });
+      }
+    }
+  });
+
+  it('visitor_idle_beat_blinks_and_bobs_without_moving_the_body', () => {
+    expect(SPRITE_GRIDS['visitor-down-idle'][7][6]).toBe('w');
+    expect(SPRITE_GRIDS['visitor-down-idle'][7][9]).toBe('w');
+    expect(SPRITE_GRIDS['visitor-right-idle'][7][11]).toBe('w');
+    expect(SPRITE_GRIDS['visitor-down-idle'].slice(8)).toEqual(SPRITE_GRIDS['visitor-down-0'].slice(8));
   });
 
   it('every_sprite_has_visible_pixels', () => {

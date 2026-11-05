@@ -9,8 +9,8 @@
  *   - skinny jeans and big white sneakers
  *
  * 16x24, four directions, three frames each (0 idle, 1 and 2 steps), plus one
- * `visitor-<dir>-idle` frame per direction for the idle beat (a hand goes up
- * to straighten the headphones, or the tuft bobs). Left is the mirror of right.
+ * `visitor-<dir>-idle` frame per direction for the idle beat (a blink and a
+ * tuft bob). Left is the mirror of right.
  *
  * Palette keys: a ink, b hair, c hair light, v skin, w skin shadow, x/y/z
  * hoodie, E headphone cups, A band and cup shine, B jeans, C white, r amber
@@ -139,34 +139,24 @@ function armFV(g: Grid, side: 'l' | 'r', lift: number, back: boolean): void {
   put(g, x + 1, handY + 1, 'a');
 }
 
-function bodyFront(g: Grid, frame: Frame, handUp: boolean): void {
+function bodyFront(g: Grid, frame: Frame): void {
   lay(g, 11, TORSO_FRONT);
   dots(g, [
     [6, 12, 'C'], [6, 13, 'C'], [9, 12, 'C'], [9, 13, 'C'], [9, 14, 'C'],
     [10, 14, 'r'], [11, 14, 'r'], [7, 15, 'a'], [8, 15, 'a'],
   ]);
   const lift = frame === 1 ? [-1, 0] : frame === 2 ? [0, -1] : [0, 0];
-  if (handUp) {
-    // the viewer's left arm is up at the cup; handToCup draws it after the head
-    for (let j = 0; j < 4; j += 1) {
-      put(g, 2, 14 + j, 'a');
-      put(g, 3, 14 + j, 'x');
-      put(g, 4, 14 + j, 'a');
-    }
-    armFV(g, 'r', 0, false);
-  } else {
-    armFV(g, 'l', lift[0], false);
-    armFV(g, 'r', lift[1], false);
-  }
+  armFV(g, 'l', lift[0], false);
+  armFV(g, 'r', lift[1], false);
 }
 
-/** The raised hand, drawn over the head: fingers on the left cup. */
-function handToCup(g: Grid): void {
-  dots(g, [
-    [1, 9, 'a'], [2, 9, 'a'], [3, 9, 'a'], [1, 8, 'a'], [2, 8, 'v'], [3, 8, 'v'], [4, 8, 'a'],
-    [1, 7, 'a'], [2, 7, 'v'], [3, 7, 'v'], [4, 7, 'a'], [2, 6, 'a'], [3, 6, 'a'],
-    [3, 10, 'a'], [2, 10, 'x'], [4, 10, 'a'], [3, 11, 'x'], [2, 11, 'a'], [4, 11, 'a'], [3, 12, 'x'], [2, 12, 'a'], [4, 12, 'a'], [3, 13, 'x'], [2, 13, 'a'], [4, 13, 'a'],
-  ]);
+/** The idle blink: the ink eye becomes a softer lid for one beat. */
+function blinkFront(g: Grid): void {
+  dots(g, [[6, 7, 'w'], [9, 7, 'w']]);
+}
+
+function blinkSide(g: Grid): void {
+  put(g, 11, 7, 'w');
 }
 
 function bodyBack(g: Grid, frame: Frame): void {
@@ -274,7 +264,7 @@ type Facing = 'down' | 'up' | 'right';
 function buildDown(frame: Frame): string[] {
   const g = blank();
   legsFV(g, frame);
-  bodyFront(g, frame, false);
+  bodyFront(g, frame);
   headFront(g);
   return g.map((r) => r.join(''));
 }
@@ -300,14 +290,15 @@ function flickTuft(g: Grid, from: number, to: number): void {
   put(g, to, 0, 'a');
 }
 
-/** The idle beat, one frame per direction: a hand straightens the cup, or the tuft bobs. */
+/** The idle beat, one frame per direction: a blink and a tuft bob. */
 function idleFrame(facing: Facing): string[] {
   const g = blank();
   if (facing === 'down') {
     legsFV(g, 0);
-    bodyFront(g, 0, true);
+    bodyFront(g, 0);
     headFront(g);
-    handToCup(g);
+    blinkFront(g);
+    flickTuft(g, 7, 9);
   } else if (facing === 'up') {
     legsFV(g, 0);
     bodyBack(g, 0);
@@ -316,6 +307,7 @@ function idleFrame(facing: Facing): string[] {
   } else {
     sideLegs(g, 0);
     sideBody(g, 0);
+    blinkSide(g);
     flickTuft(g, 6, 8);
   }
   return g.map((r) => r.join(''));
