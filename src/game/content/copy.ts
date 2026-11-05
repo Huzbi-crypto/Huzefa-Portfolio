@@ -701,13 +701,13 @@ export const copy = {
         'Huzbi, asleep again. The manga is back on their face and the glasses are back in the hair, as if nothing happened.',
         'The tea on the arm of the sofa has stopped steaming. It has not stopped being tea.',
       ],
-      stirAgain: ['You cough. This time it sounds a little like a doorbell.'],
+      stirAgain: ['You cough. This time it sounds a little like a doorbell. The sofa answers with a long, creaky stretch.'],
       slideAgain: ['The manga slides off again. It knows the way by now.'],
       sitUpAgain: ['One eye. Then the other. This time there is recognition, and a sigh.'],
       /** Said while they are mid-lean or mid-flop and cannot be talked to. */
       busy: ['They are in the middle of a manoeuvre with a manga. Give them a second.'],
       /** Comic beats between the sleeping and the speaking; the scene plays them. */
-      stir: ['You cough, politely.'],
+      stir: ['You cough, politely. On the sofa, something shifts, stretches and thinks about it.'],
       slide: ['The manga slides off and lands on the floor with a quiet, papery flop.'],
       sitUp: ['One eye opens. Then the other. Neither is pleased.'],
     },

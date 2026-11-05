@@ -99,8 +99,8 @@ export function setContactCardOpen(open: boolean): void {
 
 /**
  * Which sleeper frame to draw. Each pose is a short run of frames played by the
- * time since the pose began, so the wake-up lands as comic beats: a cough, the
- * manga skidding off, one eye then both, up on an elbow, sitting, a grin and a
+ * time since the pose began, so the wake-up lands as comic beats: the visitor coughs and
+ * Huzbi stirs and stretches, the manga skidding off, one eye then both, up on an elbow, sitting, a grin and a
  * wave. Reduced motion shows one still frame per pose instead.
  */
 export function sleeperFrame(
@@ -109,9 +109,9 @@ export function sleeperFrame(
   elapsed: number,
   reducedMotion: boolean,
 ): string {
-  if (pose === 'stir') return reducedMotion || t % 360 < 180 ? 'sleeperCough0' : 'sleeperCough1';
+  if (pose === 'stir') return reducedMotion || t % 360 < 180 ? 'sleeperStretch0' : 'sleeperStretch1';
   if (pose === 'slide') {
-    if (reducedMotion || elapsed < 700) return 'sleeperStir';
+    if (reducedMotion || elapsed < 700) return 'sleeperSlide';
     return elapsed < 1500 ? 'sleeperOneEye' : 'sleeperBothEyes';
   }
   if (pose === 'sitUp') return reducedMotion || elapsed >= 600 ? 'sleeperSitUp' : 'sleeperRise';

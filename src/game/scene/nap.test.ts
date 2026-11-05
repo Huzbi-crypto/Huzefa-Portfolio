@@ -209,10 +209,10 @@ describe('nap art', () => {
 });
 
 describe('the wake-up beats', () => {
-  it('plays_cough_slide_one_eye_both_eyes_rise_sit_up_then_a_waving_grin_by_time', () => {
-    expect(sleeperFrame('stir', 0, 0, false)).toBe('sleeperCough0');
-    expect(sleeperFrame('stir', 200, 0, false)).toBe('sleeperCough1');
-    expect(sleeperFrame('slide', 0, 0, false)).toBe('sleeperStir');
+  it('plays_stretch_slide_one_eye_both_eyes_rise_sit_up_then_a_waving_grin_by_time', () => {
+    expect(sleeperFrame('stir', 0, 0, false)).toBe('sleeperStretch0');
+    expect(sleeperFrame('stir', 200, 0, false)).toBe('sleeperStretch1');
+    expect(sleeperFrame('slide', 0, 0, false)).toBe('sleeperSlide');
     expect(sleeperFrame('slide', 0, 900, false)).toBe('sleeperOneEye');
     expect(sleeperFrame('slide', 0, 1800, false)).toBe('sleeperBothEyes');
     expect(sleeperFrame('sitUp', 0, 100, false)).toBe('sleeperRise');
@@ -223,7 +223,7 @@ describe('the wake-up beats', () => {
   });
 
   it('reduced_motion_holds_one_still_frame_per_pose', () => {
-    expect(sleeperFrame('slide', 0, 5000, true)).toBe('sleeperStir');
+    expect(sleeperFrame('slide', 0, 5000, true)).toBe('sleeperSlide');
     expect(sleeperFrame('sitUp', 0, 0, true)).toBe('sleeperSitUp');
     expect(sleeperFrame('awake', 0, 500, true)).toBe('sleeperAwake');
     expect(mangaOnFloor('slide', 5000, true)).toBe(false);

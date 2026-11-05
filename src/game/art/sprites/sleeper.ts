@@ -506,8 +506,9 @@ function lyingPhones(cv: Canvas, lift: number): void {
   lay(cv, 21, top + 4, ['BBB', 'BAB', 'BBB', 'aaa'], 3);
 }
 
-function lyingHand(cv: Canvas, lift: number, pos: 'belly' | 'hang'): void {
+function lyingHand(cv: Canvas, lift: number, pos: 'belly' | 'hang' | 'none'): void {
   const top = 22 - lift;
+  if (pos === 'none') return;
   if (pos === 'belly') {
     // the near arm folded across the belly, the hand resting on the tee
     limb(cv, [[23, top + 8], [27, top + 5]], 1.5, 'j', 'k');
@@ -519,7 +520,7 @@ function lyingHand(cv: Canvas, lift: number, pos: 'belly' | 'hang'): void {
   }
 }
 
-function lying(face: Face, opts: { lift?: number; hand?: 'belly' | 'hang'; headLift?: number } = {}): Canvas {
+function lying(face: Face, opts: { lift?: number; hand?: 'belly' | 'hang' | 'none'; headLift?: number } = {}): Canvas {
   const lift = opts.lift ?? 0;
   const cv = lyingBase(lift);
   lyingPhones(cv, lift);
@@ -555,11 +556,21 @@ export function sleeperFrame(frame: SleepFrame): string[] {
       else snore(cv, 15, 13, false);
       return rows(cv);
     }
-    case 'stretch0':
+    case 'stretch0': {
+      // he stirs: the near elbow comes up, the head turns a pixel, the manga goes crooked
+      const cv = lying('under', { hand: 'none', headLift: 1 });
+      limb(cv, [[23, 28], [21, 22], [18, 17]], 1.5, 'j', 'k');
+      lay(cv, 15, 13, ['avva', 'avva', '.aa.'], 4);
+      mangaOnFace(cv, 8, 22);
+      return rows(cv);
+    }
     case 'stretch1': {
-      // placeholder until the stir frames land
-      const cv = lying('under', { lift: frame === 'stretch1' ? 1 : 0, hand: 'belly' });
-      mangaOnFace(cv, 7, 23);
+      // the full stretch: an arm straight up over the pillow, the back arching, toes curling
+      const cv = lying('under', { lift: 1, hand: 'none', headLift: 1 });
+      limb(cv, [[23, 27], [19, 19], [16, 14]], 1.5, 'j', 'k');
+      lay(cv, 13, 8, ['.a.a.', 'avvva', 'avvva', '.avwa', '..aa.'], 5);
+      mangaOnFace(cv, 8, 21);
+      for (const [x, y] of [[11, 10], [10, 13], [20, 11]]) plot(cv, x, y, 'C');
       return rows(cv);
     }
     case 'slide': {
@@ -616,9 +627,9 @@ export function sleeperFrame(frame: SleepFrame): string[] {
 export const SLEEPER_GRIDS: Record<string, string[]> = {
   sleeperAsleep0: sleeperFrame('asleep0'),
   sleeperAsleep1: sleeperFrame('asleep1'),
-  sleeperCough0: sleeperFrame('stretch0'),
-  sleeperCough1: sleeperFrame('stretch1'),
-  sleeperStir: sleeperFrame('slide'),
+  sleeperStretch0: sleeperFrame('stretch0'),
+  sleeperStretch1: sleeperFrame('stretch1'),
+  sleeperSlide: sleeperFrame('slide'),
   sleeperOneEye: sleeperFrame('oneEye'),
   sleeperBothEyes: sleeperFrame('bothEyes'),
   sleeperRise: sleeperFrame('rise'),
