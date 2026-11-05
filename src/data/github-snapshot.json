@@ -81,7 +81,7 @@
         "percentage": 2.8
       }
     ],
-    "snapshotDate": "2026-11-05"
+    "snapshotDate": "2026-11-06"
   },
   "repositories": [
     {
@@ -92,7 +92,7 @@
       "description": "A portfolio site for Huzefa Huzbi. Made with HTML, CSS, JS, and GSAP.",
       "fork": false,
       "homepage": "https://huzefa.vercel.app",
-      "size": 1474,
+      "size": 5252,
       "stargazers_count": 1,
       "watchers_count": 1,
       "language": "TypeScript",
@@ -106,7 +106,7 @@
       "default_branch": "main",
       "created_at": "2023-09-28T17:43:45Z",
       "updated_at": "2026-10-03T18:17:38Z",
-      "pushed_at": "2026-11-04T22:06:14Z",
+      "pushed_at": "2026-11-05T19:38:56Z",
       "license": {
         "key": "mit",
         "name": "MIT License",
