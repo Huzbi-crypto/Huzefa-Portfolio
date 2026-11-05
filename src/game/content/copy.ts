@@ -708,7 +708,7 @@ export const copy = {
       busy: ['They are in the middle of a manoeuvre with a manga. Give them a second.'],
       /** Comic beats between the sleeping and the speaking; the scene plays them. */
       stir: ['You cough, politely. On the sofa, something shifts, stretches and thinks about it.'],
-      slide: ['The manga slides off and lands on the floor with a quiet, papery flop.'],
+      slide: ['The manga slides off and lands on the sofa seat with a quiet, papery flop.'],
       sitUp: ['One eye opens. Then the other. Neither is pleased.'],
     },
     /** What Huzbi says, for the star count the visitor earned. */
