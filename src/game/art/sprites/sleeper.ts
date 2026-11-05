@@ -475,25 +475,25 @@ function lyingBase(lift: number): Canvas {
   pillow(cv);
 
   // legs: grey sweats, knees up, and a fat slipper on each foot
-  limb(cv, [[30, 28], [35, 22 - lift], [40, 29]], 2.6, 'a', 'B');
-  limb(cv, [[31, 27], [35, 22 - lift]], 0.8, 'A', 'A');
-  lay(cv, 40, 28, ['.alla.', 'allllk', 'akkkka', 'aaaaaa'], 6);
+  limb(cv, [[28, 28], [32, 22 - lift], [36, 29]], 2.6, 'a', 'B');
+  limb(cv, [[29, 27], [32, 22 - lift]], 0.8, 'A', 'A');
+  lay(cv, 36, 28, ['.alla.', 'allllk', 'akkkka', 'aaaaaa'], 6);
 
   // the soft round body, rising with each breath
   const top = 22 - lift;
-  rect(cv, 19, top, 12, 10 + lift, 'j');
-  rect(cv, 20, top + 1, 10, 8 + lift, 'k');
-  rect(cv, 20, top + 1, 8, 1, 'l');
-  rect(cv, 20, top + 8 + lift, 10, 1, 'j');
-  for (const [x, y] of [[19, top], [30, top], [19, top + 9 + lift], [30, top + 9 + lift]]) plot(cv, x, y, '.');
+  rect(cv, 19, top, 10, 10 + lift, 'j');
+  rect(cv, 20, top + 1, 8, 8 + lift, 'k');
+  rect(cv, 20, top + 1, 6, 1, 'l');
+  rect(cv, 20, top + 8 + lift, 8, 1, 'j');
+  for (const [x, y] of [[19, top], [28, top], [19, top + 9 + lift], [28, top + 9 + lift]]) plot(cv, x, y, '.');
   // cream tee down the middle, cardigan edges either side
-  rect(cv, 21, top + 3, 8, 3 + lift, 'p');
-  rect(cv, 21, top + 3, 8, 1, 'j');
-  rect(cv, 21, top + 5 + lift, 8, 1, 'j');
-  rect(cv, 22, top + 4, 5, 1, 'q');
+  rect(cv, 21, top + 3, 6, 3 + lift, 'p');
+  rect(cv, 21, top + 3, 6, 1, 'j');
+  rect(cv, 21, top + 5 + lift, 6, 1, 'j');
+  rect(cv, 22, top + 4, 4, 1, 'q');
   // a patch pocket low on the hip
-  rect(cv, 25, top + 7 + lift, 3, 2, 'j');
-  plot(cv, 25, top + 7 + lift, 'l');
+  rect(cv, 24, top + 7 + lift, 3, 2, 'j');
+  plot(cv, 24, top + 7 + lift, 'l');
   return cv;
 }
 
@@ -511,12 +511,12 @@ function lyingHand(cv: Canvas, lift: number, pos: 'belly' | 'hang' | 'none'): vo
   if (pos === 'none') return;
   if (pos === 'belly') {
     // the near arm folded across the belly, the hand resting on the tee
-    limb(cv, [[23, top + 8], [27, top + 5]], 1.5, 'j', 'k');
-    lay(cv, 27, top + 4, ['aaaa', 'avva', 'avwa', '.aaa'], 4);
+    limb(cv, [[22, top + 8], [25, top + 6]], 1.5, 'j', 'k');
+    lay(cv, 25, top + 4, ['aaaa', 'avva', 'avwa', '.aaa'], 4);
   } else {
     // the near arm slipped off the front of the seat, fingers drifting down
-    limb(cv, [[28, top + 9], [29, 35]], 1.5, 'j', 'k');
-    lay(cv, 27, 37, ['avvva', 'avwva', '.aaa.'], 5);
+    limb(cv, [[26, top + 9], [27, 35]], 1.5, 'j', 'k');
+    lay(cv, 25, 37, ['avvva', 'avwva', '.aaa.'], 5);
   }
 }
 

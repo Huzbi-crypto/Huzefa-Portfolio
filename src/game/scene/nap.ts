@@ -25,7 +25,7 @@ const AT = {
   lampGlow: { x: 224, y: 100 },
   rug: { x: 112, y: 124 },
   manga: { x: 56, y: 112 },
-  fallen: { x: 104, y: 138 },
+  fallen: { x: 110, y: 132 },
   mug: { x: 216, y: 152 },
   cat: { x: 292, y: 136 },
 } as const;
@@ -120,11 +120,13 @@ export function sleeperFrame(
     return Math.floor(elapsed / 420) % 2 === 0 ? 'sleeperAwake' : 'sleeperAwake1';
   }
   // After the talk: the hand lowers, he sits, leans for the manga, reads, lies back.
-  if (pose === 'lowering') return 'sleeperLower';
+  // Small pose swaps, not big moves: the wave drops, then the forearm settles.
+  if (pose === 'lowering') return reducedMotion || elapsed < 450 ? 'sleeperLower' : 'sleeperLower1';
   if (pose === 'sitting') return reducedMotion || t % 2400 < 2200 ? 'sleeperSit0' : 'sleeperSit1';
   if (pose === 'reaching') return 'sleeperReach';
   if (pose === 'reading') return reducedMotion || t % 3600 < 1800 ? 'sleeperRead0' : 'sleeperRead1';
-  if (pose === 'laying') return 'sleeperLayBack';
+  // One hand lifts the manga, then it settles onto his face.
+  if (pose === 'laying') return reducedMotion || elapsed < 900 ? 'sleeperLayBack' : 'sleeperLayBack1';
   if (reducedMotion) return 'sleeperAsleep0';
   return t % 1800 < 900 ? 'sleeperAsleep0' : 'sleeperAsleep1';
 }

@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { personalInfo } from '@/data/personal';
 import { PALETTES } from '@/game/art';
 import { SLEEPER } from '@/game/art/sprites/ending';
+import { SLEEPER_GRIDS } from '@/game/art/sprites/sleeper';
 import { copy } from '@/game/content/copy';
 import { allStarIds } from '@/game/content/stars';
 import { createStore } from '@/game/state/store';
@@ -237,6 +238,50 @@ describe('the wake-up beats', () => {
   });
 });
 
+describe("Huzbi at the world's pixel scale", () => {
+  it('every_frame_is_the_sofa_sized_64_by_46', () => {
+    expect(SLEEPER).toEqual({ w: 64, h: 46 });
+    for (const [name, rows] of Object.entries(SLEEPER_GRIDS)) {
+      expect(rows, name).toHaveLength(46);
+      for (const row of rows) expect(row.length, name).toBe(64);
+    }
+  });
+
+  /** Bounding box of everything that is not sofa, mug or steam: Huzbi himself. */
+  function person(rows: string[]): { w: number; h: number } {
+    const sofa = new Set(['n', 'o', 'm', 'e', '.']);
+    let x0 = 64, x1 = -1, y0 = 46, y1 = -1;
+    rows.forEach((row, y) => {
+      [...row].forEach((c, x) => {
+        if (sofa.has(c) || (x >= 55 && y <= 22) || y < 8) return;
+        if (c === 'a') return;
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      });
+    });
+    return { w: x1 - x0 + 1, h: y1 - y0 + 1 };
+  }
+
+  it('seated_he_is_player_sized_not_a_giant', () => {
+    const sitting = person(SLEEPER_GRIDS.sleeperSit0);
+    expect(sitting.w).toBeLessThanOrEqual(19);
+    expect(sitting.h).toBeLessThanOrEqual(32);
+    expect(sitting.h).toBeGreaterThanOrEqual(24);
+  });
+
+  it('lying_he_is_a_body_not_a_sofa_wide_slab', () => {
+    const lyingDown = person(SLEEPER_GRIDS.sleeperAsleep0);
+    // measured 37x20 including the pillow highlight and the snore marks
+    expect(lyingDown.w).toBeLessThanOrEqual(38);
+    expect(lyingDown.h).toBeLessThanOrEqual(22);
+  });
+
+  it('the_stir_is_a_stretch_not_a_cough', () => {
+    expect(Object.keys(SLEEPER_GRIDS)).not.toContain('sleeperCough0');
+    expect(SLEEPER_GRIDS.sleeperStretch0).not.toEqual(SLEEPER_GRIDS.sleeperStretch1);
+    expect(SLEEPER_GRIDS.sleeperStretch0).not.toEqual(SLEEPER_GRIDS.sleeperAsleep0);
+  });
+});
+
 describe('Huzbi after the conversation', () => {
   const phaseOf = (env: { store: ReturnType<typeof createStore> }) => env.store.huzbi().phase;
 
@@ -275,6 +320,14 @@ describe('Huzbi after the conversation', () => {
     expect(phaseOf(env)).toBe('lowering');
     expect(sleeperFrame('lowering', 0, 0, false)).toBe('sleeperLower');
     expect(sleeperFrame('lowering', 0, 0, false)).not.toBe(sleeperFrame('awake', 0, 0, false));
+  });
+
+  it('the_hand_lowers_and_the_manga_settles_in_two_small_poses', () => {
+    expect(sleeperFrame('lowering', 0, 600, false)).toBe('sleeperLower1');
+    expect(sleeperFrame('laying', 0, 0, false)).toBe('sleeperLayBack');
+    expect(sleeperFrame('laying', 0, 1200, false)).toBe('sleeperLayBack1');
+    expect(sleeperFrame('laying', 0, 1200, true)).toBe('sleeperLayBack');
+    expect(sleeperFrame('lowering', 0, 600, true)).toBe('sleeperLower');
   });
 
   it('he_sits_for_a_beat_then_reads_after_the_wake_sequence', async () => {
