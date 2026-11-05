@@ -4,7 +4,7 @@
  * shape language of his own:
  *
  *   - a hair tuft that never lies flat, off-centre, and a side lock over one eye
- *   - oversized violet over-ear cups, the widest thing on him
+ *   - slim violet over-ear cups (2px wide, 3 tall) hugging the head under a 1px band
  *   - a narrow hoodie with two uneven drawstrings and a tiny cat pin
  *   - skinny jeans and big white sneakers
  *
@@ -47,18 +47,18 @@ function dots(g: Grid, list: [number, number, string][]): void {
 }
 
 // --- front and back heads: rows 0 to 8 ----------------------------------------
-// A compact head: nine rows including the tuft, 14 wide with the cups.
+// A compact head: nine rows including the tuft, 12 wide with the slim cups.
 
 const HEAD_FRONT = [
   '........',
   '.....aab',
   '...aabbb',
   '..aAAAAA',
-  '.aEEabbv',
-  '.aEEavav',
-  '.aEEavvv',
-  '.aEEavvv',
-  '.aaaaaaa',
+  '..aEabbv',
+  '..aEavav',
+  '..aEavvv',
+  '....avvv',
+  '....aaaa',
 ].map(sym);
 
 const HEAD_BACK = [
@@ -66,11 +66,11 @@ const HEAD_BACK = [
   '.....aab',
   '...aabbb',
   '..aAAAAA',
-  '.aEEabbb',
-  '.aEEabbb',
-  '.aEEabbc',
-  '.aEEabbb',
-  '.aaaaabb',
+  '..aEabbb',
+  '..aEabbb',
+  '..aEabbc',
+  '....abbb',
+  '....aabb',
 ].map(sym);
 
 function headFront(g: Grid): void {
@@ -81,7 +81,7 @@ function headFront(g: Grid): void {
     // a side lock over the right eye, a small tired smile
     [10, 4, 'b'], [10, 5, 'b'], [5, 4, 'v'], [7, 7, 'w'], [8, 7, 'w'],
     // cup shine
-    [2, 4, 'A'], [13, 4, 'A'],
+    [3, 4, 'A'], [12, 4, 'A'],
   ]);
 }
 
@@ -89,7 +89,7 @@ function headBack(g: Grid): void {
   lay(g, 0, HEAD_BACK);
   dots(g, [
     [7, 0, 'a'], [8, 0, 'a'], [10, 0, 'a'],
-    [6, 6, 'c'], [9, 5, 'c'], [7, 4, 'c'], [10, 7, 'c'], [2, 4, 'A'], [13, 4, 'A'],
+    [6, 6, 'c'], [9, 5, 'c'], [7, 4, 'c'], [10, 7, 'c'], [3, 4, 'A'], [12, 4, 'A'],
   ]);
 }
 
@@ -198,10 +198,10 @@ const HEAD_RIGHT = [
   '.....aabbaa.....',
   '....aabbbbbba...',
   '...abAAAAAAAba..',
-  '...abEEEabbvva..',
-  '...abEEEavvava..',
-  '...abEEEavvvwa..',
-  '...abEEEavvwva..',
+  '...abbEEabbvva..',
+  '...abbEEavvava..',
+  '...abbEEavvvwa..',
+  '...abbbbavvwva..',
   '....aaaaaaaaa...',
 ];
 
