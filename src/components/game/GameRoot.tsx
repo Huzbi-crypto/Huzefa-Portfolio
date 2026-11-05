@@ -7,6 +7,7 @@ import { setGameTheme } from '@/game/art';
 import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
+import { hydrateGitHubSnapshot } from '@/game/data/github';
 import { isTermPromptOpen } from '@/game/exhibits/termExp';
 import { createGame, type Game, type GameHint, type NudgeTarget } from '@/game/game';
 import { createArchive } from '@/game/scene/archive';
@@ -204,6 +205,10 @@ export default function GameRoot() {
     const gameAudio = createAudio(browserAudioContext, gameStore);
     setLiveStore(gameStore);
     setWalked(hasWalked(gameStore));
+    // One request for the cached GitHub feed. The observatory reads the value
+    // when it draws, so fresh numbers replace the committed seed without a
+    // reload; a failure keeps the seed and leaves the game untouched.
+    void hydrateGitHubSnapshot();
     const game: Game = createGame({
       canvas,
       store: gameStore,

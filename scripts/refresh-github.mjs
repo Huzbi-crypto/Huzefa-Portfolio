@@ -2,8 +2,10 @@
 /**
  * Refresh `src/data/github-snapshot.json` from GitHub.
  *
- * The site deliberately works from a committed snapshot, not a live request.
- * Run this when Huzbi's numbers change:
+ * The site serves live GitHub data through `/api/github`, cached hourly, but
+ * the committed snapshot is the offline fallback and the seed used when the
+ * API is unreachable. Run this manually when Huzbi's numbers change or before
+ * a deployment that must not depend on the network:
  *
  *   pnpm refresh:github
  *

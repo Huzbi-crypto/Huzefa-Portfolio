@@ -3,6 +3,7 @@ import snapshot from '@/data/github-snapshot.json';
 import { PALETTES } from '@/game/art';
 import { copy } from '@/game/content/copy';
 import { allStarIds, starTotal } from '@/game/content/stars';
+import { githubSnapshot, setGitHubSnapshot } from '@/game/data/github';
 import { PLAQUE } from '@/game/art/sprites/ending';
 import { TRAIL } from '@/game/state/story';
 import { findPath, TILE } from '@/game/world/grid';
@@ -214,6 +215,23 @@ describe('the star map of real repos', () => {
     const right = 6 + (PLAQUE.w - 12) - (row.x + row.w);
     expect(left).toBeGreaterThanOrEqual(4);
     expect(right).toBeGreaterThanOrEqual(4);
+  });
+
+  it('the_star_map_and_plaque_follow_a_live_github_refresh', () => {
+    const before = githubSnapshot();
+    const live = {
+      ...before,
+      stats: { ...before.stats, totalRepos: 1 },
+      repositories: [before.repositories[0]],
+    };
+
+    setGitHubSnapshot(live);
+    try {
+      expect(constellationStars().map((star) => star.name)).toEqual([before.repositories[0].name]);
+    } finally {
+      setGitHubSnapshot(before);
+    }
+    expect(constellationStars()).toHaveLength(before.repositories.length);
   });
 
   it('the_plaque_gives_honest_numbers_and_the_date_they_were_taken', async () => {

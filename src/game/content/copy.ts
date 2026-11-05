@@ -646,10 +646,10 @@ export const copy = {
     stats: {
       label: 'Read the plaque',
       intro: 'A brass plaque, polished by somebody who cares more than they let on.',
-      /** Honest numbers with the day they were taken, from the saved GitHub snapshot. */
+      /** Real numbers with the day they were fetched, cached from the GitHub API. */
       numbers: (repos: number, stars: number, followers: number, date: string): string =>
         `As of ${date}: ${repos} public repos, ${stars} stars received, ${followers} followers.`,
-      note: 'A snapshot, not live. The date above is the day it was taken.',
+      note: 'Live from GitHub, cached hourly. The date above is when these numbers were fetched.',
       languages: (top: string): string => `Most of it is ${top}.`,
     },
 

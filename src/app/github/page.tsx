@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import snapshot from '@/data/github-snapshot.json';
 import contributionData from '@/data/github-contributions.json';
 import type {
   GitHubContributionDay,
@@ -12,12 +11,20 @@ import { JournalPage } from '@/components/journal/JournalPage';
 import { PixelPanel } from '@/components/journal/PixelPanel';
 import { PixelArt } from '@/components/journal/PixelArt';
 import { ICONS, SCENE } from '@/components/journal/journalArt';
+import { getGitHubSnapshot } from '@/lib/githubCache';
 
-export const metadata: Metadata = {
-  title: 'GitHub Log | Huzbi',
-  description:
-    `The honest GitHub snapshot: ${snapshot.repositories.length} public repositories, the language breakdown, and a year of lit contribution windows.`,
-};
+/** The page is re-rendered hourly, matching the API route's cache window. */
+export const revalidate = 3600;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { snapshot } = await getGitHubSnapshot();
+  return {
+    title: 'GitHub Log | Huzbi',
+    description:
+      `Live GitHub data, cached hourly: ${snapshot.repositories.length} public repositories, ` +
+      'the language breakdown, and a year of lit contribution windows.',
+  };
+}
 
 const HEAT_CELL = 11;
 const HEAT_LEFT = 30;
@@ -91,11 +98,12 @@ function streakStats(days: GitHubContributionDay[]) {
 }
 
 /**
- * The GitHub log: the same real snapshot the game's observatory reads, drawn
- * as a journal spread. Static on purpose — it reads in full with no scripts,
- * and the snapshot date is always shown so nothing pretends to be live.
+ * The GitHub log: the same cached GitHub feed the game's observatory reads,
+ * drawn as a journal spread. The server refreshes it hourly; when GitHub is
+ * unreachable the committed snapshot is rendered and the note says so.
  */
-export default function GitHubHubPage() {
+export default async function GitHubHubPage() {
+  const { snapshot, source } = await getGitHubSnapshot();
   const data = snapshot as GitHubSnapshot;
   const contributions = contributionData as GitHubContributionsResponse;
   const days = contributions.contributions;
@@ -142,7 +150,8 @@ export default function GitHubHubPage() {
             year: 'numeric',
             timeZone: 'UTC',
           })}
-          . This is the same snapshot the constellation in the dark reads, taken{' '}
+          . This is the same cached GitHub data the constellation in the dark
+          reads, fetched{' '}
           {formatDay(data.stats.snapshotDate)}.
         </p>
         <ul className="j-meta">
@@ -353,12 +362,15 @@ export default function GitHubHubPage() {
       </section>
 
       <PixelPanel as="section" tone="note" aria-labelledby="snapshot-heading">
-        <p className="j-kicker">Snapshot, not a live feed</p>
-        <h2 id="snapshot-heading">Taken {formatDay(data.stats.snapshotDate)}.</h2>
+        <p className="j-kicker">Live from GitHub, cached hourly</p>
+        <h2 id="snapshot-heading">Fetched {formatDay(data.stats.snapshotDate)}.</h2>
         <p>
-          This page reads the committed snapshot so it stays readable and honest
-          with scripts off. The room&apos;s observatory draws the same stars, and
-          the profile itself is always live over on GitHub.
+          The server asks the public GitHub API for the profile and every public
+          repository, caches the answer for about an hour, and serves it to this
+          page and the room&apos;s observatory. That is fresh data, not a live
+          request per visit — {source === 'live'
+            ? 'GitHub answered when this copy was fetched.'
+            : 'GitHub could not be reached just now, so this is the last committed snapshot.'}
         </p>
         <div className="j-row">
           <a

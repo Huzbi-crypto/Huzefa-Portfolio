@@ -1,4 +1,3 @@
-import snapshot from '@/data/github-snapshot.json';
 import { ACTIVE_PALETTE, SPRITES } from '@/game/art';
 import {
   digitPixels,
@@ -8,6 +7,7 @@ import {
 } from '@/game/art/sprites/ending';
 import { copy } from '@/game/content/copy';
 import { allStarIds } from '@/game/content/stars';
+import { githubSnapshot } from '@/game/data/github';
 import type { Light } from '@/game/render/lighting';
 import { drawSprite } from '@/game/render/sprite';
 import type { GameStore } from '@/game/state/store';
@@ -128,14 +128,17 @@ function scatter(
 }
 
 let constellationCache: ConstellationStar[] | null = null;
+let constellationCacheSource: unknown = null;
 
 /**
- * The real repositories, read from the saved GitHub snapshot at build time.
- * Brighter stars are repos more people have starred; the language comes from
- * the repo itself, and the positions never move between visits.
+ * The real repositories, read from the GitHub snapshot. Brighter stars are
+ * repos more people have starred; the language comes from the repo itself,
+ * and the positions never move between visits. When the client receives a
+ * fresher snapshot the cache is rebuilt, so a refresh can add or remove stars.
  */
 export function constellationStars(): ConstellationStar[] {
-  if (constellationCache) return constellationCache;
+  const snapshot = githubSnapshot();
+  if (constellationCache && constellationCacheSource === snapshot) return constellationCache;
 
   const repos = snapshot.repositories;
   const points = scatter(
@@ -150,6 +153,7 @@ export function constellationStars(): ConstellationStar[] {
     x: points[index].x,
     y: points[index].y,
   }));
+  constellationCacheSource = snapshot;
   return constellationCache;
 }
 
@@ -178,7 +182,7 @@ async function readSky(api: GameApi): Promise<void> {
 }
 
 async function readMap(api: GameApi): Promise<void> {
-  const repos = snapshot.repositories;
+  const repos = githubSnapshot().repositories;
   const brightest = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count)[0];
   await api.store.say([
     ...copy.observatory.map.intro,
@@ -188,7 +192,7 @@ async function readMap(api: GameApi): Promise<void> {
 }
 
 async function readPlaque(api: GameApi): Promise<void> {
-  const { stats } = snapshot;
+  const { stats } = githubSnapshot();
   const top = stats.topLanguages[0]?.language ?? 'code';
   await api.store.say([
     copy.observatory.stats.intro,
@@ -387,7 +391,7 @@ function drawDigits(
 }
 
 function drawPlaqueDigits(g: CanvasRenderingContext2D): void {
-  const { stats } = snapshot;
+  const { stats } = githubSnapshot();
   const layout = plaqueLayout(
     [
       String(stats.totalRepos),

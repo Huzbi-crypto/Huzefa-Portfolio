@@ -24,7 +24,7 @@ These routes are semantic, server-rendered pages with the existing metadata. The
 | `/` | The game |
 | `/projects/` and `/projects/[slug]/` | Every project, in full, with its real repository and demo links |
 | `/about/` | Bio, education, interests and focus |
-| `/github/` | Real GitHub snapshot, languages, contribution wall and repositories |
+| `/github/` | Cached GitHub data, languages, contribution wall and repositories |
 | `/contact/` | Real contact details and a prepared email |
 | unknown route / error | The same pixel system, not a default framework page |
 
@@ -43,7 +43,7 @@ Themes (**Cozy CRT**, **Warm Apartment**, **Moonlit Terminal**), the CRT overlay
 - **Next.js 15** App Router, **React 19**, **TypeScript** strict mode, **Tailwind 3**, **pnpm 9**.
 - **No new runtime dependencies** beyond the existing Next/React setup. The music is synthesized with Web Audio; the art and font are bundled with the site.
 - **No backend and no accounts.** Progress lives in `localStorage` under `huzbi-game-v1`, and a missing or corrupt save simply starts a fresh visit.
-- **Deployment is Vercel** (`vercel.json`), using the standard Next.js runtime. `next.config.ts` does not use a static export; the requirement is that nothing needs server-side state. The GitHub page reads a committed snapshot, not a live API.
+- **Deployment is Vercel** (`vercel.json`), using the standard Next.js runtime. `next.config.ts` does not use a static export. The GitHub page and the Observatory plaque read `/api/github`, a server route that asks the public GitHub API for the profile and public repos, caches the result for about an hour (`s-maxage=3600, stale-while-revalidate=86400`), and falls back to the committed snapshot if GitHub is unavailable.
 - **Vitest** covers pure game logic, containers and rendering helpers. **Playwright** (Microsoft Edge channel) drives the real browser journey, including phone touch and reduced motion.
 
 ## Getting started
@@ -57,21 +57,37 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Refreshing the GitHub snapshot
+## GitHub data
 
-The GitHub page and the Observatory plaque read a committed snapshot, not a
-live API. When Huzbi's numbers change, refresh that file from an authenticated
-machine:
+The GitHub journal page and the Observatory plaque share one cached feed,
+`GET /api/github`. On a cache miss the server asks the public GitHub REST API
+for Huzbi's profile, every public repository and the number of starred repos,
+reduces them to the same `GitHubSnapshot` shape the site has always used, and
+caches the result for about an hour with stale-while-revalidate. The client
+game fetches that route once on load and redraws the plaque and constellation
+with the fresh numbers.
+
+This is **not** a per-request live feed: one upstream request serves everyone
+for roughly an hour, and the `/github/` page is statically regenerated on the
+same window (`export const revalidate = 3600`). If true per-visit live data is
+wanted later, lowering the cache window or adding a request-time route is a
+separate change.
+
+If the API is rate-limited, offline or broken, the route logs
+`github: live fetch failed (...)` and returns the committed
+`src/data/github-snapshot.json` with `X-GitHub-Data: snapshot` and
+`X-GitHub-Fallback: committed-snapshot` headers. The page still renders and
+never shows invented numbers. Set `GITHUB_TOKEN` (or `GH_TOKEN`) in the
+deployment to raise the unauthenticated rate limit; the route uses it when
+present and works without it.
+
+`pnpm refresh:github` remains the offline seed and manual tool. Run it from an
+authenticated machine to rewrite the committed snapshot (and its date); it
+fails loudly if GitHub cannot be reached, unlike the tolerant runtime route.
 
 ```bash
 pnpm refresh:github
 ```
-
-The script asks the authenticated `gh` CLI first (falling back to the REST API
-with `GITHUB_TOKEN` or `GH_TOKEN`) for the profile, every public repository and
-the number of starred repos, then rewrites `src/data/github-snapshot.json` with
-today's date. If any request fails it prints the real error and leaves the old
-snapshot in place. Nothing on the site makes a live GitHub request.
 
 ## Verification
 
@@ -84,7 +100,7 @@ pnpm e2e         # Playwright journey, journal and theme tests
 
 `pnpm e2e` builds and starts the app on `http://127.0.0.1:3000` unless a server is already responding there, and runs in Microsoft Edge. The journey suite covers every star, the trail-only ending, the full-collection line, phone touch, reduced motion, console errors and frame-time budget.
 
-Screenshots from the visual checks are written under `test-results/` (`checkpoint-1/`, `fix/`, `themes/`, `journal/`).
+Screenshots from the visual checks are written under `test-results/` (`plaque/`, `checkpoint-1/`, `fix/`, `themes/`, `journal/`).
 
 ## Contact
 
