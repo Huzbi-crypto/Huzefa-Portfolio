@@ -108,4 +108,115 @@ describe('ProjectPanel', () => {
     expect(store.getState().project).toBeNull();
     expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
+
+  const TABBABLE = 'a[href], button, input, select, textarea, [tabindex]';
+
+  /** The panel's tab ring, in DOM order, as a browser would walk it. */
+  function panelTabRing(): HTMLElement[] {
+    const panel = container.querySelector<HTMLElement>('.project-panel');
+    if (!panel) return [];
+    return Array.from(panel.querySelectorAll<HTMLElement>(TABBABLE)).filter(
+      (element) => element.tabIndex >= 0 && !element.hasAttribute('disabled'),
+    );
+  }
+
+  /** jsdom has no default Tab action, so do what the browser would after the event. */
+  function pressTab(options: { shiftKey?: boolean; simulateBrowser?: boolean } = {}): KeyboardEvent {
+    const active =
+      document.activeElement instanceof HTMLElement ? document.activeElement : document.body;
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: options.shiftKey ?? false,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      active.dispatchEvent(event);
+    });
+
+    if (!event.defaultPrevented && options.simulateBrowser !== false) {
+      const ring = panelTabRing();
+      if (ring.length > 0) {
+        const index = ring.indexOf(active);
+        const next = options.shiftKey
+          ? index <= 0
+            ? ring.length - 1
+            : index - 1
+          : (index + 1) % ring.length;
+        act(() => {
+          ring[next].focus();
+        });
+      }
+    }
+    return event;
+  }
+
+  it('tab_wraps_at_the_edges_of_the_project_panel', async () => {
+    const store = createStore(null);
+    await mount(store);
+    const opened = open(store, 'ai-anime');
+    const ring = panelTabRing();
+    expect(ring.length).toBeGreaterThan(1);
+
+    // Tab from the last control goes to the first, not the page behind it.
+    act(() => ring[ring.length - 1].focus());
+    const forward = pressTab({ simulateBrowser: false });
+    expect(forward.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(ring[0]);
+
+    // Shift+Tab from the first control goes to the last.
+    const backward = pressTab({ shiftKey: true, simulateBrowser: false });
+    expect(backward.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(ring[ring.length - 1]);
+
+    act(() => store.closeProject());
+    await opened;
+  });
+
+  it('tabs_repeatedly_without_leaving_the_project_panel', async () => {
+    const store = createStore(null);
+    await mount(store);
+    const opened = open(store, 'ai-anime');
+    const panel = container.querySelector<HTMLElement>('.project-panel');
+    if (!panel) throw new Error('the project panel did not open');
+
+    // More tabs than there are controls, in both directions.
+    for (let step = 0; step < 12; step += 1) {
+      pressTab();
+      const active = document.activeElement;
+      expect(active instanceof Node && panel.contains(active), `Tab ${step + 1} escaped`).toBe(true);
+    }
+    for (let step = 0; step < 12; step += 1) {
+      pressTab({ shiftKey: true });
+      const active = document.activeElement;
+      expect(
+        active instanceof Node && panel.contains(active),
+        `Shift+Tab ${step + 1} escaped`,
+      ).toBe(true);
+    }
+
+    act(() => store.closeProject());
+    await opened;
+  });
+
+  it('intercepts_nothing_once_closed', async () => {
+    const store = createStore(null);
+    await mount(store);
+    const opened = open(store, 'routing-sim');
+
+    act(() => store.closeProject());
+    await opened;
+
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    act(() => document.body.dispatchEvent(tab));
+    expect(tab.defaultPrevented).toBe(false);
+
+    const arrow = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => document.body.dispatchEvent(arrow));
+    expect(arrow.defaultPrevented).toBe(false);
+  });
 });

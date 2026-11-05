@@ -137,6 +137,38 @@ describe('Journal overlay', () => {
     expect(document.activeElement).toBe(button);
   });
 
+  it('tab_and_shift_tab_wrap_inside_the_open_journal', async () => {
+    const store = createStore(null);
+    store.award(projectStarId(projects[0].id));
+    await mount(store);
+    const button = container.querySelector('button.journal-button') as HTMLButtonElement;
+    button.focus();
+    act(() => button.click());
+
+    const panel = container.querySelector<HTMLElement>('.journal-panel');
+    const close = container.querySelector<HTMLButtonElement>('.journal-close');
+    if (!panel || !close) throw new Error('the journal did not open');
+    const links = Array.from(panel.querySelectorAll<HTMLAnchorElement>('a[href]'));
+    expect(links.length).toBeGreaterThan(0);
+    const last = links[links.length - 1];
+
+    act(() => last.focus());
+    const forward = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    act(() => last.dispatchEvent(forward));
+    expect(forward.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(close);
+
+    const backward = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => close.dispatchEvent(backward));
+    expect(backward.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(last);
+  });
+
   it('shows_found_text_and_hides_the_rest_in_real_dom', async () => {
     const store = createStore(null);
     const project = projects[0];

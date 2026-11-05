@@ -6,6 +6,7 @@ import { projects } from '@/data/projects';
 import { copy } from '@/game/content/copy';
 import { allStarIds, projectStarId, readStarId } from '@/game/content/stars';
 import type { GameStore } from '@/game/state/store';
+import { useFocusTrap } from './useFocusTrap';
 import './game.css';
 
 export type JournalEntry = {
@@ -153,6 +154,10 @@ export function Journal({
   const changeRef = useRef(change);
   changeRef.current = change;
 
+  // Focus goes in on open, stays in while Tab is pressed, and returns to the
+  // journal button on close (the button sits inside the game stage).
+  useFocusTrap(open, panelRef, closeRef, buttonRef);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       if (event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target)) return;
@@ -185,27 +190,6 @@ export function Journal({
       for (const type of types) button.removeEventListener(type, stopAtTheButton);
     };
   }, []);
-
-  // Focus goes in on open and back to where it was on close.
-  useEffect(() => {
-    if (!open) return;
-    const previous =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus({ preventScroll: true });
-
-    const keepIn = (event: FocusEvent): void => {
-      const panel = panelRef.current;
-      if (panel && event.target instanceof Node && !panel.contains(event.target)) {
-        closeRef.current?.focus({ preventScroll: true });
-      }
-    };
-    document.addEventListener('focusin', keepIn);
-
-    return () => {
-      document.removeEventListener('focusin', keepIn);
-      (buttonRef.current ?? previous)?.focus({ preventScroll: true });
-    };
-  }, [open]);
 
   const entries = journalEntries(ui.found);
   const foundCount = entries.filter((entry) => entry.found).length;
