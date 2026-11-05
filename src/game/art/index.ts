@@ -72,6 +72,8 @@ export function setGameTheme(theme: keyof typeof PALETTES): void {
  * (a blink and a tuft bob). Reduced motion never beats.
  */
 const WALK_FRAME_MS = 150; // nine 60fps repaints per frame, so the loop never stutters
+const IDLE_EVERY_MS = 7000;
+const IDLE_BEAT_MS = 300; // a blink, not a stare: eighteen 60fps repaints
 
 export function visitorSpriteName(
   facing: string,
@@ -84,6 +86,6 @@ export function visitorSpriteName(
     const frames = ANIMS[`visitor-${facing}`];
     return frames[Math.floor(walkMs / WALK_FRAME_MS) % frames.length];
   }
-  const beat = !reducedMotion && t % 7000 > 6300;
+  const beat = !reducedMotion && t % IDLE_EVERY_MS > IDLE_EVERY_MS - IDLE_BEAT_MS;
   return beat ? `visitor-${facing}-idle` : `visitor-${facing}-0`;
 }

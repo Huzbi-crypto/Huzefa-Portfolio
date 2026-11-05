@@ -108,10 +108,18 @@ describe('sprites', () => {
   });
 
   it('visitor_sprite_name_beats_only_when_standing_and_motion_is_allowed', () => {
-    expect(visitorSpriteName('down', false, 0, 6500, false)).toBe('visitor-down-idle');
-    expect(visitorSpriteName('down', false, 0, 6500, true)).toBe('visitor-down-0');
+    expect(visitorSpriteName('down', false, 0, 6800, false)).toBe('visitor-down-idle');
+    expect(visitorSpriteName('down', false, 0, 6800, true)).toBe('visitor-down-0');
     expect(visitorSpriteName('down', false, 0, 100, false)).toBe('visitor-down-0');
-    expect(visitorSpriteName('left', true, 150, 6500, false)).toBe('visitor-left-0');
+    expect(visitorSpriteName('left', true, 150, 6800, false)).toBe('visitor-left-0');
+  });
+
+  it('visitor_idle_beat_is_a_short_blink_not_a_stare', () => {
+    const idle = (t: number): boolean => visitorSpriteName('down', false, 0, t, false).endsWith('-idle');
+    expect(idle(6600)).toBe(false);
+    expect(idle(6750)).toBe(true);
+    expect(idle(6950)).toBe(true);
+    expect(idle(7000)).toBe(false);
   });
 
   it('visitor_walk_holds_each_frame_for_150ms_so_60fps_never_stutters', () => {
