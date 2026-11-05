@@ -6,7 +6,7 @@
  *   - a hair tuft that never lies flat, off-centre, and a side lock over one eye
  *   - oversized violet over-ear cups, the widest thing on him
  *   - a narrow hoodie with two uneven drawstrings and a tiny cat pin
- *   - skinny jeans, big white sneakers, and a manga tucked under one arm
+ *   - skinny jeans and big white sneakers
  *
  * 16x24, four directions, three frames each (0 idle, 1 and 2 steps), plus one
  * `visitor-<dir>-idle` frame per direction for the idle beat (a hand goes up
@@ -14,7 +14,7 @@
  *
  * Palette keys: a ink, b hair, c hair light, v skin, w skin shadow, x/y/z
  * hoodie, E headphone cups, A band and cup shine, B jeans, C white, r amber
- * pin, p/q manga cover and pages.
+ * pin.
  */
 
 const W = 16;
@@ -138,18 +138,6 @@ function armFV(g: Grid, side: 'l' | 'r', dy: number, back: boolean): void {
   });
 }
 
-function manga(g: Grid, dy: number, front: boolean): void {
-  // tucked under the right arm: the cover shows beside the elbow
-  const x = front ? 14 : 14;
-  for (let j = 0; j < 5; j += 1) {
-    put(g, x, 13 + dy + j, 'a');
-    put(g, x + 1, 13 + dy + j, j % 2 === 0 ? 'p' : 'q');
-  }
-  put(g, x + 1, 12 + dy, 'a');
-  put(g, x + 1, 18 + dy, 'a');
-  put(g, x + 2, 13 + dy, 'a');
-}
-
 function bodyFront(g: Grid, frame: Frame, handUp: boolean): void {
   lay(g, 11, TORSO_FRONT);
   dots(g, [
@@ -168,7 +156,6 @@ function bodyFront(g: Grid, frame: Frame, handUp: boolean): void {
     armFV(g, 'l', swing[0], false);
     armFV(g, 'r', swing[1], false);
   }
-  manga(g, handUp ? swing[1] : swing[1], true);
 }
 
 /** The raised hand, drawn over the head: fingers on the left cup. */
@@ -187,7 +174,6 @@ function bodyBack(g: Grid, frame: Frame): void {
   const swing = frame === 1 ? [1, -1] : frame === 2 ? [-1, 1] : [0, 0];
   armFV(g, 'l', swing[0], true);
   armFV(g, 'r', swing[1], true);
-  manga(g, swing[1], false);
 }
 
 // --- legs: rows 17 to 23 ------------------------------------------------------
@@ -254,13 +240,6 @@ function sideBody(g: Grid, frame: Frame): void {
     put(g, 9 + near, 12 + j, 'a');
   }
   dots(g, [[8 + near, 17, 'v'], [7 + near, 17, 'a'], [9 + near, 17, 'a'], [8 + near, 18, 'a']]);
-  // the manga, tucked in front of the chest under the near elbow
-  for (let j = 0; j < 5; j += 1) {
-    put(g, 10, 13 + j, j % 2 === 0 ? 'p' : 'q');
-    put(g, 11, 13 + j, 'a');
-  }
-  put(g, 10, 12, 'a');
-  put(g, 10, 18, 'a');
 }
 
 function sideLegs(g: Grid, frame: Frame): void {

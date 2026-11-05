@@ -78,6 +78,15 @@ describe('sprites', () => {
     expect([s.w, s.h]).toEqual([16, 24]);
   });
 
+  it('visitor_carries_no_paper_prop_in_any_frame', () => {
+    const paper = new Set(['p', 'q']);
+    for (const [name, rows] of Object.entries(SPRITE_GRIDS)) {
+      if (!name.startsWith('visitor-')) continue;
+      const hasPaper = rows.some((row) => [...row].some((c) => paper.has(c)));
+      expect(hasPaper, name).toBe(false);
+    }
+  });
+
   it('visitor_has_an_idle_beat_in_every_direction_and_a_walk_that_moves', () => {
     for (const dir of ['up', 'down', 'left', 'right']) {
       const idle = SPRITES[`visitor-${dir}-idle`];
