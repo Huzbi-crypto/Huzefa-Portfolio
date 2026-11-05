@@ -29,8 +29,9 @@ const AT = {
   exit: { x: 20, y: 72 },
   table: { x: 136, y: 96 },
   telescope: { x: 280, y: 72 },
-  // High enough that a visitor on the stand below is clear of the brass.
-  plaque: { x: 80, y: 74 },
+  // High enough that a visitor on the stand below is clear of the brass. The
+  // wide plate reaches the star table without covering its glass.
+  plaque: { x: 60, y: 74 },
   napDoor: { x: 340, y: 24 },
   charts: { x: 344, y: 76 },
   stool: { x: 256, y: 120 },
@@ -338,6 +339,9 @@ export type PlaqueRow = { text: string; x: number; y: number; w: number };
 /** The labels under each real number, short enough to stay on the brass. */
 export const PLAQUE_LABELS = ['REPOS', 'STARS', 'FOLLOWERS'] as const;
 
+/** The dark engraved field, inset far enough to clear the brass frame layers. */
+const PLAQUE_FIELD = { x: 6, y: 6, w: PLAQUE.w - 12, h: PLAQUE.h - 12 } as const;
+
 /** The three real numbers with their labels, then the date they were taken. */
 export function plaqueLayout(numbers: readonly string[], date: string): {
   rows: PlaqueRow[];
@@ -345,7 +349,9 @@ export function plaqueLayout(numbers: readonly string[], date: string): {
 } {
   const centred = (text: string, y: number): PlaqueRow => {
     const w = digitPixels(text).w;
-    return { text, w, x: Math.floor((PLAQUE.w - w) / 2), y };
+    // Centre inside the engraved field, not inside the whole sprite, so the
+    // brass border keeps an even margin on both sides.
+    return { text, w, x: PLAQUE_FIELD.x + Math.floor((PLAQUE_FIELD.w - w) / 2), y };
   };
 
   return {
@@ -438,7 +444,7 @@ const LIGHTS: Light[] = [
   { x: AT.table.x + 56, y: AT.table.y + 28, radius: 30, tint: 'cool' },
   { x: AT.telescope.x + 22, y: AT.telescope.y + 18, radius: 24, tint: 'cool' },
   { x: AT.napDoor.x + 14, y: AT.napDoor.y + 48, radius: 20, tint: 'warm' },
-  { x: AT.plaque.x + 30, y: AT.plaque.y + 22, radius: 30, tint: 'warm' },
+  { x: AT.plaque.x + Math.floor(PLAQUE.w / 2), y: AT.plaque.y + 22, radius: 30, tint: 'warm' },
   { x: AT.exit.x + 12, y: AT.exit.y + 30, radius: 30, tint: 'warm' },
 ];
 
@@ -484,9 +490,9 @@ function buildProps(store: GameStore): SpaceProp[] {
       draw: (g) => drawSprite(g, sprite('obsPlaque'), AT.plaque.x, AT.plaque.y),
       glow: drawPlaqueDigits,
       interact: {
-        rect: { x: AT.plaque.x, y: AT.plaque.y, w: 60, h: 58 },
+        rect: { x: AT.plaque.x, y: AT.plaque.y, w: PLAQUE.w, h: 58 },
         // Only the brass itself; the wall between it and the stand walks.
-        hitRects: [{ x: AT.plaque.x, y: AT.plaque.y, w: 60, h: PLAQUE.h }],
+        hitRects: [{ x: AT.plaque.x, y: AT.plaque.y, w: PLAQUE.w, h: PLAQUE.h }],
         // One clear tile below the plaque's bottom border, head clear of it.
         stand: { x: 14, y: 17 },
         label: copy.observatory.stats.label,

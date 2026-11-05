@@ -186,7 +186,7 @@ function starTable(): string[] {
  * border and a little patina. The real numbers and date are engraved at draw
  * time into the dark field (see PLAQUE_ROWS).
  */
-export const PLAQUE = { w: 60, h: 44 } as const;
+export const PLAQUE = { w: 76, h: 44 } as const;
 
 /** A five-point star in plaque space, with a bright centre. */
 function plaqueStar(cv: Canvas, x: number, y: number): void {
@@ -276,18 +276,18 @@ function plaque(): string[] {
     [8, 34, 'n'],
     [9, 34, 'o'],
     [8, 35, 'n'],
-    [50, 35, 'n'],
-    [51, 36, 'o'],
+    [66, 35, 'n'],
+    [67, 36, 'o'],
     [7, 18, 'n'],
-    [52, 26, 'n'],
-    [54, 6, 'n'],
+    [68, 26, 'n'],
+    [70, 6, 'n'],
     [5, 38, 'o'],
-    [30, 41, 'n'],
+    [38, 41, 'n'],
   ] as const) {
     plot(cv, x, y, c);
   }
-  rect(cv, 14, 28, 32, 1, 'a');
-  rect(cv, 27, 28, 6, 1, 'i');
+  rect(cv, 22, 28, 32, 1, 'a');
+  rect(cv, 35, 28, 6, 1, 'i');
 
   // 7. Corner studs and two mid-edge rivets.
   for (const [x, y] of [
@@ -303,7 +303,7 @@ function plaque(): string[] {
 
   // 8. A star and a crescent flank the first engraved line.
   plaqueStar(cv, 8, 8);
-  plaqueMoon(cv, 47, 8);
+  plaqueMoon(cv, 58, 8);
 
   return rows(cv);
 }
@@ -311,7 +311,8 @@ function plaque(): string[] {
 /**
  * Where the plaque's engraved lines sit, relative to the plaque. Each stat is
  * a number plus its label on one 5px line; the date sits alone below them.
- * The widest line ("20 FOLLOWERS", 47px) still leaves a pixel of brass.
+ * The widest line ("20 FOLLOWERS", 47px) is centred in the 64px engraved field,
+ * so it keeps a clear margin of brass on both sides.
  */
 export const PLAQUE_ROWS = { y: [8, 15, 22], dateY: 31 } as const;
 

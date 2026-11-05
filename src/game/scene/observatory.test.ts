@@ -197,7 +197,23 @@ describe('the star map of real repos', () => {
       expect(row.x + row.w, row.text).toBeLessThanOrEqual(inner.x + inner.w);
       expect(row.y, row.text).toBeGreaterThanOrEqual(inner.y);
       expect(row.y + glyphHeight, row.text).toBeLessThanOrEqual(inner.y + inner.h);
+
+      // Even margins on both sides of the engraved field, never on the brass.
+      const left = row.x - inner.x;
+      const right = inner.x + inner.w - (row.x + row.w);
+      expect(left, `${row.text} left margin`).toBeGreaterThanOrEqual(4);
+      expect(right, `${row.text} right margin`).toBeGreaterThanOrEqual(4);
+      expect(Math.abs(left - right), `${row.text} centring`).toBeLessThanOrEqual(1);
     }
+  });
+
+  it('the_widest_line_twenty_followers_keeps_brass_on_both_sides', () => {
+    const row = plaqueLayout(['20', '36', '20'], '2026-11-05').rows[2];
+    expect(row.text).toBe('20 FOLLOWERS');
+    const left = row.x - 6;
+    const right = 6 + (PLAQUE.w - 12) - (row.x + row.w);
+    expect(left).toBeGreaterThanOrEqual(4);
+    expect(right).toBeGreaterThanOrEqual(4);
   });
 
   it('the_plaque_gives_honest_numbers_and_the_date_they_were_taken', async () => {
