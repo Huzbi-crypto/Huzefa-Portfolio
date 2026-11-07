@@ -3,7 +3,19 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { contactCardOpen, subscribeContactCard } from '@/game/scene/nap';
 import type { GameStore } from '@/game/state/store';
+import { choiceInDirection, type ChoiceBox, type ChoiceDirection } from './choiceNavigation';
 import { useFocusTrap } from './useFocusTrap';
+
+const CHOICE_DIRECTIONS: Record<string, ChoiceDirection> = {
+  arrowup: 'up',
+  w: 'up',
+  arrowdown: 'down',
+  s: 'down',
+  arrowleft: 'left',
+  a: 'left',
+  arrowright: 'right',
+  d: 'right',
+};
 
 /**
  * The dialogue panel. Text types in character by character for sighted
@@ -63,11 +75,25 @@ export function DialogueBox({ store }: { store: GameStore }) {
       }
 
       if (showChoices && choices.length > 1) {
-        const forward = key === 'ArrowDown' || key === 'ArrowRight' || key === 's' || key === 'd';
-        const back = key === 'ArrowUp' || key === 'ArrowLeft' || key === 'w' || key === 'a';
-        if (forward || back) {
+        const direction = CHOICE_DIRECTIONS[key.toLowerCase()];
+        if (direction) {
           event.preventDefault();
-          setSelected((index) => (index + (forward ? 1 : -1) + choices.length) % choices.length);
+          const active = choiceRefs.current.findIndex((button) => button === document.activeElement);
+          const current = active >= 0 ? active : selected;
+          const boxes = choiceRefs.current.map((button) =>
+            button ? button.getBoundingClientRect() : null,
+          );
+          const laidOut =
+            boxes.length === choices.length &&
+            boxes.every((box) => box !== null && (box.width > 0 || box.height > 0));
+
+          if (laidOut) {
+            setSelected(choiceInDirection(current, boxes as ChoiceBox[], direction));
+          } else {
+            // No layout (jsdom, hidden panel): keep the old linear fallback.
+            const forward = direction === 'down' || direction === 'right';
+            setSelected((index) => (index + (forward ? 1 : -1) + choices.length) % choices.length);
+          }
           return;
         }
       }

@@ -1092,6 +1092,19 @@ async function wakeHuzbi(
 }
 
 test.describe('the full collection', () => {
+  test('simulator_arrow_down_reaches_let_go_in_one_press', async ({ page }) => {
+    await openGame(page);
+    await standAt(page, 'archive', '3d-renderer');
+    await page.keyboard.press('Enter');
+    await advanceToChoices(page);
+
+    const choices = page.locator(CHOICE);
+    await expect(choices).toHaveCount(5);
+    await expect(choices.first()).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(choices.last()).toBeFocused();
+  });
+
   test('every_star_is_reachable', async ({ page }) => {
     test.setTimeout(300_000);
     const panels: string[] = [];
