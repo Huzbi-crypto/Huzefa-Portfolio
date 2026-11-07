@@ -116,6 +116,10 @@ async function sayOnce(
 
 /** The scrap by the hatch: the hall's step on the trail. */
 async function readClue(api: GameApi): Promise<void> {
+  if (api.store.seenEndingLine() !== null) {
+    await api.store.say([...copy.clues.hall.after]);
+    return;
+  }
   const first = !api.store.hasClue('clue:hall');
   api.store.markClue('clue:hall');
   await api.store.say([...(first ? copy.clues.hall.lines : copy.clues.hall.again)]);

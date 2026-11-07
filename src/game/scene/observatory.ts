@@ -208,6 +208,10 @@ async function readPlaque(api: GameApi): Promise<void> {
 }
 
 async function lookThroughTelescope(api: GameApi): Promise<void> {
+  if (api.store.seenEndingLine() !== null) {
+    await api.store.say([...copy.clues.observatory.after]);
+    return;
+  }
   const first = !api.store.hasClue('clue:observatory');
   api.store.markClue('clue:observatory');
   await api.store.say([
@@ -228,10 +232,13 @@ async function tryNapDoor(api: GameApi): Promise<void> {
     return;
   }
 
-  const choice = await api.store.say([...copy.observatory.napDoor.open], [
-    { id: 'go', label: copy.observatory.napDoor.goLabel },
-    { id: 'stay', label: copy.observatory.napDoor.stayLabel },
-  ]);
+  const choice = await api.store.say(
+    [...(api.store.seenEndingLine() !== null ? copy.observatory.napDoor.openAfter : copy.observatory.napDoor.open)],
+    [
+      { id: 'go', label: copy.observatory.napDoor.goLabel },
+      { id: 'stay', label: copy.observatory.napDoor.stayLabel },
+    ],
+  );
 
   if (choice === 'go') {
     api.goTo('nap', 'fromObservatory');

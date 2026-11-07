@@ -277,6 +277,20 @@ describe('workshop exhibits', () => {
     expect(said).toContain(copy.clues.workshop.lines[1]);
   });
 
+  it('once_huzbi_is_found_the_workshop_scrap_is_a_memory', async () => {
+    const env = setup();
+    env.store.markEndingSeen('few');
+    const said = (await interact(env, byId(env.scene, 'clue:workshop'))).join(' ');
+    expect(said).toContain(copy.clues.workshop.after[0]);
+  });
+
+  it('after_the_ending_the_workshop_scrap_is_a_memory', async () => {
+    const env = setup();
+    env.store.markEndingSeen('few');
+    const said = (await interact(env, byId(env.scene, 'clue:workshop'))).join(' ');
+    expect(said).toContain(copy.clues.workshop.after[0]);
+  });
+
   it.each(EXHIBITS)('each_exhibit_awards_its_star_when_tried: $id', async ({ id, choice }) => {
     const env = setup();
     await interact(env, byId(env.scene, id), choice);

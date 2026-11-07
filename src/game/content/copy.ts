@@ -52,7 +52,7 @@ export const copy = {
       'silly:door-chicken': { title: 'Chicken', body: 'You said STAY at the door three times. The door noticed.' },
       'silly:terminal-secret': {
         title: 'xyzzy',
-        body: 'You typed the oldest cheat code into a stranger\'s terminal. Nothing happened, except a star.',
+        body: 'You typed the oldest cheat code into Huzbi\'s terminal. Nothing happened, except a star.',
       },
     } as Record<string, { title: string; body: string }>,
   },
@@ -559,6 +559,8 @@ export const copy = {
         'You have a feeling about that.',
       ],
       again: ['"Follow the chalk. And the paper." Yes. You heard.'],
+      /** Once the visitor has met Huzbi, the trail is a memory, not a mystery. */
+      after: ['The second note. You already followed it, all the way through the dark.', 'Huzbi is through the moon door.'],
     },
     hall: {
       label: 'Pick up the scrap of paper',
@@ -567,6 +569,7 @@ export const copy = {
         '"Tools are under the floor. The hatch is the bit that looks like a hatch."',
       ],
       again: ['"The hatch is the bit that looks like a hatch." Down you go, then.'],
+      after: ['The scrap by the hatch. You already followed it down.', 'The workshop is still warm. Huzbi is through the moon door.'],
     },
     workshop: {
       label: 'Pick up the scrap of paper',
@@ -575,6 +578,7 @@ export const copy = {
         '"Filed the rest upstairs. By upstairs I mean the door standing on its own in the hall."',
       ],
       again: ['"The door standing on its own in the hall." You know the one.'],
+      after: ['The scrap in the jar. You already followed it upstairs.', 'The archive has nothing left to point at. Huzbi is through the moon door.'],
     },
     archive: {
       label: 'Pick up the scrap of paper',
@@ -584,6 +588,7 @@ export const copy = {
         '"Ignore the poster. It is just a poster. It looks cross all the time."',
       ],
       again: ['"The passage that smells of toast. It goes up." And the poster is still just a poster.'],
+      after: ['The folded scrap. You already followed it up to the observatory.', 'The poster is still just a poster. Huzbi is through the moon door.'],
     },
     observatory: {
       label: 'Look through the telescope',
@@ -594,6 +599,10 @@ export const copy = {
         'Behind you, a small door with a moon on it clicks. Unlocked.',
       ],
       again: ['The same far window. The same lump. The same slow breathing. The moon door stays unlocked.'],
+      after: [
+        'You put your eye to the brass. The same far window, the same sofa.',
+        'Huzbi is in there. The moon door stays unlocked.',
+      ],
     },
   },
 
@@ -645,7 +654,7 @@ export const copy = {
 
     stats: {
       label: 'Read the plaque',
-      intro: 'A brass plaque, polished by somebody who cares more than they let on.',
+      intro: 'A brass plaque, polished by somebody who cares more than he lets on.',
       /** Real numbers with the day they were fetched, cached from the GitHub API. */
       numbers: (repos: number, stars: number, followers: number, date: string): string =>
         `As of ${date}: ${repos} public repos, ${stars} stars received, ${followers} followers.`,
@@ -670,9 +679,13 @@ export const copy = {
       open: [
         'The latch clicks. The door swings in a crack. Warm light, and the slow sound of someone breathing.',
       ],
+      /** The same door, once the visitor knows exactly who is inside. */
+      openAfter: [
+        'The latch clicks. The door swings in a crack. Warm light, and Huzbi inside, taking his time.',
+      ],
       goLabel: 'GO IN, QUIETLY',
       stayLabel: 'NOT YET',
-      stayReply: ['Take your time. They are not going anywhere. Obviously.'],
+      stayReply: ['Take your time. He is not going anywhere. Obviously.'],
     },
   },
 
@@ -687,27 +700,27 @@ export const copy = {
     },
     chalk: ['SHH'],
     sleeper: {
-      label: 'Look at the sleeper',
+      label: 'Look at Huzbi',
       look: [
-        'Huzbi, asleep on the sofa. Round glasses shoved up into a bush of hair, a cardigan the size of a small tent, headphones hung round their neck like a stethoscope.',
-        'A manga lies open on their face, rising and falling with every breath.',
-        'The tiny desk lamp is on. So is the whole mystery.',
+        'Huzbi, asleep on the sofa. Round glasses shoved up into a bush of hair, a cardigan the size of a small tent, headphones hung round his neck like a stethoscope.',
+        'A manga lies open on his face, rising and falling with every breath.',
+        'The tiny desk lamp is on. He is out cold.',
       ],
-      wakeLabel: 'WAKE THEM',
-      leaveLabel: 'LET THEM SLEEP',
+      wakeLabel: 'WAKE HIM',
+      leaveLabel: 'LET HIM SLEEP',
       leaveReply: ['Kind. The manga rises and falls. Nothing else happens, for a good while.'],
-      /** The same sofa, the second time round: they have clearly been up. */
+      /** The same sofa, the second time round: he has clearly been up. */
       lookAgain: [
-        'Huzbi, asleep again. The manga is back on their face and the glasses are back in the hair, as if nothing happened.',
+        'Huzbi, asleep again. The manga is back on his face and the glasses are back in his hair, as if nothing happened.',
         'The tea on the arm of the sofa has stopped steaming. It has not stopped being tea.',
       ],
       stirAgain: ['You cough. This time it sounds a little like a doorbell. The sofa answers with a long, creaky stretch.'],
       slideAgain: ['The manga slides off again. It knows the way by now.'],
       sitUpAgain: ['One eye. Then the other. This time there is recognition, and a sigh.'],
-      /** Said while they are mid-lean or mid-flop and cannot be talked to. */
-      busy: ['They are in the middle of a manoeuvre with a manga. Give them a second.'],
+      /** Said while he is mid-lean or mid-flop and cannot be talked to. */
+      busy: ['He is in the middle of a manoeuvre with a manga. Give him a second.'],
       /** Comic beats between the sleeping and the speaking; the scene plays them. */
-      stir: ['You cough, politely. On the sofa, something shifts, stretches and thinks about it.'],
+      stir: ['You cough, politely. On the sofa, Huzbi shifts, stretches and thinks about it.'],
       slide: ['The manga slides off and lands on the sofa seat with a quiet, papery flop.'],
       sitUp: ['One eye opens. Then the other. Neither is pleased.'],
     },
@@ -737,7 +750,7 @@ export const copy = {
       most: ['Oh. You again. Good to see you. Go find the rest of the stars, then I will say the nice thing.'],
       few: ['Mm. You again. Still more in the dark than you have found, you know.'],
     },
-    /** Woken a second time, or more: they remember you, and are not thrilled about the timing. */
+    /** Woken a second time, or more: he remembers you, and is not thrilled about the timing. */
     rewake: {
       opening: [
         ['Oh. You again.', 'I was reading. I was *so* close to the good chapter.'],
@@ -756,15 +769,15 @@ export const copy = {
         'Huzbi is sitting up, glasses on, manga held like a shield.',
         'This is serious reading. A page turns with great dignity.',
       ],
-      letLabel: 'LET THEM READ',
+      letLabel: 'LET HIM READ',
       askLabel: 'ASK WHAT IT IS',
       tapLabel: 'TAP THE PAGE',
       letReply: [
         ['You back away slowly. A page turns. Somewhere, a hero levels up.'],
-        ['You leave them to it. The reading continues, uninterrupted and a little smug.'],
+        ['You leave him to it. The reading continues, uninterrupted and a little smug.'],
       ],
       ask: [
-        ['"A man punches a problem until it leaves." They do not look up. "It is very good."'],
+        ['"A man punches a problem until it leaves." He does not look up. "It is very good."'],
         ['"Same one. It got better. I did not expect it to get better."'],
         ['"If you ask again it becomes a different manga, out of spite."'],
       ],
@@ -785,8 +798,8 @@ export const copy = {
     ],
     sayHiLabel: 'SAY HI',
     sayHiReply: ['The card is open. Real email, real links, no more mystery. Take your time.'],
-    leaveAloneLabel: 'LEAVE THEM BE',
-    leaveAloneReply: ['Go on. They are already half asleep again.'],
+    leaveAloneLabel: 'LEAVE HIM BE',
+    leaveAloneReply: ['Go on. He is already half asleep again.'],
 
     /** The mail that opens when the visitor says hi. */
     mail: {

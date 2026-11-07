@@ -72,6 +72,10 @@ function eyesOpen(t: number, reducedMotion: boolean): boolean {
 
 /** The scrap folded small in a file box: the Archive's step on the trail. */
 async function readClue(api: GameApi): Promise<void> {
+  if (api.store.seenEndingLine() !== null) {
+    await api.store.say([...copy.clues.archive.after]);
+    return;
+  }
   const first = !api.store.hasClue('clue:archive');
   api.store.markClue('clue:archive');
   await api.store.say([

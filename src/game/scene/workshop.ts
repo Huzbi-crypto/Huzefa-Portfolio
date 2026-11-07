@@ -57,6 +57,10 @@ function buildExhibits(): { exhibits: Exhibit[]; lights: Light[] } {
 
 /** The scrap tucked into a jar of screws: the workshop's step on the trail. */
 async function readClue(api: GameApi): Promise<void> {
+  if (api.store.seenEndingLine() !== null) {
+    await api.store.say([...copy.clues.workshop.after]);
+    return;
+  }
   const first = !api.store.hasClue('clue:workshop');
   api.store.markClue('clue:workshop');
   await api.store.say([

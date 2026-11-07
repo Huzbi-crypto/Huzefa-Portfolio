@@ -194,6 +194,20 @@ describe('dark layout', () => {
     expect(said.join(' ')).toContain(copy.clues.hall.lines[1]);
   });
 
+  it('once_huzbi_is_found_the_hall_scrap_is_a_memory', async () => {
+    const { scene, api, store } = setup();
+    store.markEndingSeen('few');
+    const said = await interact(byId(scene, 'clue:hall'), api);
+    expect(said.join(' ')).toContain(copy.clues.hall.after[0]);
+  });
+
+  it('after_the_ending_the_hall_scrap_points_at_a_finished_trail', async () => {
+    const { scene, api, store } = setup();
+    store.markEndingSeen('few');
+    const said = await interact(byId(scene, 'clue:hall'), api);
+    expect(said.join(' ')).toContain(copy.clues.hall.after[0]);
+  });
+
   it('the_arch_leads_up_to_the_observatory_and_can_be_declined', async () => {
     const { scene, api } = setup();
     await interact(byId(scene, 'arch'), api, 'stay');

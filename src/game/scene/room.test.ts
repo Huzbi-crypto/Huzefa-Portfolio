@@ -85,6 +85,22 @@ describe('room layout', () => {
     expect(said.join(' ')).toContain(copy.clues.note.lines[1]);
   });
 
+  it('once_huzbi_is_found_the_second_note_is_a_memory_not_a_clue', async () => {
+    const { scene, api, store } = setup();
+    store.markEndingSeen('few');
+    const said = await interact(byId(scene, 'clue:note'), api);
+    const line = said.join(' ');
+    expect(line).toContain(copy.clues.note.after[0]);
+    expect(line).not.toContain(copy.clues.note.again[0]);
+  });
+
+  it('after_the_ending_the_second_note_is_a_memory_not_a_mystery', async () => {
+    const { scene, api, store } = setup();
+    store.markEndingSeen('few');
+    const said = await interact(byId(scene, 'clue:note'), api);
+    expect(said.join(' ')).toContain(copy.clues.note.after[0]);
+  });
+
   it('all_room_hotspots_reachable', () => {
     const { scene } = setup();
     const nav = navMap(scene.map);

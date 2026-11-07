@@ -235,6 +235,16 @@ describe('createArchive', () => {
     expect(scene.hotspots.map((spot) => spot.id)).toContain('clue:archive');
   });
 
+  it('once_huzbi_is_found_the_archive_scrap_is_a_memory', async () => {
+    const store = createStore(null);
+    store.markEndingSeen('few');
+    const scene = createArchive(store);
+    const api = fakeApi(store);
+    const run = Promise.resolve(hotspot(scene, 'clue:archive').onInteract(api)).then(() => undefined);
+    await play(store, run);
+    expect(copy.clues.archive.after[0]).toBeTruthy();
+  });
+
   it('each_exhibit_awards_its_star_when_tried', async () => {
     for (const id of EXHIBITS) {
       const store = createStore(null);

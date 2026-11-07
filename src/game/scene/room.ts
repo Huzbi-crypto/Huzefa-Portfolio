@@ -203,6 +203,10 @@ async function petCat(api: GameApi): Promise<void> {
 
 /** The second note: the first scrap of the trail through the dark. */
 async function readClueNote(api: GameApi): Promise<void> {
+  if (api.store.seenEndingLine() !== null) {
+    await api.store.say([...copy.clues.note.after]);
+    return;
+  }
   const first = !api.store.hasClue('clue:note');
   api.store.markClue('clue:note');
   await api.store.say([...(first ? copy.clues.note.lines : copy.clues.note.again)]);

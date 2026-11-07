@@ -330,6 +330,18 @@ describe('the telescope and the moon door', () => {
     await interact(env, door(env), 'go');
     expect(env.api.goTo).toHaveBeenCalledWith('nap', 'fromObservatory');
   });
+
+  it('after_the_ending_the_telescope_and_moon_door_name_huzbi', async () => {
+    const env = setup();
+    for (const id of TRAIL) env.store.markClue(id);
+    env.store.markEndingSeen('few');
+
+    const telescope = await interact(env, byId(env.scene, 'clue:observatory'));
+    expect(telescope.join(' ')).toContain(copy.clues.observatory.after[0]);
+
+    const openDoor = await interact(env, door(env));
+    expect(openDoor.join(' ')).toContain(copy.observatory.napDoor.openAfter[0]);
+  });
 });
 
 describe('observatory art', () => {
