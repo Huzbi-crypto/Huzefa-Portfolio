@@ -462,4 +462,13 @@ describe('Huzbi after the conversation', () => {
     expect(seat('sleeperReach1')).toBe(false);
     expect(seat('sleeperRead0')).toBe(false);
   });
+
+  it('while_reading_the_cover_faces_the_visitor_so_the_pages_face_huzbi', () => {
+    const book = SLEEPER_GRIDS.sleeperRead0
+      .slice(25, 34)
+      .map((row) => row.slice(25, 39))
+      .join('');
+    expect(book, 'the reading pose shows the red cover').toContain('k');
+    expect(book, 'no open-page highlight faces the visitor').not.toContain('C');
+  });
 });

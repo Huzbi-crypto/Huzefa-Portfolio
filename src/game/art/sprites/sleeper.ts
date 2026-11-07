@@ -305,23 +305,22 @@ function mangaOnFace(cv: Canvas, x: number, y: number): void {
   ], 11);
 }
 
-/** An open manga held to read: two pages and a spine. 14 by 9. */
-function mangaOpen(cv: Canvas, x: number, y: number, flip: boolean): void {
-  lay(cv, x, y, [
+/**
+ * The manga held open to read, seen from the front: the back cover faces the
+ * visitor, because the pages face Huzbi. 14 by 9.
+ */
+function mangaCover(cv: Canvas, x: number, y: number, flip: boolean): void {
+  lay(cv, x, y + (flip ? -1 : 0), [
     'aaaaaaaaaaaaaa',
-    'apppppaqpppppa',
-    'aCCCpaaqpqqqpa',
-    'aCaCpppqpppCpa',
-    'apppqpaqCCpppa',
-    'apqppppqpaapqa',
-    'apppqqpqpppppa',
-    'aqqqqqqaqqqqqa',
+    'appppppppppppa',
+    'apkkkkkkkkkkpa',
+    'apkllllllllkpa',
+    'appppppppppppa',
+    'apppkkkkkppppa',
+    'apppklllkppppa',
+    'appppppppppppa',
     'aaaaaaaaaaaaaa',
   ], 14);
-  if (flip) {
-    // a page mid-turn lifting at the corner
-    lay(cv, x + 8, y - 2, ['aaaaa.', 'apppqa'], 6);
-  }
 }
 
 // --- the cardigan -----------------------------------------------------------------
@@ -460,7 +459,7 @@ function seated(
   head(cv, 27 - lean, 12 + dy + (opts.headDy ?? 0), face);
 
   if (arms === 'read') {
-    mangaOpen(cv, 25, 25 + dy, opts.flip === true);
+    mangaCover(cv, 25, 25 + dy, opts.flip === true);
     lay(cv, 23, 29 + dy, ['avv', 'avv'], 3);
     lay(cv, 40, 29 + dy, ['vva', 'vva'], 3);
   }
