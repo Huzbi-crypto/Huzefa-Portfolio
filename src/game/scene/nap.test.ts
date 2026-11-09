@@ -210,9 +210,10 @@ describe('nap art', () => {
 });
 
 describe('the wake-up beats', () => {
-  it('plays_stretch_slide_one_eye_both_eyes_rise_sit_up_then_a_waving_grin_by_time', () => {
-    expect(sleeperFrame('stir', 0, 0, false)).toBe('sleeperStretch0');
-    expect(sleeperFrame('stir', 200, 0, false)).toBe('sleeperStretch1');
+  it('plays_stir_slide_one_eye_both_eyes_rise_sit_up_then_a_waving_grin_by_time', () => {
+    expect(sleeperFrame('stir', 0, 0, false)).toBe('sleeperStir0');
+    expect(sleeperFrame('stir', 0, 500, false)).toBe('sleeperStir0');
+    expect(sleeperFrame('stir', 0, 700, false)).toBe('sleeperStir1');
     expect(sleeperFrame('slide', 0, 0, false)).toBe('sleeperSlide');
     expect(sleeperFrame('slide', 0, 900, false)).toBe('sleeperOneEye');
     expect(sleeperFrame('slide', 0, 1800, false)).toBe('sleeperBothEyes');
@@ -278,10 +279,12 @@ describe("Huzbi at the world's pixel scale", () => {
     expect(lyingDown.h).toBeLessThanOrEqual(22);
   });
 
-  it('the_stir_is_a_stretch_not_a_cough', () => {
-    expect(Object.keys(SLEEPER_GRIDS)).not.toContain('sleeperCough0');
-    expect(SLEEPER_GRIDS.sleeperStretch0).not.toEqual(SLEEPER_GRIDS.sleeperStretch1);
-    expect(SLEEPER_GRIDS.sleeperStretch0).not.toEqual(SLEEPER_GRIDS.sleeperAsleep0);
+  it('the_stir_is_a_startle_under_the_manga_not_a_stretch', () => {
+    expect(Object.keys(SLEEPER_GRIDS)).not.toContain('sleeperStretch0');
+    expect(SLEEPER_GRIDS.sleeperStir0).not.toEqual(SLEEPER_GRIDS.sleeperStir1);
+    expect(SLEEPER_GRIDS.sleeperStir0).not.toEqual(SLEEPER_GRIDS.sleeperAsleep0);
+    // the snore turns into a question mark above the sofa back
+    expect(SLEEPER_GRIDS.sleeperStir0.slice(8, 14).join('')).toContain('CCC');
   });
 });
 
@@ -394,6 +397,19 @@ describe('Huzbi after the conversation', () => {
     expect(second).toContain(copy.nap.sleeper.stirAgain[0]);
     expect(second).toContain(copy.nap.rewake.opening[0][0]);
     expect(second).not.toContain(copy.nap.wake.few[0]);
+  });
+
+  it('a_second_wake_greets_once_then_gives_the_star_status', async () => {
+    const env = setup();
+    await wakeAndLeave(env);
+    env.tick(60000);
+
+    const second = (await wakeAndLeave(env)).join(' ');
+    const greetings = second.match(/you again/gi) ?? [];
+    expect(greetings).toHaveLength(1);
+    expect(second).toContain(copy.nap.rewake.opening[0][0]);
+    expect(second).toContain(copy.nap.rewake.again.few[0]);
+    expect(second).not.toContain(copy.nap.again.few[0]);
   });
 
   it('reading_offers_let_him_read_ask_and_tap_without_breaking_the_cycle', async () => {

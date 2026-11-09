@@ -99,7 +99,7 @@ export function setContactCardOpen(open: boolean): void {
 /**
  * Which sleeper frame to draw. Each pose is a short run of frames played by the
  * time since the pose began, so the wake-up lands as comic beats: the visitor coughs and
- * Huzbi stirs and stretches, the manga skidding off onto the seat, one eye then both, up on an elbow, sitting, a grin and a
+ * Huzbi stirs under the manga, the manga skidding off onto the seat, one eye then both, up on an elbow, sitting, a grin and a
  * wave. Reduced motion shows one still frame per pose instead.
  */
 export function sleeperFrame(
@@ -108,7 +108,7 @@ export function sleeperFrame(
   elapsed: number,
   reducedMotion: boolean,
 ): string {
-  if (pose === 'stir') return reducedMotion || t % 360 < 180 ? 'sleeperStretch0' : 'sleeperStretch1';
+  if (pose === 'stir') return reducedMotion || elapsed < 600 ? 'sleeperStir0' : 'sleeperStir1';
   if (pose === 'slide') {
     if (reducedMotion || elapsed < 700) return 'sleeperSlide';
     return elapsed < 1500 ? 'sleeperOneEye' : 'sleeperBothEyes';
@@ -184,11 +184,16 @@ async function contactBeat(api: GameApi, ref: PoseRef, woken: boolean): Promise<
   const opening = copy.nap.rewake.opening[times % copy.nap.rewake.opening.length];
   if (!proper && woken) store.increment('nap-rewake');
 
-  await store.say(
-    proper
-      ? [...copy.nap.wake[line]]
-      : [...(woken ? opening : []), ...copy.nap.again[line]],
-  );
+  // The greeting happens once. A re-wake uses the opening beat and then the
+  // star status with no second hello; a chat while he is already up uses the
+  // short standing line on its own.
+  const status = proper
+    ? copy.nap.wake[line]
+    : woken
+      ? copy.nap.rewake.again[line]
+      : copy.nap.again[line];
+
+  await store.say(proper ? [...status] : [...(woken ? opening : []), ...status]);
   store.markEndingSeen(line);
 
   const choice = await store.say(

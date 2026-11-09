@@ -90,7 +90,7 @@ async function firstWake(page: Page, tag: string): Promise<void> {
   await snap(page, tag, '01-asleep');
   await page.keyboard.press('Enter');
   await pick(page, copy.nap.sleeper.wakeLabel);
-  // the comic beats: stir and stretch, slide, sit up, one line each
+  // the comic beats: stir, slide, sit up, one line each
   for (const label of ['02-stir', '03-slide', '04-situp']) {
     await page.waitForTimeout(700);
     await snap(page, tag, label);

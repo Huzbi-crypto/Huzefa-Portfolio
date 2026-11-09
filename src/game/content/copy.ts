@@ -714,13 +714,13 @@ export const copy = {
         'Huzbi, asleep again. The manga is back on his face and the glasses are back in his hair, as if nothing happened.',
         'The tea on the arm of the sofa has stopped steaming. It has not stopped being tea.',
       ],
-      stirAgain: ['You cough. This time it sounds a little like a doorbell. The sofa answers with a long, creaky stretch.'],
+      stirAgain: ['You cough. This time it sounds a little like a doorbell. Huzbi answers with a creak of the sofa and a very put-upon sigh.'],
       slideAgain: ['The manga slides off again. It knows the way by now.'],
       sitUpAgain: ['One eye. Then the other. This time there is recognition, and a sigh.'],
       /** Said while he is mid-lean or mid-flop and cannot be talked to. */
       busy: ['He is in the middle of a manoeuvre with a manga. Give him a second.'],
       /** Comic beats between the sleeping and the speaking; the scene plays them. */
-      stir: ['You cough, politely. On the sofa, Huzbi shifts, stretches and thinks about it.'],
+      stir: ['You cough, politely. On the sofa, Huzbi shifts, says something muffled into the manga and thinks about it.'],
       slide: ['The manga slides off and lands on the sofa seat with a quiet, papery flop.'],
       sitUp: ['One eye opens. Then the other. Neither is pleased.'],
     },
@@ -757,6 +757,12 @@ export const copy = {
         ['...you again?', 'Give me five minutes. Five. I will be a person in five minutes.'],
         ['Mm. Hello again.', 'I was reading, and then I was not, and I am still working out how that happened.'],
       ],
+      /** Follows the hello: where the stars stand. Never a second greeting. */
+      again: {
+        full: ['Still cannot believe you found everything. I am not over it.'],
+        most: ['The rest of the stars are still out there, by the way. Bring them back and I will say the nice thing.'],
+        few: ['You are still more dark than stars in here, you know. Find the rest and I will be properly impressed.'],
+      },
       afterWake: [
         'Right. Since you are here again, the offer stands.',
         'Real email, real links, still no mystery.',

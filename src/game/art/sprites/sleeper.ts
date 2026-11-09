@@ -10,11 +10,12 @@
  * one sprite for the sofa and whoever is on it.
  *
  * Frames cover the whole ending loop: asleep (two breathing frames, glasses
- * pushed up into the hair and the manga on his face), stretch (two: he stirs
- * when the visitor coughs), slide (the manga leaves his face), one eye, both
- * eyes, rise, sit up, awake (a wave, two frames), then the life after the talk:
- * the hand lowers (two), he sits for a beat (two), leans down for the manga,
- * reads (two) and lies back (two) until the manga is on his face again.
+ * pushed up into the hair and the manga on his face), stir (two: the cough
+ * lands, his breath catches and the manga jerks up off his nose), slide (the
+ * manga leaves his face), one eye, both eyes, rise, sit up, awake (a wave, two
+ * frames), then the life after the talk: the hand lowers (two), he sits for a
+ * beat (two), leans down for the manga, reads (two) and lies back (two) until
+ * the manga is on his face again.
  * Original pixel art, palette keys only.
  */
 
@@ -25,8 +26,8 @@ export const SLEEPER = { w: 64, h: 46 } as const;
 export type SleepFrame =
   | 'asleep0'
   | 'asleep1'
-  | 'stretch0'
-  | 'stretch1'
+  | 'stir0'
+  | 'stir1'
   | 'slide'
   | 'oneEye'
   | 'bothEyes'
@@ -158,6 +159,7 @@ export type Face =
   | 'one' // one eye cracked open
   | 'wide' // both eyes open, glasses still up
   | 'wideOn' // wide, glasses on
+  | 'huh' // mouth open, eyes still shut, caught mid-snore
   | 'grin' // awake, wave
   | 'talk' // mid-sentence, mouth open
   | 'calm' // sitting, tired but fond
@@ -256,6 +258,11 @@ function head(cv: Canvas, x: number, y: number, face: Face): void {
       glassesOn();
       lens('C', 'C');
       mouth('a');
+      break;
+    case 'huh':
+      glassesUp();
+      bare('shut', 'shut');
+      mouth('a', 'w');
       break;
     case 'grin':
       glassesOn();
@@ -537,8 +544,10 @@ function snore(cv: Canvas, x: number, y: number, big: boolean): void {
   if (big) lay(cv, x + 4, y - 4, ['CC', '.C', 'CC']);
 }
 
-/** A hand opened wide, three fingers spread, for the stretch. 7 by 5. */
-const OPEN_HAND = ['a.a.a.a', 'avavava', 'avvvvva', '.avvvwa', '..aaa..'];
+/** The snore turning into a question mark as the cough lands. 5 by 6. */
+function puzzled(cv: Canvas, x: number, y: number): void {
+  lay(cv, x, y, ['.CCC.', 'C...C', '...C.', '..C..', '.....', '..C..'], 5);
+}
 
 function risen(): Canvas {
   // up on an elbow, shoulders and head lifting, glasses back on, hair a disaster
@@ -561,21 +570,19 @@ export function sleeperFrame(frame: SleepFrame): string[] {
       else snore(cv, 15, 13, false);
       return rows(cv);
     }
-    case 'stretch0': {
-      // he stirs: one arm slides up along his side, the hand opening
-      const cv = lying('under', { hand: 'none', headLift: 1 });
-      limb(cv, [[22, 25], [21, 20]], 1.5, 'j', 'k');
-      lay(cv, 18, 13, OPEN_HAND, 7);
-      mangaOnFace(cv, 8, 22);
+    case 'stir0': {
+      // the cough lands: his breath catches, the manga jerks up off his nose,
+      // and the snore turns into a question mark
+      const cv = lying('huh', { lift: 1, headLift: 1, hand: 'belly' });
+      mangaOnFace(cv, 7, 20);
+      puzzled(cv, 14, 8);
       return rows(cv);
     }
-    case 'stretch1': {
-      // the full stretch: the arm thrown up and back over the head, fingers spread, the back arching
-      const cv = lying('under', { lift: 1, hand: 'none', headLift: 1 });
-      limb(cv, [[22, 24], [19, 20], [16, 16]], 1.5, 'j', 'k');
-      lay(cv, 12, 9, OPEN_HAND, 7);
-      mangaOnFace(cv, 8, 21);
-      for (const [x, y] of [[9, 10], [10, 7], [18, 8]]) plot(cv, x, y, 'C');
+    case 'stir1': {
+      // the head drops back and the book slips down his face onto his chest
+      const cv = lying('under', { hand: 'belly' });
+      mangaOnFace(cv, 7, 26);
+      puzzled(cv, 15, 9);
       return rows(cv);
     }
     case 'slide': {
@@ -640,8 +647,8 @@ export function sleeperFrame(frame: SleepFrame): string[] {
 export const SLEEPER_GRIDS: Record<string, string[]> = {
   sleeperAsleep0: sleeperFrame('asleep0'),
   sleeperAsleep1: sleeperFrame('asleep1'),
-  sleeperStretch0: sleeperFrame('stretch0'),
-  sleeperStretch1: sleeperFrame('stretch1'),
+  sleeperStir0: sleeperFrame('stir0'),
+  sleeperStir1: sleeperFrame('stir1'),
   sleeperSlide: sleeperFrame('slide'),
   sleeperOneEye: sleeperFrame('oneEye'),
   sleeperBothEyes: sleeperFrame('bothEyes'),
