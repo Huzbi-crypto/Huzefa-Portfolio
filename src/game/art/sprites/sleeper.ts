@@ -382,6 +382,9 @@ function legsSeated(cv: Canvas, x: number): void {
 
 type Arms = 'rest' | 'wave0' | 'wave1' | 'lower0' | 'lower1' | 'read' | 'reach0' | 'reach1';
 
+/** A soft waving hand, fingers up, small enough to sit beside his head. 5 by 5. */
+const WAVE_HAND = ['.a.a.', 'avvva', 'avvva', '.avwa', '..aa.'];
+
 /** Where the manga lies on the seat once it has slid off his face: within an arm's reach. */
 const SEAT_MANGA = { x: 13, y: 32 } as const;
 
@@ -422,8 +425,8 @@ function seated(
       hand(23, 34);
       sleeve(38, 25, 6);
       if (arms === 'lower0') {
-        limb(cv, [[40, 24], [43, 20], [43, 15]], 1.4, 'j', 'k');
-        lay(cv, 41, 10, ['.a.a.', 'avvva', 'avvva', '.avwa', '..aa.'], 5);
+        limb(cv, [[40, 26], [44, 25], [45, 21]], 1.3, 'j', 'k');
+        lay(cv, 43, 18, WAVE_HAND, 5);
       } else {
         limb(cv, [[40, 27], [44, 27], [47, 28]], 1.4, 'j', 'k');
         lay(cv, 46, 25, ['.aaa', 'avva', 'avva', '.aaa'], 4);
@@ -434,10 +437,11 @@ function seated(
     case 'wave1': {
       sleeve(24, 25, 9);
       hand(23, 34);
-      const tilt = arms === 'wave0' ? 0 : 1;
-      // upper arm out, forearm straight up beside his head, an open hand waving
-      limb(cv, [[39, 26], [42, 22], [42 + tilt, 14]], 1.5, 'j', 'k');
-      lay(cv, 40 + tilt, 8, ['.a.a.', 'avvva', 'avvva', '.avwa', '..aa.'], 5);
+      const lift = arms === 'wave0' ? 0 : 1;
+      // upper arm out to a bent elbow, forearm up beside his head, hand at
+      // ear height: a wave, not a flagpole
+      limb(cv, [[39, 27], [43, 25], [43, 20 - lift]], 1.3, 'j', 'k');
+      lay(cv, 41, 15 - lift, WAVE_HAND, 5);
       break;
     }
     case 'read':

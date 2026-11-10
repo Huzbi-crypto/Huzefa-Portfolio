@@ -286,6 +286,20 @@ describe("Huzbi at the world's pixel scale", () => {
     // the snore turns into a question mark above the sofa back
     expect(SLEEPER_GRIDS.sleeperStir0.slice(8, 14).join('')).toContain('CCC');
   });
+
+  it('the_wave_hand_stops_at_head_height_not_above_it', () => {
+    for (const name of ['sleeperAwake', 'sleeperAwake1', 'sleeperLower']) {
+      let handTop = Infinity;
+      SLEEPER_GRIDS[name].forEach((row, y) => {
+        [...row].forEach((c, x) => {
+          if (c === 'v' && x >= 40) handTop = Math.min(handTop, y);
+        });
+      });
+      // His head starts at row 12; a raised hand must not become a flagpole.
+      expect(handTop, name).toBeGreaterThanOrEqual(13);
+      expect(handTop, name).toBeLessThanOrEqual(19);
+    }
+  });
 });
 
 describe('Huzbi after the conversation', () => {

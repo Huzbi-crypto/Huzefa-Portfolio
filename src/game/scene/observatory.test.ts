@@ -129,6 +129,21 @@ describe('observatory layout', () => {
     expect(coversPointer(telescope, telescope.rect.x + 22, telescope.rect.y + 30)).toBe(true);
   });
 
+  it('the_plaque_charts_and_furniture_have_solid_footprints', () => {
+    const { scene } = setup();
+    const solid = (x: number, y: number) => scene.map.solid[y * scene.map.w + x];
+    for (const [name, x, y] of [
+      ['plaque', 8, 10],
+      ['table glass', 18, 14],
+      ['table stem', 23, 18],
+      ['telescope tripod', 36, 14],
+      ['charts board', 43, 10],
+      ['stool', 32, 15],
+    ] as const) {
+      expect(solid(x, y), name).toBe(1);
+    }
+  });
+
   it('the_stairs_lead_back_to_the_hall_and_can_be_declined', async () => {
     const env = setup();
     await interact(env, byId(env.scene, 'exit'), 'stay');
@@ -341,6 +356,19 @@ describe('the telescope and the moon door', () => {
 
     const openDoor = await interact(env, door(env));
     expect(openDoor.join(' ')).toContain(copy.observatory.napDoor.openAfter[0]);
+  });
+
+  it('after_the_ending_the_plaque_and_the_door_stop_being_a_mystery', async () => {
+    const env = setup();
+    env.store.markEndingSeen('few');
+
+    const plaque = await interact(env, byId(env.scene, 'stats-plaque'));
+    expect(plaque.join(' ')).toContain(copy.observatory.stats.introAfter);
+    expect(plaque.join(' ')).not.toContain(copy.observatory.stats.intro);
+
+    const reopened = createObservatory(env.store);
+    const label = reopened.hotspots.find((h) => h.id === 'nap-door')?.label;
+    expect(label).toBe(copy.observatory.napDoor.labelAfter);
   });
 });
 

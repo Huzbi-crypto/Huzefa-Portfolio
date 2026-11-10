@@ -212,7 +212,13 @@ function buildProps(): SpaceProp[] {
         hitRects: [{ x: AT.monitor.x, y: AT.monitor.y, w: 32, h: 32 }],
         stand: { x: 19, y: 7 },
         label: copy.dark.monitor.label,
-        use: (api) => sayOnce(api, 'dark-eye', copy.dark.monitor.lines, copy.dark.monitor.again),
+        use: async (api) => {
+          if (api.store.seenEndingLine() !== null) {
+            await api.store.say([...copy.dark.monitor.after]);
+            return;
+          }
+          await sayOnce(api, 'dark-eye', copy.dark.monitor.lines, copy.dark.monitor.again);
+        },
       },
     },
     {

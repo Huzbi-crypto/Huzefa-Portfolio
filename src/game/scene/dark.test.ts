@@ -324,6 +324,21 @@ describe('dark hotspots', () => {
       expect(said.length, id).toBeGreaterThan(0);
     }
   });
+
+  it('after_the_ending_the_eye_is_friendly_without_the_hedge', async () => {
+    const store = createStore(null);
+    store.markEndingSeen('few');
+    const scene = createDarkScene(store);
+    const api: GameApi = {
+      store,
+      goTo: vi.fn(),
+      openTerminal: vi.fn(),
+      showProject: vi.fn(async () => undefined),
+    };
+    const said = await interact(byId(scene, 'eye'), api);
+    expect(said.join(' ')).toContain(copy.dark.monitor.after[0]);
+    expect(said.join(' ')).not.toContain(copy.dark.monitor.again[0]);
+  });
 });
 
 function ctxFor(over: Partial<SceneCtx> & { mode?: Input['mode']; pointer?: Input['pointer'] }): SceneCtx {

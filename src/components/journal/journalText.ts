@@ -6,7 +6,7 @@ export const journalText = {
   siteName: "Huzbi's room",
   banner: {
     lead: 'Huzbi stepped out and left the door open.',
-    link: 'Resolve the mystery',
+    link: 'Visit the room',
     note: 'It is a small game, and it lives at the front door.',
   },
   nav: {

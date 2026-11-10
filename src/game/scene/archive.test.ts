@@ -245,6 +245,23 @@ describe('createArchive', () => {
     expect(copy.clues.archive.after[0]).toBeTruthy();
   });
 
+  it('after_the_ending_the_poster_confirms_huzbi_does_not_look_like_it', async () => {
+    const store = createStore(null);
+    store.markEndingSeen('few');
+    const scene = createArchive(store);
+    const api = fakeApi(store);
+    const said: string[] = [];
+    const original = store.say.bind(store);
+    vi.spyOn(store, 'say').mockImplementation((lines, choices) => {
+      said.push(...lines);
+      return original(lines, choices);
+    });
+    const run = Promise.resolve(hotspot(scene, 'monster-poster').onInteract(api)).then(() => undefined);
+    await play(store, run);
+    expect(said.join(' ')).toContain(copy.archive.monster.after[0]);
+    expect(said.join(' ')).not.toContain(copy.archive.monster.lines[4]);
+  });
+
   it('each_exhibit_awards_its_star_when_tried', async () => {
     for (const id of EXHIBITS) {
       const store = createStore(null);

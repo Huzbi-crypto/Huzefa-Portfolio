@@ -245,6 +245,8 @@ export const copy = {
         'It blinks, slowly. You decide to call that friendly.',
       ],
       again: ['The eye finds you again. Still friendly. Probably.'],
+      /** Once Huzbi is known, the eye is odd but not ominous. */
+      after: ['The eye finds you again. Friendly. You have decided it can stay.'],
     },
 
     noteOne: {
@@ -449,6 +451,11 @@ export const copy = {
         'You believe it. Mostly.',
       ],
       again: ['The poster glares. It is paper. The tape is winning.'],
+      /** After meeting Huzbi, the poster's little joke has an answer. */
+      after: [
+        'The red eyes in the dark. You have met Huzbi now, and he does not look like that.',
+        'The poster is still just a poster. The tape is losing.',
+      ],
     },
   },
 
@@ -560,7 +567,7 @@ export const copy = {
       ],
       again: ['"Follow the chalk. And the paper." Yes. You heard.'],
       /** Once the visitor has met Huzbi, the trail is a memory, not a mystery. */
-      after: ['The second note. You already followed it, all the way through the dark.', 'Huzbi is through the moon door.'],
+      after: ['The second note. You already followed it, all the way through the dark.', 'You found Huzbi through the moon door.'],
     },
     hall: {
       label: 'Pick up the scrap of paper',
@@ -569,7 +576,7 @@ export const copy = {
         '"Tools are under the floor. The hatch is the bit that looks like a hatch."',
       ],
       again: ['"The hatch is the bit that looks like a hatch." Down you go, then.'],
-      after: ['The scrap by the hatch. You already followed it down.', 'The workshop is still warm. Huzbi is through the moon door.'],
+      after: ['The scrap by the hatch. You already followed it down.', 'You found Huzbi through the moon door.'],
     },
     workshop: {
       label: 'Pick up the scrap of paper',
@@ -578,7 +585,7 @@ export const copy = {
         '"Filed the rest upstairs. By upstairs I mean the door standing on its own in the hall."',
       ],
       again: ['"The door standing on its own in the hall." You know the one.'],
-      after: ['The scrap in the jar. You already followed it upstairs.', 'The archive has nothing left to point at. Huzbi is through the moon door.'],
+      after: ['The scrap in the jar. You already followed it upstairs.', 'You found Huzbi through the moon door.'],
     },
     archive: {
       label: 'Pick up the scrap of paper',
@@ -588,7 +595,7 @@ export const copy = {
         '"Ignore the poster. It is just a poster. It looks cross all the time."',
       ],
       again: ['"The passage that smells of toast. It goes up." And the poster is still just a poster.'],
-      after: ['The folded scrap. You already followed it up to the observatory.', 'The poster is still just a poster. Huzbi is through the moon door.'],
+      after: ['The folded scrap. You already followed it up to the observatory.', 'You found Huzbi through the moon door.'],
     },
     observatory: {
       label: 'Look through the telescope',
@@ -601,7 +608,7 @@ export const copy = {
       again: ['The same far window. The same lump. The same slow breathing. The moon door stays unlocked.'],
       after: [
         'You put your eye to the brass. The same far window, the same sofa.',
-        'Huzbi is in there. The moon door stays unlocked.',
+        'Huzbi is in there, asleep. You found him. The moon door stays unlocked.',
       ],
     },
   },
@@ -655,6 +662,8 @@ export const copy = {
     stats: {
       label: 'Read the plaque',
       intro: 'A brass plaque, polished by somebody who cares more than he lets on.',
+      /** The same plaque once the visitor knows the polisher. */
+      introAfter: 'A brass plaque. Huzbi polishes it more than he lets on.',
       /** Real numbers with the day they were fetched, cached from the GitHub API. */
       numbers: (repos: number, stars: number, followers: number, date: string): string =>
         `As of ${date}: ${repos} public repos, ${stars} stars received, ${followers} followers.`,
@@ -664,6 +673,8 @@ export const copy = {
 
     napDoor: {
       label: 'Try the door with the moon',
+      /** Once Huzbi is known, the door is a way back, not a question. */
+      labelAfter: 'Go back to the nap room',
       shut: [
         'A small round door with a moon on it. A sign: "SHH. Back in 5 mins."',
         'It does not budge. The latch hums, sleepy, as if it is waiting for something.',

@@ -195,7 +195,9 @@ async function readPlaque(api: GameApi): Promise<void> {
   const { stats } = githubSnapshot();
   const top = stats.topLanguages[0]?.language ?? 'code';
   await api.store.say([
-    copy.observatory.stats.intro,
+    api.store.seenEndingLine() !== null
+      ? copy.observatory.stats.introAfter
+      : copy.observatory.stats.intro,
     copy.observatory.stats.numbers(
       stats.totalRepos,
       stats.totalStarsReceived,
@@ -533,7 +535,10 @@ function buildProps(store: GameStore): SpaceProp[] {
         rect: { x: AT.napDoor.x, y: AT.napDoor.y, w: 28, h: 48 },
         hitRects: [{ x: AT.napDoor.x + 1, y: AT.napDoor.y + 1, w: 26, h: 46 }],
         stand: { x: 41, y: 9 },
-        label: copy.observatory.napDoor.label,
+        label:
+          store.seenEndingLine() !== null
+            ? copy.observatory.napDoor.labelAfter
+            : copy.observatory.napDoor.label,
         use: tryNapDoor,
       },
     },
@@ -568,9 +573,16 @@ function buildSpaceDef(store: GameStore): SpaceDef {
     worldH: WORLD_H,
     solids: [
       { x: 0, y: 0, w: WORLD_W, h: WALL_BOTTOM },
-      // The table's foot and the telescope's tripod.
-      { x: AT.table.x + 16, y: AT.table.y + 52, w: 80, h: 10 },
-      { x: AT.telescope.x + 16, y: AT.telescope.y + 56, w: 28, h: 8 },
+      // The star table: glass, stem and foot, so the visitor walks round it.
+      { x: AT.table.x + 4, y: AT.table.y + 12, w: 104, h: 50 },
+      // The telescope's tripod.
+      { x: AT.telescope.x + 4, y: AT.telescope.y + 36, w: 36, h: 28 },
+      // The brass plaque on the back wall: no walking through the engraving.
+      { x: AT.plaque.x, y: AT.plaque.y, w: PLAQUE.w, h: PLAQUE.h },
+      // The charts board on the right wall.
+      { x: AT.charts.x, y: AT.charts.y, w: 24, h: 32 },
+      // The stool by the table.
+      { x: AT.stool.x, y: AT.stool.y, w: 14, h: 16 },
     ],
     spawn: { x: 3, y: 9 },
     entries: {

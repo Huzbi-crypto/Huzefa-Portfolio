@@ -666,7 +666,9 @@ describe('clicking around an object in the dark', () => {
     const { player } = game.snapshot();
     expect(store.getState().dialogue).toBeNull();
     expect(Math.floor(player.x / TILE)).toBe(17);
-    expect(Math.floor(player.y / TILE)).toBe(19);
+    // The table now has a real footprint, so the corner resolves to the free
+    // tile just below it instead of walking inside the furniture.
+    expect(Math.floor(player.y / TILE)).toBe(20);
   });
 
   it('the_wall_below_a_dark_note_walks_instead_of_reading_it', () => {

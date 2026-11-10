@@ -87,7 +87,13 @@ async function lookAtPoster(api: GameApi): Promise<void> {
   const seen = api.store.count('archive-monster');
   api.store.increment('archive-monster');
   api.store.award('silly:monster-poster');
-  await api.store.say([...(seen === 0 ? copy.archive.monster.lines : copy.archive.monster.again)]);
+  const lines =
+    api.store.seenEndingLine() !== null
+      ? copy.archive.monster.after
+      : seen === 0
+        ? copy.archive.monster.lines
+        : copy.archive.monster.again;
+  await api.store.say([...lines]);
 }
 
 // --- the space -----------------------------------------------------------------
