@@ -69,7 +69,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 async function openGame(page: Page): Promise<void> {
-  await page.goto('/?e2e=1');
+  await page.goto('/play/?e2e=1');
   await expect(page.locator(STAGE)).toBeVisible();
   await page.waitForFunction(
     () => {
@@ -221,12 +221,11 @@ async function canvasBrightness(page: Page, x: number, y: number): Promise<numbe
 test.describe('desktop journey at 1366 by 768', () => {
   test.use({ viewport: { width: 1366, height: 768 } });
 
-  test('no_navbar_on_home', async ({ page }) => {
+  test('no_navbar_in_game', async ({ page }) => {
     await openGame(page);
 
-    await expect(page.locator('header')).toHaveCount(0);
-    await expect(page.getByRole('navigation', { name: 'Main Navigation' })).toHaveCount(0);
-    await expect(page.locator(STAGE)).toBeVisible();
+    await expect(page.locator('.j-nav')).toHaveCount(0);
+    await expect(page.locator('.game-stage')).toBeVisible();
   });
 
   test('arrow_keys_move_player', async ({ page }) => {

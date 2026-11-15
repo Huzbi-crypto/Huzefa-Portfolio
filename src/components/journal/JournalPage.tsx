@@ -11,6 +11,8 @@ type Props = {
   art?: ReactNode;
   /** Small links above the title, such as a way back. */
   crumbs?: ReactNode;
+  /** The quiet door banner; the front page turns it off. */
+  showBanner?: boolean;
   children: ReactNode;
 };
 
@@ -18,10 +20,10 @@ type Props = {
  * The frame every plain page shares: the banner, the title and the room's
  * palette. It is plain server markup, so it reads the same with scripts off.
  */
-export function JournalPage({ title, lede, art, crumbs, children }: Props) {
+export function JournalPage({ title, lede, art, crumbs, showBanner = true, children }: Props) {
   return (
     <div className="journal-root">
-      <MysteryBanner />
+      {showBanner ? <MysteryBanner /> : null}
       <div className="j-wrap journal-body">
         {crumbs ? <div className="journal-crumbs">{crumbs}</div> : null}
         <header className="journal-head">

@@ -9,7 +9,7 @@ import { PixelPanel } from '@/components/journal/PixelPanel';
 export const metadata: Metadata = { title: 'Nothing here | Huzbi' };
 
 export default function NotFound() {
-  const { title, lede, toRoom, toProjects, art } = journalText.notFound;
+  const { title, lede, toHome, toPlay, toProjects, art } = journalText.notFound;
   return (
     <JournalPage
       title={title}
@@ -19,7 +19,10 @@ export default function NotFound() {
       <PixelPanel as="section" aria-label="Where to go instead">
         <div className="j-row">
           <Link href="/" className="j-btn">
-            {toRoom}
+            {toHome}
+          </Link>
+          <Link href="/play/" className="j-btn" data-kind="ghost">
+            {toPlay}
           </Link>
           <Link href="/projects/" className="j-btn" data-kind="ghost">
             {toProjects}

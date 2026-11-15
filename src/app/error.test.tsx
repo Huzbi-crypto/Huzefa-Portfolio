@@ -1,10 +1,17 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { AppProvider } from '@/context/AppContext';
 import { journalText } from '@/components/journal/journalText';
 import GlobalError from './error';
+
+// Next inlines this flag from next.config.ts (trailingSlash: true) at build
+// time; without it the test environment would strip the slash off /play/.
+process.env.__NEXT_TRAILING_SLASH = 'true';
+afterAll(() => {
+  delete process.env.__NEXT_TRAILING_SLASH;
+});
 
 let container: HTMLDivElement;
 let root: Root;
@@ -38,6 +45,7 @@ describe('the error journal page', () => {
     expect(container.querySelector('h1')?.textContent).toContain(journalText.error.title);
     expect(container.textContent).toContain('digest-42');
     expect(container.querySelector('a[href="/"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/play/"]')).not.toBeNull();
 
     const retry = [...container.querySelectorAll<HTMLButtonElement>('button')].find(
       (button) => button.textContent === journalText.error.retry,

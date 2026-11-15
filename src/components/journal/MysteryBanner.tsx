@@ -15,7 +15,7 @@ export function MysteryBanner() {
         <PixelArt grid={ICONS.door} scale={3} className="mystery-door" />
         <p className="mystery-banner-text">
           {lead}{' '}
-          <Link href="/" className="mystery-banner-link">
+          <Link href="/play/" className="mystery-banner-link">
             {link}
           </Link>
         </p>

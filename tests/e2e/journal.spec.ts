@@ -25,12 +25,12 @@ async function open(page: Page, route: string): Promise<void> {
 }
 
 test.describe('journal pages', () => {
-  test('every_route_has_quiet_banner_linking_home', async ({ page }) => {
+  test('every_route_has_quiet_banner_linking_game', async ({ page }) => {
     for (const route of ROUTES) {
       await open(page, route);
       const banner = page.locator('.mystery-banner');
       await expect(banner, route).toHaveCount(1);
-      const link = banner.locator('a[href="/"]');
+      const link = banner.locator('a[href="/play/"]');
       await expect(link, route).toBeVisible();
       // Quiet: one slim line of the page, never a floating overlay.
       const box = await banner.boundingBox();
@@ -60,7 +60,7 @@ test.describe('journal pages', () => {
     const response = await page.goto('/projects/no-such-project-here/');
     expect(response?.status()).toBe(404);
     await expect(page.locator('main h1')).toContainText(/nothing|not here|lost/i);
-    await expect(page.locator('.mystery-banner a[href="/"]')).toBeVisible();
+    await expect(page.locator('.mystery-banner a[href="/play/"]')).toBeVisible();
     await expect(page.locator('.journal-root')).toHaveCount(1);
     await page.screenshot({ path: path.join(SHOT_DIR, 'not-found-desktop.png'), fullPage: true });
   });

@@ -11,7 +11,7 @@ import '@/components/journal/journal.css';
 import type { Theme } from '@/types/portfolio';
 
 const NAV_LINKS = [
-  { label: journalText.nav.room, href: '/' },
+  { label: journalText.nav.play, href: '/play/' },
   { label: journalText.nav.projects, href: '/projects/' },
   { label: journalText.nav.github, href: '/github/' },
   { label: journalText.nav.about, href: '/about/' },
@@ -25,9 +25,10 @@ const THEME_NAMES: Record<Theme, string> = {
 };
 
 /**
- * The navigation for every plain page. The home page is the game and carries
- * none. The links are real links, so they work with scripts off; the three
- * tools only appear once scripts are running, since they need them.
+ * The navigation for every plain page. The game at `/play/` carries none, and
+ * neither does the front page's quiet banner. The links are real links, so
+ * they work with scripts off; the three tools only appear once scripts are
+ * running, since they need them.
  */
 export default function Navbar() {
   const pathname = usePathname();
@@ -36,14 +37,15 @@ export default function Navbar() {
 
   useEffect(() => setReady(true), []);
 
+  const path = pathname.replace(/\/$/, '') || '/';
+
   const isActive = (href: string): boolean => {
-    if (href === '/') return pathname === '/';
-    const base = href.replace(/\/$/, '');
-    const path = pathname.replace(/\/$/, '');
+    const base = href.replace(/\/$/, '') || '/';
+    if (base === '/') return path === '/';
     return path === base || path.startsWith(`${base}/`);
   };
 
-  if (pathname === '/') return null;
+  if (path === '/play') return null;
 
   return (
     <header className="j-nav">

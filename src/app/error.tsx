@@ -19,7 +19,7 @@ export default function GlobalError({
     console.error('Unhandled room exception:', error);
   }, [error]);
 
-  const { title, lede, retry, toRoom, digest, art } = journalText.error;
+  const { title, lede, retry, toHome, toPlay, digest, art } = journalText.error;
   return (
     <JournalPage
       title={title}
@@ -33,7 +33,10 @@ export default function GlobalError({
               {retry}
             </button>
             <Link href="/" className="j-btn" data-kind="ghost">
-              {toRoom}
+              {toHome}
+            </Link>
+            <Link href="/play/" className="j-btn" data-kind="ghost">
+              {toPlay}
             </Link>
           </div>
           {error.digest ? (

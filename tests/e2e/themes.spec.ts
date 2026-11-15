@@ -26,7 +26,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 async function openGame(page: Page): Promise<void> {
-  await page.goto('/?e2e=1');
+  await page.goto('/play/?e2e=1');
   await expect(page.locator(STAGE)).toBeVisible();
   await page.waitForFunction(
     () => Boolean(window.__huzbiGame) && Boolean(document.querySelector('canvas')),
@@ -226,7 +226,7 @@ test.describe('themes and terminal', () => {
       await page.waitForTimeout(250);
       await page.screenshot({ path: path.join(SHOT_DIR, `terminal-secret-${theme}.png`) });
 
-      await page.goto('/?e2e=1', { waitUntil: 'networkidle' });
+      await page.goto('/play/?e2e=1', { waitUntil: 'networkidle' });
       await page.waitForTimeout(900);
       await page.screenshot({ path: path.join(SHOT_DIR, `room-${theme}.png`) });
 

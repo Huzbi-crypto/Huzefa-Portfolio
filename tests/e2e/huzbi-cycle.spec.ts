@@ -27,7 +27,7 @@ async function seed(page: Page): Promise<void> {
 }
 
 async function openGame(page: Page): Promise<void> {
-  await page.goto('/?e2e=1');
+  await page.goto('/play/?e2e=1');
   await expect(page.locator(STAGE)).toBeVisible();
   await page.waitForFunction(() => Boolean(window.__huzbiGame) && Boolean(document.querySelector('canvas')));
   await page.locator(STAGE).focus();

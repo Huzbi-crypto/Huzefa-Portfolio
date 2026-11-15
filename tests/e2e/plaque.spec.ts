@@ -11,7 +11,7 @@ const PLAQUE_AT = { x: 60, y: 74 };
 const PADDING = 6;
 
 async function openGame(page: Page): Promise<void> {
-  await page.goto('/?e2e=1');
+  await page.goto('/play/?e2e=1');
   await expect(page.locator(STAGE)).toBeVisible();
   await page.waitForFunction(
     () => Boolean(window.__huzbiGame) && Boolean(document.querySelector('canvas')),
