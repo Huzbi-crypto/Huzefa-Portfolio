@@ -17,6 +17,18 @@ export const journalText = {
     about: 'About',
     contact: 'Contact',
   },
+  home: {
+    lede: 'A portfolio you can walk around, or read like a notebook.',
+    doorTitle: 'The room is open.',
+    doorBody:
+      'It is 2 AM. Huzbi is not here. The note says he will be back in five minutes, and there is a door that should not be there.',
+    play: 'Play the room',
+    continue: 'Continue the room',
+    stars: (found: number, total: number) => `${found} of ${total} stars found`,
+    secondary: 'Read the project notes',
+    featuredTitle: 'Three things from the lab',
+    allProjects: 'See every artifact',
+  },
   tools: {
     terminal: 'CLI',
     terminalLabel: 'Toggle the retro terminal',

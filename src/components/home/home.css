@@ -1,0 +1,64 @@
+/* Front page only: the door panel, its reserved save line and the mobile
+   steps. Every value is a --j-* token from journal.css. */
+
+/* The door: copy on the left, the open door beside it. */
+.home-door-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px 40px;
+  align-items: center;
+}
+
+.home-door-copy {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+.home-door .home-door-copy h2 {
+  font-size: clamp(28px, 3.6vw, 38px);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.home-door-actions {
+  align-items: flex-start;
+}
+
+.home-door-art {
+  display: grid;
+  place-items: center;
+}
+
+/* The door's label: the count lands on a line that is already reserved. */
+.play-door {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  min-width: 0;
+}
+
+.play-door-save {
+  margin: 0;
+  min-height: 1.5em;
+  color: var(--j-dim);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Phones: the door stacks, art under the copy, tighter gaps. */
+@media (max-width: 720px) {
+  .home-door-panel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .home-door-copy {
+    gap: 12px;
+  }
+
+  .home-door-art {
+    justify-items: center;
+  }
+}
