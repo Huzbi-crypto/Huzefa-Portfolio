@@ -76,6 +76,8 @@ export type Game = {
   resize(cssW: number, cssH: number): void;
   goTo(id: SceneId, entry?: string): void;
   setReducedMotion(v: boolean): void;
+  /** Freeze the simulation without tearing anything down. */
+  setPaused(value: boolean): void;
 };
 
 declare global {
@@ -155,6 +157,7 @@ export function createGameController(opts: ControllerOptions) {
   let nudge: NudgeTarget | null = null;
   let stepSfxMs = 0;
   let blockedNow = false;
+  let paused = false;
 
   const api: GameApi = {
     store,
@@ -487,6 +490,8 @@ export function createGameController(opts: ControllerOptions) {
 
   return {
     step(ms: number): void {
+      if (paused) return;
+
       t += ms;
       store.tick(ms);
 
@@ -591,6 +596,10 @@ export function createGameController(opts: ControllerOptions) {
       store.setReducedMotion(value);
     },
 
+    setPaused(value: boolean): void {
+      paused = value;
+    },
+
     teleport(x: number, y: number, facing: Facing = 'down'): void {
       player.x = x;
       player.y = y;
@@ -664,5 +673,6 @@ export function createGame(opts: GameOptions): Game {
     },
     goTo: (id, entry) => controller.goTo(id, entry),
     setReducedMotion: (v) => controller.setReducedMotion(v),
+    setPaused: (v) => controller.setPaused(v),
   };
 }

@@ -248,6 +248,21 @@ describe('game controller', () => {
       }
     }
   });
+
+  it('paused_controller_does_not_step', () => {
+    const { game, queue } = setup();
+    const target = { x: 20, y: 20 };
+    queue.push({ type: 'tap', ...cssOf(game, target.x * TILE + 4, target.y * TILE + 4) });
+
+    game.setPaused(true);
+    const before = { ...game.snapshot().player };
+    run(game, 120);
+    expect(game.snapshot().player).toEqual(before);
+
+    game.setPaused(false);
+    run(game, 120);
+    expect(game.snapshot().player).not.toEqual(before);
+  });
 });
 
 describe('exhibit pointer targets', () => {

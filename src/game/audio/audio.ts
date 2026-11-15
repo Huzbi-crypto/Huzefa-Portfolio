@@ -16,6 +16,8 @@ export type GameAudio = {
   isEnabled(): boolean;
   playSfx(name: SfxName): void;
   setScene(id: SceneId): void;
+  /** Silence the game for a pause without touching the stored choice. */
+  setPaused(value: boolean): void;
   dispose(): void;
 };
 
@@ -50,6 +52,7 @@ export function createAudio(
   let hasGesture = false;
   let hidden = doc?.visibilityState === 'hidden';
   let disposed = false;
+  let paused = false;
   let playingScene: SceneId | null = null;
 
   let lastFound = store.getState().found.length;
@@ -85,7 +88,7 @@ export function createAudio(
   }
 
   function startMusic(): void {
-    if (!enabled || disposed || hidden || !hasGesture) return;
+    if (!enabled || disposed || hidden || paused || !hasGesture) return;
     const context = ensureContext();
     if (!context || !synth || context.state !== 'running') return;
     if (playingScene === scene) return;
@@ -105,7 +108,7 @@ export function createAudio(
       void ctx
         .resume()
         .then(() => {
-          if (!disposed && enabled && !hidden) startMusic();
+          if (!disposed && !paused && enabled && !hidden) startMusic();
         })
         .catch(() => undefined);
     } catch {
@@ -114,7 +117,7 @@ export function createAudio(
   }
 
   function playSfx(name: SfxName): void {
-    if (!enabled || disposed || hidden) return;
+    if (!enabled || disposed || hidden || paused) return;
     if (!synth || !ctx || ctx.state !== 'running') return;
     synth.playSfx(name);
   }
@@ -124,7 +127,7 @@ export function createAudio(
    * a saved "on" choice waits, so reloading never plays anything by itself.
    */
   function onGesture(): void {
-    if (disposed || !enabled) return;
+    if (disposed || !enabled || paused) return;
     hasGesture = true;
     if (hidden) return;
 
@@ -152,7 +155,7 @@ export function createAudio(
       return;
     }
 
-    if (enabled && hasGesture) resumeAndPlay();
+    if (enabled && hasGesture && !paused) resumeAndPlay();
   }
 
   function applyStoredChoice(value: boolean): void {
@@ -225,6 +228,23 @@ export function createAudio(
       if (!enabled) return;
       stopMusic();
       startMusic();
+    },
+
+    setPaused(value: boolean): void {
+      if (disposed || paused === value) return;
+      paused = value;
+      if (value) {
+        stopMusic();
+        if (ctx && ctx.state === 'running') {
+          try {
+            void ctx.suspend().catch(() => undefined);
+          } catch {
+            // Best effort: a broken context stays quiet.
+          }
+        }
+        return;
+      }
+      if (enabled && hasGesture) resumeAndPlay();
     },
 
     dispose(): void {

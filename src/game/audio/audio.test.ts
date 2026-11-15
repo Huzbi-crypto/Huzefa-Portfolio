@@ -224,4 +224,25 @@ describe('game audio', () => {
     expect(ctx.oscillators.length - before).toBe(1);
     audio.dispose();
   });
+
+  it('pause_suspends_without_changing_the_sound_choice', async () => {
+    const ctx = new FakeAudioContext();
+    const store = createStore(null);
+    const audio = createAudio(() => ctx, store);
+
+    audio.setEnabled(true);
+    const playing = ctx.oscillators.length;
+    expect(playing).toBeGreaterThan(0);
+
+    audio.setPaused(true);
+    expect(store.getState().sound).toBe(true);
+    expect(ctx.suspendCalls).toBe(1);
+
+    audio.setPaused(false);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(ctx.resumeCalls).toBeGreaterThan(0);
+    expect(ctx.oscillators.length).toBeGreaterThan(playing);
+
+    audio.dispose();
+  });
 });
