@@ -1408,6 +1408,7 @@ test.describe('focus and modals', () => {
     await openGame(page);
     await standAt(page, 'dark', 'routing-sim');
     await page.keyboard.press('Enter');
+    await expect(page.locator(DIALOGUE)).toBeVisible({ timeout: 10_000 });
     await dismissDialogue(page);
     await expect(page.locator(PROJECT_PANEL)).toBeVisible({ timeout: 10_000 });
     await expect(page.locator(`${PROJECT_PANEL} [data-close]`)).toBeFocused();
