@@ -21,6 +21,18 @@ export const copy = {
     soundOffLabel: 'Sound is off. Turn sound on.',
     nudge: 'Psst. Something nearby is worth a look.',
     nudgeTarget: (label: string) => `Psst. ${label}.`,
+    pause: {
+      button: 'MENU',
+      buttonLabel: 'Open the pause menu. Shortcut: Escape.',
+      title: 'Paused.',
+      body: 'The room will wait.',
+      resume: 'RESUME',
+      resumeLabel: 'Resume the game',
+      exit: 'EXIT TO THE SITE',
+      exitLabel: 'Exit to the site. Progress is saved.',
+      saved: 'Progress saves automatically.',
+      stars: (found: number, total: number) => `${found} of ${total} stars found`,
+    },
   },
 
   /** The in-game journal. Entries for stars not found yet stay hidden. */

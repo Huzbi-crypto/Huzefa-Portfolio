@@ -8,7 +8,7 @@ import { createAudio, type GameAudio } from '@/game/audio/audio';
 import type { AudioContextLike } from '@/game/audio/synth';
 import { copy } from '@/game/content/copy';
 import { hydrateGitHubSnapshot } from '@/game/data/github';
-import { isTermPromptOpen } from '@/game/exhibits/termExp';
+import { isTermPromptOpen, subscribeTermPrompt, termPromptState } from '@/game/exhibits/termExp';
 import { createGame, type Game, type GameHint, type NudgeTarget } from '@/game/game';
 import { createArchive } from '@/game/scene/archive';
 import { createDarkScene } from '@/game/scene/dark';
@@ -27,6 +27,7 @@ import { createStore, type GameStore } from '@/game/state/store';
 import { clearLiveStore, setLiveStore } from '@/game/state/liveStore';
 import { DialogueBox } from './DialogueBox';
 import { Journal } from './Journal';
+import { PauseMenu } from './PauseMenu';
 import { ProjectPanel } from './ProjectPanel';
 import { SoundToggle } from './SoundToggle';
 import { StarCounter } from './StarCounter';
@@ -44,6 +45,10 @@ const EMPTY_UI = {
   sound: false,
   project: null,
 } as const;
+
+/** A store-less subscribe, and the same empty snapshot for server and client. */
+const noSubscribe = (): (() => void) => () => undefined;
+const emptyUi = (): typeof EMPTY_UI => EMPTY_UI;
 
 function browserStorage(): Storage | null {
   try {
@@ -186,9 +191,33 @@ export default function GameRoot() {
   // server render, and none flashed before we know whether it was dismissed.
   const [walked, setWalked] = useState<boolean | null>(null);
   const [nudge, setNudge] = useState<NudgeTarget | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
+  const pausedRef = useRef(false);
+  const overlayOpenRef = useRef(false);
+  const gameRef = useRef<Game | null>(null);
+  const audioRef = useRef<GameAudio | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   terminalOpenRef.current = isTerminalOpen;
   openTerminalRef.current = openTerminal;
+  pausedRef.current = paused;
+  journalOpenRef.current = journalOpen;
+
+  // Live modal state: the Esc key reads these refs to decide what a press
+  // should close first, and the Menu button hides while any panel owns the
+  // keyboard.
+  const ui = useSyncExternalStore(
+    store ? store.subscribe : noSubscribe,
+    store ? store.getState : emptyUi,
+    () => EMPTY_UI,
+  );
+  const term = useSyncExternalStore(subscribeTermPrompt, termPromptState, () => null);
+  const contact = useSyncExternalStore(subscribeContactCard, contactCardOpen, () => false);
+  const overlayOpen = Boolean(
+    ui.dialogue || ui.project || term || contact || isTerminalOpen || journalOpen,
+  );
+  overlayOpenRef.current = overlayOpen;
 
   // The canvas is palette-indexed; re-decode its sprites when the room's light
   // changes so the world recolours on the next frame, with no reload.
@@ -225,6 +254,7 @@ export default function GameRoot() {
       isBlocked: () => {
         const state = gameStore.getState();
         return (
+          pausedRef.current ||
           isTermPromptOpen() ||
           state.dialogue !== null ||
           state.project !== null ||
@@ -236,6 +266,8 @@ export default function GameRoot() {
       onHint: setHint,
       onNudge: setNudge,
     });
+    gameRef.current = game;
+    audioRef.current = gameAudio;
 
     const fit = (): void => game.resize(stage.clientWidth, stage.clientHeight);
     const observer = new ResizeObserver(fit);
@@ -268,6 +300,8 @@ export default function GameRoot() {
       game.stop();
       gameAudio.dispose();
       clearLiveStore(gameStore);
+      gameRef.current = null;
+      audioRef.current = null;
     };
   }, []);
 
@@ -276,6 +310,29 @@ export default function GameRoot() {
     if (!isTerminalOpen) stageRef.current?.focus({ preventScroll: true });
   }, [isTerminalOpen]);
 
+  // Pause the world and the music together; resume reverses both.
+  useEffect(() => {
+    gameRef.current?.setPaused(paused);
+    audioRef.current?.setPaused(paused);
+  }, [paused]);
+
+  // Esc opens the menu only when nothing else owns the keyboard: a dialogue,
+  // terminal prompt, project panel, journal or contact card closes itself
+  // first, exactly as before. Capture phase on window, so the game's own
+  // input listener on the stage never receives the press that pauses it.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      if (pausedRef.current) return; // PauseMenu closes it
+      if (overlayOpenRef.current) return; // the open panel closes it
+      event.preventDefault();
+      event.stopPropagation();
+      setPaused(true);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
+
   const begin = (): void => {
     if (store) noteWalked(store);
     setWalked(true);
@@ -283,12 +340,35 @@ export default function GameRoot() {
   const blocked = (): boolean => {
     const state = store?.getState();
     return (
+      pausedRef.current ||
       isTermPromptOpen() ||
       Boolean(state && (state.dialogue || state.project)) ||
       terminalOpenRef.current ||
+      journalOpenRef.current ||
       contactCardOpen()
     );
   };
+
+  const showMenu = Boolean(store) && !paused && !overlayOpen;
+
+  // The menu button owns its input: a tap or Enter here must never walk the
+  // visitor or use the room behind the button (the same rule as the journal's).
+  useEffect(() => {
+    const button = menuButtonRef.current;
+    if (!showMenu || !button) return;
+    const stopAtTheButton = (event: Event): void => {
+      if (event.type === 'keydown' || event.type === 'keyup') {
+        const key = (event as KeyboardEvent).key;
+        if (key !== 'Enter' && key !== ' ') return;
+      }
+      event.stopPropagation();
+    };
+    const types = ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'keyup'] as const;
+    for (const type of types) button.addEventListener(type, stopAtTheButton);
+    return () => {
+      for (const type of types) button.removeEventListener(type, stopAtTheButton);
+    };
+  }, [showMenu]);
 
   return (
     <div
@@ -308,6 +388,18 @@ export default function GameRoot() {
       {store ? <StarsFromStore store={store} /> : null}
       {store && audio ? <SoundFromStore store={store} audio={audio} /> : null}
       <ThemeSelector className="game-theme-selector" />
+
+      {showMenu ? (
+        <button
+          ref={menuButtonRef}
+          type="button"
+          className="game-menu-button px-panel"
+          aria-label={copy.ui.pause.buttonLabel}
+          onClick={() => setPaused(true)}
+        >
+          {copy.ui.pause.button}
+        </button>
+      ) : null}
 
       {walked === null ? null : (
         <div className="controls-hint px-panel" data-gone={walked} aria-hidden="true">
@@ -329,6 +421,7 @@ export default function GameRoot() {
           isBlocked={blocked}
           onOpenChange={(open) => {
             journalOpenRef.current = open;
+            setJournalOpen(open);
             if (!open) stageRef.current?.focus({ preventScroll: true });
           }}
         />
@@ -344,6 +437,12 @@ export default function GameRoot() {
       {store ? <DialogueBox store={store} /> : null}
       {store ? <ProjectPanel store={store} /> : null}
       <EndingContact />
+      <PauseMenu
+        open={paused}
+        found={ui.found.length}
+        total={ui.total}
+        onResume={() => setPaused(false)}
+      />
     </div>
   );
 }
