@@ -142,7 +142,7 @@ test.describe('themes and terminal', () => {
     expect(await page.evaluate(() => (window as Window & { __probe?: number }).__probe)).toBe(11);
   });
 
-  test('home_theme_and_crt_controls_work_without_reload', async ({ page }) => {
+  test('game_theme_and_crt_controls_work_without_reload', async ({ page }) => {
     await openGame(page);
     await page.evaluate(() => {
       (window as Window & { __probe?: number }).__probe = 13;
@@ -174,7 +174,7 @@ test.describe('themes and terminal', () => {
     await expect(page.locator('[data-crt-overlay]')).toHaveCount(1);
     await page.locator('[data-crt-toggle]').click();
     await expect(page.locator('[data-crt-overlay]')).toHaveCount(0);
-    expect(await page.evaluate(() => window.location.pathname)).toBe('/');
+    expect(await page.evaluate(() => window.location.pathname)).toBe('/play/');
   });
 
   test('terminal_blocks_player_input', async ({ page }) => {

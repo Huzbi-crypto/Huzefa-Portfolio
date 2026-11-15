@@ -2,7 +2,7 @@
 
 > A small pixel-art game about a developer who stepped out for five minutes. **Huzefa Saifuddin (Huzbi)** is a FAST NU CS graduate, low-level systems and multi-agent tinkerer, and manga reader. The site is his 2 AM room, and the visitor is early.
 
-This is not a normal portfolio with an interactive corner. `/` is the game. The project, About, GitHub and contact pages are pixel-art journal pages inside the same world, so a direct link still reads as a real page.
+This is not a normal portfolio with an interactive corner. `/` is the journal front page, the open door beside the copy and three featured projects. The game lives at `/play/`. The project, About, GitHub and contact pages are pixel-art journal pages inside the same world, so a direct link still reads as a real page.
 
 ## What the game is
 
@@ -17,11 +17,12 @@ The full design is in `docs/superpowers/specs/2026-11-02-retro-game-portfolio-de
 
 ## Journal pages
 
-These routes are semantic, server-rendered pages with the existing metadata. They work with JavaScript off and carry the SEO.
+The journal pages are semantic, server-rendered pages with the existing metadata. They work with JavaScript off and carry the SEO. The game at `/play/` is the one client page.
 
 | Route | Content |
 |---|---|
-| `/` | The game |
+| `/` | The journal front page: the open door, the saved-star count and three featured projects |
+| `/play/` | The game |
 | `/projects/` and `/projects/[slug]/` | Every project, in full, with its real repository and demo links |
 | `/about/` | Bio, education, interests and focus |
 | `/github/` | Cached GitHub data, languages, contribution wall and repositories |
@@ -34,6 +35,7 @@ Each page carries a quiet banner inviting the visitor back to the game. Reading 
 
 - **Desktop:** arrow keys, WASD or click to walk. Click an object to walk to it and use it. Enter or Space uses the nearest object; Esc closes any panel. The journal opens with `J`.
 - **Phone and touch:** tap to walk, tap an object to use it, drag to move the lantern in the dark.
+- **Pause and exit:** Esc, or the Menu button on a phone, opens Resume and Exit. Leaving with Exit does not erase progress.
 - **Accessibility:** reduced-motion visitors get instant dialogue, still lighting and simple cuts. The game is playable by keyboard with visible focus. Sound is off until the visible toggle is turned on. There is no fast full-screen flashing and no way to lose or get stuck.
 
 Themes (**Cozy CRT**, **Warm Apartment**, **Moonlit Terminal**), the CRT overlay and the terminal all stay in the pixel system. The terminal hides one command worth a star.
@@ -42,7 +44,7 @@ Themes (**Cozy CRT**, **Warm Apartment**, **Moonlit Terminal**), the CRT overlay
 
 - **Next.js 15** App Router, **React 19**, **TypeScript** strict mode, **Tailwind 3**, **pnpm 9**.
 - **No new runtime dependencies** beyond the existing Next/React setup. The music is synthesized with Web Audio; the art and font are bundled with the site.
-- **No backend and no accounts.** Progress lives in `localStorage` under `huzbi-game-v1`, and a missing or corrupt save simply starts a fresh visit.
+- **No backend and no accounts.** Progress lives in `localStorage` under `huzbi-game-v1`, and a missing or corrupt save simply starts a fresh visit. Leaving the game with Exit does not erase progress; the saved stars stay for the next visit.
 - **Deployment is Vercel** (`vercel.json`), using the standard Next.js runtime. `next.config.ts` does not use a static export. The GitHub page and the Observatory plaque read `/api/github`, a server route that asks the public GitHub API for the profile and public repos, caches the result for about an hour (`s-maxage=3600, stale-while-revalidate=86400`), and falls back to the committed snapshot if GitHub is unavailable.
 - **Vitest** covers pure game logic, containers and rendering helpers. **Playwright** (Microsoft Edge channel) drives the real browser journey, including phone touch and reduced motion.
 
