@@ -75,4 +75,35 @@ describe('PlayDoor', () => {
     await mount();
     expect(container.textContent).toContain('Continue the room');
   });
+
+  it('stays_fresh_when_storage_access_is_blocked', async () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'localStorage');
+    const windowErrors: unknown[] = [];
+    const captureError = (event: ErrorEvent) => {
+      windowErrors.push(event.error ?? event.message);
+    };
+    window.addEventListener('error', captureError);
+
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() {
+        throw new Error('storage blocked');
+      },
+    });
+
+    try {
+      await mount();
+      expect(windowErrors).toHaveLength(0);
+      expect(container.textContent).toContain('Play the room');
+      expect(container.querySelector('a[href="/play/"]')).not.toBeNull();
+      expect(container.textContent).not.toContain('stars found');
+    } finally {
+      window.removeEventListener('error', captureError);
+      if (original) {
+        Object.defineProperty(window, 'localStorage', original);
+      } else {
+        delete (window as unknown as Record<string, unknown>)['localStorage'];
+      }
+    }
+  });
 });

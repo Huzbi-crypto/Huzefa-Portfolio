@@ -17,7 +17,16 @@ export function PlayDoor() {
   const [saved, setSaved] = useState<Saved | null>(null);
 
   useEffect(() => {
-    const progress = loadProgress(window.localStorage);
+    // Storage access itself throws in privacy-restricted or sandboxed
+    // contexts, before loadProgress can see the failure. Fall back to a
+    // fresh visit so the door still works.
+    let storage: Storage | null = null;
+    try {
+      storage = window.localStorage;
+    } catch {
+      storage = null;
+    }
+    const progress = loadProgress(storage);
     if (progress.found.length > 0 || progress.doorOpened) {
       setSaved({ found: progress.found.length, total: starTotal() });
     }
