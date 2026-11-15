@@ -375,7 +375,7 @@ git commit -m "feat: pause the game loop and music without changing the sound ch
 
 - [ ] **Step 1: Write the failing `PlayDoor` tests**
 
-Create `src/components/home/PlayDoor.test.tsx` with jsdom and a React root like `ProjectPanel.test.tsx`. Clear `localStorage` in `beforeEach`. Import `PROGRESS_KEY` from `@/game/state/progress`.
+Create `src/components/home/PlayDoor.test.tsx` with jsdom and a React root like `ProjectPanel.test.tsx`. Clear `localStorage` in `beforeEach`. Import `PROGRESS_KEY` from `@/game/state/progress` and `starTotal` from `@/game/content/stars`.
 
 ```tsx
 it('offers_a_fresh_start_when_there_is_no_save', async () => {
@@ -395,7 +395,7 @@ it('offers_continue_with_the_saved_star_count', async () => {
   }));
   await mount();
   expect(container.textContent).toContain('Continue the room');
-  expect(container.textContent).toContain('1 of 35 stars found');
+  expect(container.textContent).toContain(`1 of ${starTotal()} stars found`);
 });
 
 it('treats_an_opened_door_as_progress_even_with_no_stars', async () => {
@@ -416,29 +416,7 @@ it('treats_an_opened_door_as_progress_even_with_no_stars', async () => {
 Run: `pnpm test -- src/components/home/PlayDoor.test.tsx`
 Expected: FAIL because the component does not exist.
 
-- [ ] **Step 3: Implement `PlayDoor`**
-
-Create a `'use client'` component with no props. In `useEffect`, call `loadProgress(window.localStorage)` and, when `found.length > 0 || doorOpened`, store `{ found: found.length, total: starTotal() }`. Render:
-
-```tsx
-<div className="play-door">
-  <Link href="/play/" className="j-btn play-door-link">
-    {saved ? journalText.home.continue : journalText.home.play}
-  </Link>
-  <p className="play-door-save" aria-live="polite">
-    {saved ? journalText.home.stars(saved.found, saved.total) : null}
-  </p>
-</div>
-```
-
-The `p` keeps its reserved line height in CSS. Do not read storage during render.
-
-- [ ] **Step 4: Run the tests to verify they pass**
-
-Run: `pnpm test -- src/components/home/PlayDoor.test.tsx`
-Expected: PASS.
-
-- [ ] **Step 5: Add the home copy**
+- [ ] **Step 3: Add the home copy**
 
 In `journalText.ts`, add `home`:
 
@@ -456,6 +434,28 @@ home: {
   allProjects: 'See every artifact',
 },
 ```
+
+- [ ] **Step 4: Implement `PlayDoor`**
+
+Create a `'use client'` component with no props. In `useEffect`, call `loadProgress(window.localStorage)` and, when `found.length > 0 || doorOpened`, store `{ found: found.length, total: starTotal() }`. Render:
+
+```tsx
+<div className="play-door">
+  <Link href="/play/" className="j-btn play-door-link">
+    {saved ? journalText.home.continue : journalText.home.play}
+  </Link>
+  <p className="play-door-save" aria-live="polite">
+    {saved ? journalText.home.stars(saved.found, saved.total) : null}
+  </p>
+</div>
+```
+
+The `p` keeps its reserved line height in CSS. Do not read storage during render.
+
+- [ ] **Step 5: Run the tests to verify they pass**
+
+Run: `pnpm test -- src/components/home/PlayDoor.test.tsx`
+Expected: PASS.
 
 - [ ] **Step 6: Rewrite the front page**
 
@@ -694,7 +694,7 @@ git commit -m "feat: pause menu with resume and a saved exit"
 
 - [ ] **Step 1: Add the home and persistence browser tests**
 
-In `tests/e2e/game-entry.spec.ts`, add:
+In `tests/e2e/game-entry.spec.ts`, import `starTotal` from `../../src/game/content/stars`, then add:
 
 ```ts
 test('home_is_the_site_and_the_play_link_opens_the_game', async ({ page }) => {
@@ -720,9 +720,9 @@ test('a_saved_star_shows_continue_on_home_and_in_the_game', async ({ page }) => 
   });
   await page.goto('/');
   await expect(page.getByRole('link', { name: 'Continue the room' })).toBeVisible();
-  await expect(page.getByText('1 of 35 stars found')).toBeVisible();
+  await expect(page.getByText(`1 of ${starTotal()} stars found`)).toBeVisible();
   await page.getByRole('link', { name: 'Continue the room' }).click();
-  await expect(page.locator('.star-counter')).toContainText('1/35');
+  await expect(page.locator('.star-counter')).toContainText(`1/${starTotal()}`);
 });
 
 test('the_menu_button_works_on_a_phone', async ({ page }) => {
