@@ -245,4 +245,41 @@ describe('game audio', () => {
 
     audio.dispose();
   });
+
+  it('enabling_sound_while_paused_does_not_resume_context', async () => {
+    const ctx = new FakeAudioContext({ state: 'suspended' });
+    let created = 0;
+    const audio = createAudio(() => {
+      created += 1;
+      return ctx;
+    }, createStore(null));
+
+    audio.setPaused(true);
+    audio.setEnabled(true);
+
+    expect(ctx.resumeCalls).toBe(0);
+    expect(ctx.oscillators).toHaveLength(0);
+    expect(created).toBe(0);
+
+    audio.setPaused(false);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(ctx.resumeCalls).toBe(1);
+    expect(ctx.state).toBe('running');
+    expect(ctx.oscillators.length).toBe(TUNES.room.notes.length);
+    audio.dispose();
+  });
+
+  it('resume_with_sound_off_stays_quiet', async () => {
+    const ctx = new FakeAudioContext();
+    const audio = createAudio(() => ctx, createStore(null));
+
+    audio.setPaused(true);
+    audio.setPaused(false);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(ctx.oscillators).toHaveLength(0);
+    expect(ctx.resumeCalls).toBe(0);
+    audio.dispose();
+  });
 });

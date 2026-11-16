@@ -98,14 +98,15 @@ export function createAudio(
   }
 
   function resumeAndPlay(): void {
-    if (!ctx) return;
-    if (ctx.state !== 'suspended') {
+    const context = ensureContext();
+    if (!context) return;
+    if (context.state !== 'suspended') {
       startMusic();
       return;
     }
 
     try {
-      void ctx
+      void context
         .resume()
         .then(() => {
           if (!disposed && !paused && enabled && !hidden) startMusic();
@@ -209,6 +210,9 @@ export function createAudio(
         return;
       }
       if (hidden) return;
+      // Paused: remember the choice only. Unpausing creates the context and
+      // resumes, so a menu click never wakes the audio behind a still frame.
+      if (paused) return;
 
       const context = ensureContext();
       if (!context) return;
