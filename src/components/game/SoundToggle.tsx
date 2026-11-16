@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { copy } from '@/game/content/copy';
+import { stopEventsAtButton } from './buttonEvents';
 
 const SCALE = 3;
 
@@ -49,16 +50,6 @@ function PixelSpeaker({ on }: { on: boolean }) {
   );
 }
 
-/** The button owns its input; a click here must never walk the visitor. */
-function stopAtTheButton(event: Event): void {
-  if (event.type === 'keydown' || event.type === 'keyup') {
-    const key = (event as KeyboardEvent).key;
-    // Arrows and WASD still reach the game while the toggle has focus.
-    if (key !== 'Enter' && key !== ' ') return;
-  }
-  event.stopPropagation();
-}
-
 /** Sound is off until the visitor says otherwise, and the choice is visible. */
 export function SoundToggle({
   enabled,
@@ -71,16 +62,12 @@ export function SoundToggle({
 
   // Native listeners on the button itself beat the game's listener on the
   // stage. React's handlers are delegated high above it, so they arrive late.
+  // Arrows and WASD still reach the game while the toggle has focus: only
+  // Enter and Space stop here.
   useEffect(() => {
     const button = ref.current;
     if (!button) return;
-
-    const types = ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'keyup'] as const;
-    for (const type of types) button.addEventListener(type, stopAtTheButton);
-
-    return () => {
-      for (const type of types) button.removeEventListener(type, stopAtTheButton);
-    };
+    return stopEventsAtButton(button);
   }, []);
 
   return (
