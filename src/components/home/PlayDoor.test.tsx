@@ -1,17 +1,10 @@
 // @vitest-environment jsdom
-import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { PROGRESS_KEY } from '@/game/state/progress';
 import { starTotal } from '@/game/content/stars';
 import { PlayDoor } from './PlayDoor';
-
-// Next inlines this flag from next.config.ts (trailingSlash: true) at build
-// time; without it the test environment would strip the slash off /play/.
-process.env.__NEXT_TRAILING_SLASH = 'true';
-afterAll(() => {
-  delete process.env.__NEXT_TRAILING_SLASH;
-});
 
 let container: HTMLDivElement;
 let root: Root;

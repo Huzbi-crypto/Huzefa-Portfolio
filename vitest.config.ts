@@ -16,6 +16,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    setupFiles: ['./vitest.setup.ts'],
     // The Playwright journey tests run from their own runner.
     exclude: [...configDefaults.exclude, 'tests/e2e/**'],
   },

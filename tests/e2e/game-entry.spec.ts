@@ -87,10 +87,13 @@ test('no_console_errors_on_home_or_in_the_game', async ({ page }) => {
 
 test('home_reads_with_javascript_off', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage();
-  await page.goto('/');
-  await expect(page.locator('main h1')).toContainText("Huzbi's room");
-  await expect(page.getByRole('link', { name: 'Play the room' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'See every artifact' })).toBeVisible();
-  await context.close();
+  try {
+    const page = await context.newPage();
+    await page.goto('/');
+    await expect(page.locator('main h1')).toContainText("Huzbi's room");
+    await expect(page.getByRole('link', { name: 'Play the room' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'See every artifact' })).toBeVisible();
+  } finally {
+    await context.close();
+  }
 });
