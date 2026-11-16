@@ -44,7 +44,7 @@ export default function HomePage() {
       <section className="home-door" aria-labelledby="door-heading">
         <PixelPanel className="home-door-panel">
           <div className="home-door-copy">
-            <p className="j-kicker">2:00 AM / the front door</p>
+            <p className="j-kicker">{journalText.home.kicker}</p>
             <h2 id="door-heading">{journalText.home.doorTitle}</h2>
             <p>{journalText.home.doorBody}</p>
             <div className="j-row home-door-actions">
@@ -107,7 +107,7 @@ export default function HomePage() {
 
       <PixelPanel as="section" tone="dim" aria-labelledby="closing-heading">
         <p className="j-kicker">The rest of the notebook</p>
-        <h2 id="closing-heading">Plain pages, when you would rather read</h2>
+        <h2 id="closing-heading">{journalText.home.plainPages}</h2>
         <div className="j-row">
           <Link href="/about/" className="j-btn" data-kind="ghost">
             {journalText.nav.about}

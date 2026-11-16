@@ -19,6 +19,7 @@ export const journalText = {
   },
   home: {
     lede: 'A portfolio you can walk around, or read like a notebook.',
+    kicker: '2:00 AM / the front door',
     doorTitle: 'The room is open.',
     doorBody:
       'It is 2 AM. Huzbi is not here. The note says he will be back in five minutes, and there is a door that should not be there.',
@@ -28,6 +29,7 @@ export const journalText = {
     secondary: 'Read the project notes',
     featuredTitle: 'Three things from the lab',
     allProjects: 'See every artifact',
+    plainPages: 'Plain pages, when you would rather read',
   },
   tools: {
     terminal: 'CLI',

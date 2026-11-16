@@ -1,5 +1,6 @@
 /* Front page only: the door panel, its reserved save line and the mobile
-   steps. Every value is a --j-* token from journal.css. */
+   steps. Every colour is a --j-* token from journal.css; the raw pixel sizes
+   follow journal.css's own practice. */
 
 /* The door: copy on the left, the open door beside it. */
 .home-door-panel {
