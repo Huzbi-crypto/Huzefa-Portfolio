@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import { personalInfo } from '@/data/personal';
 import { useApp } from '@/context/AppContext';
 import { setGameTheme } from '@/game/art';
@@ -34,6 +34,7 @@ import { StarCounter } from './StarCounter';
 import { TermPrompt } from './TermPrompt';
 import { ThemeSelector } from './ThemeSelector';
 import { hasWalked, noteWalked } from './controlsHint';
+import { stopEventsAtButton } from './buttonEvents';
 import { useFocusTrap } from './useFocusTrap';
 import './game.css';
 
@@ -351,23 +352,15 @@ export default function GameRoot() {
 
   const showMenu = Boolean(store) && !paused && !overlayOpen;
 
+  // Stable, so PauseMenu's Esc listener does not reattach on every render.
+  const resume = useCallback(() => setPaused(false), []);
+
   // The menu button owns its input: a tap or Enter here must never walk the
   // visitor or use the room behind the button (the same rule as the journal's).
   useEffect(() => {
     const button = menuButtonRef.current;
     if (!showMenu || !button) return;
-    const stopAtTheButton = (event: Event): void => {
-      if (event.type === 'keydown' || event.type === 'keyup') {
-        const key = (event as KeyboardEvent).key;
-        if (key !== 'Enter' && key !== ' ') return;
-      }
-      event.stopPropagation();
-    };
-    const types = ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'keyup'] as const;
-    for (const type of types) button.addEventListener(type, stopAtTheButton);
-    return () => {
-      for (const type of types) button.removeEventListener(type, stopAtTheButton);
-    };
+    return stopEventsAtButton(button);
   }, [showMenu]);
 
   return (
@@ -441,7 +434,7 @@ export default function GameRoot() {
         open={paused}
         found={ui.found.length}
         total={ui.total}
-        onResume={() => setPaused(false)}
+        onResume={resume}
       />
     </div>
   );

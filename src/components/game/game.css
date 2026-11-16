@@ -1000,7 +1000,7 @@ body {
   place-items: center;
   padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
     max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-  background: rgba(27, 20, 40, 0.82);
+  background: color-mix(in srgb, var(--g-ink) 82%, transparent);
   cursor: default;
   user-select: text;
   -webkit-user-select: text;

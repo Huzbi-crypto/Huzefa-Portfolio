@@ -7,6 +7,7 @@ import { copy } from '@/game/content/copy';
 import { allStarIds, projectStarId, readStarId } from '@/game/content/stars';
 import type { GameStore } from '@/game/state/store';
 import { useFocusTrap } from './useFocusTrap';
+import { stopEventsAtButton } from './buttonEvents';
 import './game.css';
 
 export type JournalEntry = {
@@ -104,15 +105,6 @@ function MiniStar({ on }: { on: boolean }) {
   );
 }
 
-/** The button owns its input: a click here must never walk the visitor. */
-function stopAtTheButton(event: Event): void {
-  if (event.type === 'keydown' || event.type === 'keyup') {
-    const key = (event as KeyboardEvent).key;
-    if (key !== 'Enter' && key !== ' ') return;
-  }
-  event.stopPropagation();
-}
-
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return (
@@ -184,11 +176,7 @@ export function Journal({
   useEffect(() => {
     const button = buttonRef.current;
     if (!button) return;
-    const types = ['pointerdown', 'pointerup', 'pointermove', 'keydown', 'keyup'] as const;
-    for (const type of types) button.addEventListener(type, stopAtTheButton);
-    return () => {
-      for (const type of types) button.removeEventListener(type, stopAtTheButton);
-    };
+    return stopEventsAtButton(button);
   }, []);
 
   const entries = journalEntries(ui.found);
